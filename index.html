@@ -405,6 +405,18 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
         <p class="lead" id="statLast"></p>
         <h3>Por personaje</h3>
         <div class="tscroll"><table class="stt" id="statTable"></table></div>
+        <h3>Copia de seguridad de la partida</h3>
+        <p class="lead">Guarda tu progreso (oro, mejoras, aspectos, mapas y estadísticas) en un archivo para llevarlo a otro dispositivo o navegador, o para recuperarlo si borras los datos del navegador.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px">
+          <button class="btn" id="bkExp" type="button">Exportar partida</button>
+          <button class="btn alt" id="bkImp" type="button">Importar archivo</button>
+          <input type="file" id="bkFile" accept=".json,application/json" hidden>
+        </div>
+        <details><summary class="lead" style="cursor:pointer">Copiar y pegar como texto</summary>
+          <textarea id="bkTxt" rows="5" spellcheck="false" style="width:100%;margin:8px 0;background:var(--panel);color:inherit;border:1px solid var(--line);padding:8px;font:12px/1.4 monospace" placeholder="Aquí aparece el texto de tu partida al exportar. Para importar, pégalo aquí."></textarea>
+          <button class="btn alt" id="bkTxtImp" type="button">Importar este texto</button>
+        </details>
+        <p class="lead" id="bkMsg" aria-live="polite"></p>
       </section>
       </main>
     </div>
@@ -568,6 +580,14 @@ var META=[
 ];
 var META_MAX=8,metaCls='sorc';
 function metaCost(m,l){return Math.round(m.cost*Math.pow(1.4,l))}
+/* Versión del formato de guardado: al sacar versiones nuevas se añaden aquí migraciones y el progreso de los jugadores se conserva. */
+var SAVE_V=2;
+function migrateMeta(m){
+  var v=m.v||1;
+  /* if(v<3){ ...adaptar datos antiguos al formato 3... } */
+  m.v=SAVE_V;
+  return m;
+}
 function loadMeta(){
   var m=null;
   try{m=JSON.parse(localStorage.getItem('cripta_meta')||'null')}catch(e){}
@@ -583,7 +603,7 @@ function loadMeta(){
   var ri=m.skins.indexOf('pal_red');
   if(ri>=0){m.skins.splice(ri,1);m.gold+=5000}
   if(m.skinSel.pal==='pal_red')delete m.skinSel.pal;
-  return m;
+  return migrateMeta(m);
 }
 /* Cada mapa comprado sube 2 niveles el máximo de todas las mejoras permanentes. */
 function metaMax(){var n=0;meta.owned.forEach(function(o){if(o)n++});return 8+2*(Math.max(1,n)-1)}
@@ -806,6 +826,45 @@ function buildStats(){
   });
   $('statTable').innerHTML=h;
 }
+/* ---------- Copia de seguridad: exportar / importar la partida ---------- */
+function bkMsg(m,bad){var el=$('bkMsg');el.textContent=m;el.style.color=bad?'#e8786a':''}
+function bkPack(){
+  return JSON.stringify({game:'cripta-de-ceniza',v:SAVE_V,when:new Date().toISOString(),meta:meta,best:loadBest(),nick:getNick(),rank:loadRankLocal()});
+}
+function bkExport(){
+  var txt=bkPack();
+  $('bkTxt').value=txt;
+  try{
+    var a=document.createElement('a'),d=new Date(),ds=d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);
+    a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download='cripta-de-ceniza-'+ds+'.json';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(a.href)},4000);
+    bkMsg('Partida exportada. Si no se descargó el archivo, copia el texto de «Copiar y pegar como texto».');
+  }catch(e){bkMsg('No se pudo descargar el archivo. Copia el texto de «Copiar y pegar como texto».',true)}
+}
+function bkImport(txt){
+  var d;
+  try{d=JSON.parse(txt)}catch(e){bkMsg('El archivo o el texto no es una copia válida.',true);return}
+  if(!d||d.game!=='cripta-de-ceniza'||!d.meta||!d.meta.lv||typeof d.meta.gold!=='number'){bkMsg('Eso no parece una copia de seguridad de Cripta de Ceniza.',true);return}
+  if((d.v||1)>SAVE_V){bkMsg('Esa copia viene de una versión más nueva del juego. Actualiza la página e inténtalo de nuevo.',true);return}
+  if(!window.confirm('Esto sustituirá el progreso que tienes ahora en este navegador por el de la copia. ¿Continuar?'))return;
+  try{
+    localStorage.setItem('cripta_meta',JSON.stringify(d.meta));
+    if(d.best&&typeof d.best==='object')saveBest(d.best);
+    if(typeof d.nick==='string')setNick(d.nick);
+    if(Array.isArray(d.rank))saveRankLocal(d.rank.slice(0,40));
+  }catch(e){bkMsg('No se pudo guardar en este navegador.',true);return}
+  meta=loadMeta();meta.run=null;saveMeta();
+  buildStats();try{buildMenu()}catch(e){}
+  bkMsg('Partida importada: '+meta.gold+' de oro y todo tu progreso están de vuelta.');
+}
+$('bkExp').addEventListener('click',bkExport);
+$('bkImp').addEventListener('click',function(){$('bkFile').click()});
+$('bkFile').addEventListener('change',function(){
+  var f=this.files&&this.files[0],inp=this;if(!f)return;
+  var r=new FileReader();r.onload=function(){bkImport(String(r.result||''));inp.value=''};r.onerror=function(){bkMsg('No se pudo leer el archivo.',true)};r.readAsText(f);
+});
+$('bkTxtImp').addEventListener('click',function(){var v=$('bkTxt').value.trim();if(!v){bkMsg('Pega primero el texto de la copia.',true);return}bkImport(v)});
 /* ---------- Ranking (global con la base de datos compartida; respaldo local) ---------- */
 var RK_KEY='cripta_rank',rankScope='global',rankMode='sorc',rankRows=[],rankNames={},rankState='idle',rankDb=null,rankU=null,rankUid=null;
 function loadRankLocal(){try{return JSON.parse(localStorage.getItem(RK_KEY)||'[]')}catch(e){return []}}
