@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function validNick(n) {
+      return n is string && n.size() >= 3 && n.size() <= 16
+        && n.matches('^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.-]+$');
+    }
+
+    // Perfil público mínimo del jugador: solo su apodo. Lo lee y escribe solo su dueño.
+    match /players/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nick', 'ts'])
+        && validNick(request.resource.data.nick);
+    }
+
+    // Reserva de apodos únicos: nicks/<apodo en minúsculas> -> { uid, nick }
+    match /nicks/{key} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'nick'])
+        && request.resource.data.uid == request.auth.uid
+        && validNick(request.resource.data.nick)
+        && key == request.resource.data.nick.lower();
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Partida guardada en la nube: privada de cada jugador.
+    match /saves/{uid} {
+      allow read, delete: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['data', 'v', 'ts'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 300000;
+    }
+
+    // Ranking: una colección por categoría (rank_sorc, rank_barb, ..., rank_coop), un documento por jugador.
+    match /{col}/{uid} {
+      allow read: if col.matches('^rank_[a-z]{3,10}$') && signedIn();
+      allow create, update: if col.matches('^rank_[a-z]{3,10}$') && signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nick', 'cls', 'time', 'level', 'kills', 'map', 'ts'])
+        && request.resource.data.keys().hasAll(['nick', 'cls', 'time', 'level', 'kills', 'map', 'ts'])
+        && request.resource.data.nick == get(/databases/$(database)/documents/players/$(uid)).data.nick
+        && request.resource.data.cls is string && request.resource.data.cls.size() <= 24
+        && request.resource.data.time is int && request.resource.data.time >= 30 && request.resource.data.time <= 21600
+        && request.resource.data.level is int && request.resource.data.level >= 1 && request.resource.data.level <= 300
+        && request.resource.data.kills is int && request.resource.data.kills >= 0
+        && request.resource.data.kills <= request.resource.data.time * 60 + 300
+        && request.resource.data.map is int && request.resource.data.map >= 0 && request.resource.data.map <= 9
+        && request.resource.data.ts == request.time;
+      allow delete: if col.matches('^rank_[a-z]{3,10}$') && signedIn() && request.auth.uid == uid;
+    }
+  }
+}
