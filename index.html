@@ -511,7 +511,7 @@ var N=60;
 var xpNeed=function(l){return Math.round(30+10*l+3.5*l*l)};
 var CLASSES={
   sorc:{key:'sorc',name:'Hechicero',role:'Magia de zona',col:'#6aa6ff',hp:30,speed:4.3,dmg:14,rate:.9,crit:.05,armor:0,kind:'zone',
-    zone:{r:1.9,dur:3.4,mult:.75,range:8},
+    zone:{r:1.9,dur:3.4,mult:.7,range:8},
     atk:'Zona abrasadora',atkD:'Abre una zona bajo el enemigo más cercano que daña con el tiempo y ralentiza. Mejora su área, daño y cantidad.'},
   barb:{key:'barb',name:'Bárbaro',role:'Cuerpo a cuerpo pesado',col:'#e0793c',hp:55,speed:4.4,dmg:20,rate:1.6,crit:.05,armor:.05,kind:'melee',range:3.2,arc:2.1,
     atk:'Hachazo',atkD:'Tajo automático en arco amplio con retroceso.'},
@@ -521,25 +521,26 @@ var CLASSES={
   pal:{key:'pal',name:'Paladín',role:'Resistente, proyectiles rebotantes',col:'#f0d36a',hp:64,speed:3.9,dmg:15,rate:1.3,crit:.05,armor:.2,kind:'proj',
     proj:{speed:9,life:9,n:1,pierce:3,spread:.35,bounce:3,range:9},
     atk:'Proyectil sagrado',atkD:'Proyectil que atraviesa 3 enemigos y rebota 3 veces en las paredes. Armadura inicial 20%.'},
-  druid:{key:'druid',name:'Druida',role:'Aura a su alrededor',col:'#8fcf5a',hp:53,speed:4.1,dmg:11,rate:2.0,crit:.05,armor:.1,kind:'aura',
+  druid:{key:'druid',name:'Druida',role:'Aura a su alrededor',col:'#8fcf5a',hp:53,speed:4.1,dmg:12,rate:2.0,crit:.05,armor:.1,kind:'aura',
     aura:{r:3,mult:.7},
     atk:'Aura espinosa',atkD:'Un círculo a su alrededor, con él en el centro, daña y ralentiza a los enemigos que lo pisan. Mejora su área y su daño. Armadura inicial 10%.'},
-  necro:{key:'necro',name:'Nigromante',role:'Proyectiles de almas teledirigidos',col:'#b583e8',hp:34,speed:4.2,dmg:12,rate:1.0,crit:.08,armor:0,kind:'orbit',
+  necro:{key:'necro',name:'Nigromante',role:'Proyectiles de almas teledirigidos',col:'#b583e8',hp:44,speed:4.2,dmg:14,rate:1.0,crit:.08,armor:0,kind:'orbit',
     orbit:{max:5,range:8,speed:7.5,pierce:1,mult:1.6},
     atk:'Proyectiles de almas',atkD:'Genera un proyectil cada segundo y los acumula girando a su alrededor hasta tener 5. Cuando detecta enemigos, los lanza todos y persiguen a su objetivo.'},
-  bruja:{key:'bruja',name:'Bruja',role:'Esferas oscuras teledirigidas',col:'#b583e8',hp:32,speed:4.3,dmg:13,rate:1.25,crit:.06,armor:0,kind:'spheres',range:9,
+  bruja:{key:'bruja',name:'Bruja',role:'Esferas oscuras teledirigidas',col:'#b583e8',hp:42,speed:4.3,dmg:15,rate:1.25,crit:.06,armor:0,kind:'spheres',range:9,
     atk:'Esferas oscuras',atkD:'Invoca esferas oscuras a su alrededor (empieza con 2 a la vez, hasta 5). Giran poco a poco hacia un enemigo y estallan al tocarlo o a los 2 segundos y vuelven a estallar en el mismo sitio. Si no hay enemigos, no aparecen.'},
-  monja:{key:'monja',name:'Monja',role:'Monjes dorados que combaten por ella',col:'#e8c860',hp:48,speed:4.0,dmg:12,rate:1.0,crit:.05,armor:.1,kind:'monks',range:8,
+  monja:{key:'monja',name:'Monja',role:'Monjes dorados que combaten por ella',col:'#e8c860',hp:54,speed:4.0,dmg:14,rate:1.0,crit:.05,armor:.1,kind:'monks',range:8,
     atk:'Monjes dorados',atkD:'Invoca 2 monjes (hasta 5) que pelean a puñetazos en arco con el daño de la Monja. Atacan primero a lo más cercano a ella; si uno cae, renace a los 4 s. Enemigos y jefes los atacan. Armadura inicial 10%.'},
-  amazona:{key:'amazona',name:'Amazona',role:'Lanzas que vuelven a su mano',col:'#d6524a',hp:60,speed:4.6,dmg:16,rate:1/.9,crit:.1,armor:.05,kind:'spears',range:8,
+  amazona:{key:'amazona',name:'Amazona',role:'Lanzas que vuelven a su mano',col:'#d6524a',hp:56,speed:4.6,dmg:16,rate:1/.9,crit:.1,armor:.05,kind:'spears',range:8,
     atk:'Lanzas que vuelven',atkD:'Lanza hasta 3 lanzas (máx. 5) al enemigo más cercano; se clavan en él o en el suelo y no atraviesan. Cada pocos segundos, o cuando están todas fuera, las llama: regresan a ella dañando a cada enemigo que cruzan, y arrancar una lanza de un enemigo vivo le hace un golpe extra.'},
-  angel:{key:'angel',name:'Ángel',role:'Urnas de luz que giran a su alrededor',col:'#a8f0ff',hp:45,speed:4.5,dmg:14,rate:1/2.2,crit:.06,armor:.05,kind:'urns',range:6,
+  angel:{key:'angel',name:'Ángel',role:'Urnas de luz que giran a su alrededor',col:'#a8f0ff',hp:52,speed:4.5,dmg:16,rate:1/2.2,crit:.06,armor:.05,kind:'urns',range:6,
     atk:'Urnas de luz',atkD:'Empieza con 2 urnas (hasta 8) que giran a su alrededor. Cada pocos segundos todas brillan y disparan a la vez un rayo de luz hacia fuera que daña una vez a cada enemigo que toca; como las urnas siguen girando, el rayo barre un arco.'}
 };
 /* Vida de los enemigos = daño base del personaje en ese momento (sin crítico ni multiplicadores de zona/aura) x un factor por tipo.
    Jefes: BOSS_HITS golpes normales (tras armadura) x BOSS_K ("un 50% más"). */
 var PROJ_MAX=20;
-var HPF={zombie:1,archer:.65,brute:5},BOSS_HITS=10,BOSS_K=1.7;
+var HPF={zombie:1.3,archer:1,brute:8},HP_REF=18,HP_TIME=240,BOSS_BASE=1500,BOSS_HITS=10,BOSS_K=1.7;
+function enemyHp(hf){return HP_REF*hf*(1+t/HP_TIME)*(1+t/1200)*MAPS[curMap].hp}
 function bossHf(n,armor){return BOSS_HITS*BOSS_K*(1+.6*(n-1))}
 var ETYPES={
   zombie:{hp:14,speed:1.9,dmg:8,r:.32,xp:5,h:30,col:'#7f9d6c',name:'Zombi'},
@@ -547,19 +548,16 @@ var ETYPES={
   brute:{hp:70,speed:1.25,dmg:20,r:.55,xp:24,h:46,col:'#a8583f',name:'Bruto'}
 };
 var UPS=[
-  {n:'Poder',ic:'icono_poder',c:'o',d:'+5% de daño',f:function(){P.dmg*=1.05}},
+  {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){P.dmg*=1.08}},
   {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',f:function(){P.rate*=1.12}},
   {n:'Ojo certero',ic:'icono_ojo_certero',c:'o',d:'+8% de crítico (daño x2, máx. 100%)',ok:function(){return P.crit<1-1e-9},f:function(){P.crit=Math.min(1,P.crit+.08)}},
   {n:'Descarga doble',ic:'icono_descarga_doble',c:'o',d:'+1 proyectil por ataque',ok:function(){return P.c.kind==='proj'&&!P.bounce&&!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN++}},
   {n:'Estallido',ic:'icono_estallido',c:'o',d:'+2 proyectiles por ataque, repartidos en círculo (máx. 20)',ok:function(){return !!P.c.proj&&!!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN=Math.min(PROJ_MAX,P.projN+2)}},
   {n:'Zona ampliada',ic:'icono_zona_ampliada',c:'o',d:'+5% de radio de tus zonas (máx. +50% sobre el radio base)',ok:function(){return P.c.kind==='zone'&&P.zoneR<1.5-1e-9},f:function(){P.zoneR=Math.min(1.5,P.zoneR+.05)}},
-  {n:'Zona virulenta',ic:'icono_zona_virulenta',c:'o',d:'+30% de daño de tus zonas',ok:function(){return P.c.kind==='zone'},f:function(){P.zoneDmg*=1.3}},
   {n:'Zonas gemelas',ic:'icono_zonas_gemelas',c:'o',d:'+1 zona por lanzamiento',ok:function(){return P.c.kind==='zone'},f:function(){P.zoneN++}},
   {n:'Perforación',ic:'icono_perforacion',c:'o',d:'Los proyectiles atraviesan 1 enemigo más',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){P.pierce++}},
   {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<1.75-1e-9},f:function(){P.auraR=Math.min(1.75,P.auraR+.08)}},
-  {n:'Aura virulenta',ic:'icono_aura_virulenta',c:'o',d:'+30% de daño de tu aura',ok:function(){return P.c.kind==='aura'},f:function(){P.auraDmg*=1.3}},
   {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbMax+=2}},
-  {n:'Invocación veloz',ic:'icono_invocacion_veloz',c:'o',d:'+30% de velocidad de generación de proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbGen*=1.3}},
   {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+25% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.25}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
@@ -569,8 +567,8 @@ var UPS=[
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 60%)',ok:function(){return P.armor<.6-1e-9},f:function(){P.armor=Math.min(.6,P.armor+.07)}},
   {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 3% del daño infligido',f:function(){P.steal+=.03}},
   {n:'Pies ligeros',ic:'icono_pies_ligeros',c:'u',d:'+8% de velocidad de movimiento',f:function(){P.speed*=1.08}},
-  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+40% de radio de recogida',f:function(){P.pick*=1.4}},
-  {n:'Sabiduría',ic:'icono_sabiduria',c:'u',d:'+7,5% de experiencia ganada',f:function(){P.xpMul*=1.075}}
+  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida',f:function(){P.pick*=1.15}},
+  {n:'Sabiduría',ic:'icono_sabiduria',c:'u',d:'+5% de experiencia ganada',f:function(){P.xpMul+=.05}}
 ];
 var CATS={o:'Ofensiva',d:'Defensa',u:'Utilidad',s:'Mejora especial'};
 /* Mejoras especiales del ataque: las concede cada jefe derrotado. */
@@ -586,15 +584,15 @@ function toast(m){var el=$('toast');el.textContent=m;el.hidden=false;clearTimeou
 
 /* ---------- Mejoras permanentes (se pagan con oro) ---------- */
 var META=[
-  {k:'hp',n:'Vida',e:'+10% de vida máxima',cost:50},
-  {k:'atk',n:'Ataque',e:'+8% de daño',cost:60},
-  {k:'rate',n:'Velocidad de ataque',e:'+5% de velocidad de ataque',cost:70},
-  {k:'mov',n:'Velocidad de movimiento',e:'+4% de velocidad',cost:60},
-  {k:'arm',n:'Armadura',e:'+2% de reducción de daño',cost:80},
-  {k:'crit',n:'Crítico',e:'+2% de probabilidad de crítico',cost:80},
-  {k:'reg',n:'Regeneración',e:'+0,15 de vida por segundo',cost:60},
-  {k:'mag',n:'Imán',e:'+10% de radio de recogida',cost:40},
-  {k:'xp',n:'Sabiduría',e:'+5% de experiencia',cost:90},
+  {k:'hp',n:'Vida',e:'+6% de vida máxima',cost:50},
+  {k:'atk',n:'Ataque',e:'+5% de daño',cost:60},
+  {k:'rate',n:'Velocidad de ataque',e:'+3% de velocidad de ataque',cost:70},
+  {k:'mov',n:'Velocidad de movimiento',e:'+3% de velocidad',cost:60},
+  {k:'arm',n:'Armadura',e:'+1,5% de reducción de daño',cost:80},
+  {k:'crit',n:'Crítico',e:'+1,5% de probabilidad de crítico',cost:80},
+  {k:'reg',n:'Regeneración',e:'+0,1 de vida por segundo',cost:60},
+  {k:'mag',n:'Imán',e:'+6% de radio de recogida',cost:40},
+  {k:'xp',n:'Sabiduría',e:'+3% de experiencia',cost:90},
   {k:'gold',n:'Fortuna',e:'+10% de oro ganado por partida',cost:100}
 ];
 var META_MAX=8,metaCls='sorc';
@@ -773,7 +771,7 @@ function buildBest(){
   var h='';
   if(bestZone==='boss'){
     BOSS_ENTRIES.forEach(function(b){
-      var k=bestKills(bossKey(b)),hp=Math.round(BOSS_HITS*BOSS_K*BOSS_CFG[b.kind].hp),dm=Math.round(22*BOSS_CFG[b.kind].dmg*MAPS[b.map||0].dmg),ar=Math.min(.6,.3+.05*(b.n-1)),bd=BOSS_SRC.spr[b.kind]||ABYSS_BOSS_SRC.spr[b.kind]||SWAMP_BOSS_SRC.spr[b.kind]||FORGE_BOSS_SRC.spr[b.kind]||SANCT_BOSS_SRC.spr[b.kind],art='<span class="nope">Ilustración pendiente</span>';
+      var k=bestKills(bossKey(b)),hp=Math.round(BOSS_BASE*BOSS_CFG[b.kind].hp*MAPS[b.map||0].hp),dm=Math.round(28*BOSS_CFG[b.kind].dmg*MAPS[b.map||0].dmg),ar=Math.min(.6,.3+.05*(b.n-1)),bd=BOSS_SRC.spr[b.kind]||ABYSS_BOSS_SRC.spr[b.kind]||SWAMP_BOSS_SRC.spr[b.kind]||FORGE_BOSS_SRC.spr[b.kind]||SANCT_BOSS_SRC.spr[b.kind],art='<span class="nope">Ilustración pendiente</span>';
       if(bd){var bs=Math.min(.62,165/bd.fh),bw=bd.fw*bs,bh=bd.fh*bs;art='<span class="bsp'+(k?'':' lock')+'" style="--fw:'+bw+'px;--n:'+bd.walk+';width:'+bw+'px;height:'+bh+'px;background-image:url('+bd.src+');background-size:'+(bd.fw*bd.walk*bs)+'px '+(bd.fh*3*bs)+'px"></span>'}
       h+='<div class="skc"><span class="por">'+art+'</span><span class="nm">'+(k?b.name:'???')+'</span>'+
         (k?'<div class="stl"><span>Vida <b>≈'+hp+' golpes</b></span><span>Daño <b>'+dm+'</b></span><span>Armadura <b>'+Math.round(ar*100)+'%</b></span></div><p class="dsc">'+b.desc+'</p><span class="kn">Derrotado '+k+(k===1?' vez':' veces')+' · cifras del mapa '+((b.map||0)+1)+'; aparece como jefe n.º '+b.n+'</span>':
@@ -788,7 +786,7 @@ function buildBest(){
         art='<span class="bsp'+(k?'':' lock')+'" style="--fw:'+w+'px;--n:'+d.walk+';width:'+w+'px;height:'+hh+'px;background-image:url('+ENEMY_DIR[b.zone]+d.name+'.png);background-size:'+(d.w*sc)+'px '+(d.h*sc)+'px"></span>';
       }
       h+='<div class="skc"><span class="por">'+art+'</span><span class="nm">'+(k?b.name:'???')+'</span>'+
-        (k?'<div class="stl"><span>Vida <b>'+(HPF[b.type]===1?'1 golpe':'×'+String(HPF[b.type]).replace('.',',')+' tu daño')+'</b></span><span>Daño <b>'+Math.round(et.dmg*m.dmg)+'</b></span><span>Velocidad <b>'+String(et.speed).replace('.',',')+'</b></span></div><p class="dsc">'+b.desc+'</p><span class="kn">Derrotados: '+k+' · su vida sigue a tu daño; el daño crece con el tiempo de partida</span>':
+        (k?'<div class="stl"><span>Vida <b>'+Math.round(HP_REF*HPF[b.type]*m.hp)+'</b></span><span>Daño <b>'+Math.round(et.dmg*m.dmg)+'</b></span><span>Velocidad <b>'+String(et.speed).replace('.',',')+'</b></span></div><p class="dsc">'+b.desc+'</p><span class="kn">Derrotados: '+k+' · su vida y su daño crecen con el tiempo de partida y con el mapa</span>':
         '<p class="dsc">Derrota a esta criatura para registrarla.</p>')+'</div>';
     });
     if(!list.length)h='<p class="empty">Aún no hay criaturas registradas en esta zona.</p>';
@@ -1104,9 +1102,9 @@ function mkPlayer(key,idx){
     level:1,xp:0,need:xpNeed(1),atkCd:0,inv:0,pend:0,pendS:0,dead:false,reviveT:0,
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
   var L=function(k){return lvOf(key,k)};
-  p.maxHp=c.hp*(1+.1*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.08*L('atk'));p.rate=c.rate*(1+.05*L('rate'));
-  p.speed=c.speed*(1+.04*L('mov'));p.armor=Math.min(.6,c.armor+.02*L('arm'));p.crit=Math.min(1,c.crit+.02*L('crit'));
-  p.regen=.15*L('reg');p.pick=3.2*(1+.1*L('mag'));p.xpMul=1+.05*L('xp');
+  p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.rate=c.rate*(1+.03*L('rate'));
+  p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.6,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
+  p.regen=.1*L('reg');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
   p.skinId=skinFor(key);
   return p;
 }
@@ -1212,7 +1210,7 @@ function spawnBoss(){
     var a=Math.random()*6.283,d=rnd(10,13),T=livePlayer(),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(blocked(x,y,.9))continue;
     bossN++;
-    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=refDmg()*hf*(coop?1.7:1);
+    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*(1+t/1200)*(coop?1.7:1);
     var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:curMap===0?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg,
       xp:0,h:76,col:curMap===0?'#a89c78':curMap===1?'#4ea2b0':curMap===2?'#5a7a2a':curMap===3?'#8a2a1a':'#d0a032',armor:bar,elite:false,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:2.5,side:1,dead:false,ai:1.2,wind:-1,sc:0};
     enemies.push(b);bossAlive=b;S('bossRoar');toast(kind==='muerte'||kind==='cangrejo'||kind==='wendigo'||kind==='devorador'||kind==='papa'?'¡'+b.name+' ha llegado!':'Jefe: '+b.name);
@@ -1308,7 +1306,7 @@ function spawnEnemy(){
     if(t>90&&r<.14)typ='brute';else if(t>40&&r<.38)typ='archer';
     var def=ETYPES[typ],elite=t>60&&Math.random()<.07;
     var hf=HPF[typ]*(elite?2.4:1),dm=(1+t/300)*(elite?1.3:1)*MAPS[curMap].dmg;
-    enemies.push({type:typ,x:x,y:y,r:def.r*(elite?1.2:1),hf:hf,hp:refDmg()*hf,maxHp:refDmg()*hf,speed:def.speed*(elite?1.1:1),dmg:def.dmg*dm,
+    enemies.push({type:typ,x:x,y:y,r:def.r*(elite?1.2:1),hf:hf,hp:enemyHp(hf),maxHp:enemyHp(hf),speed:def.speed*(elite?1.1:1),dmg:def.dmg*dm,
       xp:def.xp*(elite?4:1)*MAPS[curMap].xp,h:def.h*(elite?1.2:1),col:curMap===0?'#a89c78':curMap===1?({zombie:'#b07c78',archer:'#4ea2b0',brute:'#6e4a30'})[typ]:curMap===2?({zombie:'#4a6a1c',archer:'#c4321c',brute:'#1e4a4a'})[typ]:curMap===3?({zombie:'#9c2816',archer:'#5a2a8a',brute:'#6e2416'})[typ]:curMap===4?({zombie:'#8a7a7a',archer:'#d6a62c',brute:'#dddbe2'})[typ]:def.col,elite:elite,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:rnd(1,2.5),side:Math.random()<.5?1:-1,dead:false});
     return;
   }
@@ -1520,9 +1518,6 @@ function playerStep(dt){
 function update(dt){
   t+=dt;
   /* la vida de los enemigos sigue al daño del personaje (en cooperativo, a la media de los dos): si sube con las mejoras, ellos suben igual */
-  var rd=refDmg();
-  if(!refD)refD=rd;
-  else if(Math.abs(rd-refD)>1e-9){var rq=rd/refD;refD=rd;for(var ri=0;ri<enemies.length;ri++){enemies[ri].hp*=rq;enemies[ri].maxHp*=rq}}
   snapT-=dt;if(snapT<=0){snapT=10;snapshotRun()}
   for(var pi=0;pi<PL.length;pi++){P=PL[pi];playerStep(dt)}
   P=PL[0];
@@ -1538,7 +1533,7 @@ function update(dt){
   if(spawnT<=0){
     spawnT=.12;
     /* Enemigos objetivo en pantalla: sube un 10% cada 10 segundos (tope 320). */
-    var target=Math.round(Math.min(coop?560:400,30*Math.pow(1.1,Math.floor(t/10))*(coop?1.6:1))*capScale);
+    var target=Math.round(Math.min(coop?420:260,16*Math.pow(1.09,Math.floor(t/10))*(coop?1.6:1))*capScale);
     var need=Math.min(6,target-enemies.length);
     for(var k=0;k<need;k++)spawnEnemy();
   }
@@ -1686,11 +1681,11 @@ $('lvlCards').addEventListener('click',function(e){var b=e.target.closest('[data
 /* ---------- Render ---------- */
 /* Mapas: cada uno tiene su color, más vida/daño/experiencia de enemigos y se compra al superar 10 min en el anterior. */
 var MAPS=[
-  {n:'Cripta gris',music:'musica/mapa1.mp3',hp:2.1,dmg:1.45,xp:1,bhp:1,floor:['#262626','#2a2a2a','#222222','#2e2e2e'],wt:'#525252',wl:'#343434',wr:'#202020',wo:'#0b0b0b',ws:'#6a6a6a',bg:'#0c0c0c',sw:'#4a4a4a'},
-  {n:'Abismo azul',music:'musica/mapa2.mp3',hp:2.8,dmg:1.75,xp:1,bhp:1.75,floor:['#111b33','#14213b','#0e172b','#182643'],wt:'#34507f',wl:'#223659',wr:'#142039',wo:'#060a14',ws:'#4b6ea5',bg:'#070c18',sw:'#1e3562'},
-  {n:'Pantano verde',music:'musica/mapa3.mp3',hp:3.6,dmg:2.1,xp:1,bhp:2.5,floor:['#14271a','#182d1f','#112016','#1c3424'],wt:'#35643f',wl:'#234429',wr:'#152c1b',wo:'#060e08',ws:'#4c8a5a',bg:'#08120b',sw:'#1f4a2b'},
-  {n:'Forja roja',music:'musica/mapa4.mp3',hp:4.5,dmg:2.5,xp:1,bhp:3.25,floor:['#2d1313','#341717','#260f0f','#3b1b1b'],wt:'#743030',wl:'#4c1e1e',wr:'#2e1111',wo:'#0e0505',ws:'#9a4545',bg:'#150808',sw:'#5a1c1c'},
-  {n:'Santuario púrpura',music:'musica/mapa5.mp3',hp:5.5,dmg:3,xp:1,bhp:4,floor:['#20152f','#261939','#1b1128','#2c1d43'],wt:'#563f82',wl:'#392a57',wr:'#231a36',wo:'#0b0713',ws:'#7a5fb0',bg:'#0d0816',sw:'#3a2860'}
+  {n:'Cripta gris',music:'musica/mapa1.mp3',hp:1,dmg:1,xp:1,bhp:1,floor:['#262626','#2a2a2a','#222222','#2e2e2e'],wt:'#525252',wl:'#343434',wr:'#202020',wo:'#0b0b0b',ws:'#6a6a6a',bg:'#0c0c0c',sw:'#4a4a4a'},
+  {n:'Abismo azul',music:'musica/mapa2.mp3',hp:1.5,dmg:1.7,xp:1,bhp:1.75,floor:['#111b33','#14213b','#0e172b','#182643'],wt:'#34507f',wl:'#223659',wr:'#142039',wo:'#060a14',ws:'#4b6ea5',bg:'#070c18',sw:'#1e3562'},
+  {n:'Pantano verde',music:'musica/mapa3.mp3',hp:2.1,dmg:2.3,xp:1,bhp:2.5,floor:['#14271a','#182d1f','#112016','#1c3424'],wt:'#35643f',wl:'#234429',wr:'#152c1b',wo:'#060e08',ws:'#4c8a5a',bg:'#08120b',sw:'#1f4a2b'},
+  {n:'Forja roja',music:'musica/mapa4.mp3',hp:2.9,dmg:3,xp:1,bhp:3.25,floor:['#2d1313','#341717','#260f0f','#3b1b1b'],wt:'#743030',wl:'#4c1e1e',wr:'#2e1111',wo:'#0e0505',ws:'#9a4545',bg:'#150808',sw:'#5a1c1c'},
+  {n:'Santuario púrpura',music:'musica/mapa5.mp3',hp:3.8,dmg:3.8,xp:1,bhp:4,floor:['#20152f','#261939','#1b1128','#2c1d43'],wt:'#563f82',wl:'#392a57',wr:'#231a36',wo:'#0b0713',ws:'#7a5fb0',bg:'#0d0816',sw:'#3a2860'}
 ];
 var MAP_COST=1000;
 var FLOOR=MAPS[0].floor,WALL_T=MAPS[0].wt,WALL_L=MAPS[0].wl,WALL_R=MAPS[0].wr,WALL_O=MAPS[0].wo,WALL_S=MAPS[0].ws,BG=MAPS[0].bg;
@@ -2306,8 +2301,8 @@ var BOSS_CFG={
 /* tras cada ciclo completo de 20 min, el ciclo siguiente es un poco más duro */
 function bossCycle(n){return Math.floor((n-1)/4)}
 function bossKindOf(n){return (curMap===1?ABYSS_KINDS:curMap===2?SWAMP_KINDS:curMap===3?FORGE_KINDS:curMap===4?SANCT_KINDS:BOSS_KIND)[(n-1)%4]}
-function bossHp(n){return BOSS_HITS*BOSS_K*BOSS_CFG[bossKindOf(n)].hp*(1+.6*bossCycle(n))}
-function bossDmg(n){return 22*BOSS_CFG[bossKindOf(n)].dmg*(1+.15*bossCycle(n))}
+function bossHp(n){return BOSS_BASE*BOSS_CFG[bossKindOf(n)].hp*(1+.6*bossCycle(n))/HP_REF}
+function bossDmg(n){return 28*BOSS_CFG[bossKindOf(n)].dmg*(1+.15*bossCycle(n))}
 ATK_DUR.polvorista=.6;ATK_DUR.bicefalo=.6;ATK_DUR.arrastrado=1.1;ATK_DUR.muerte=.8;
 var haz=[];
 /* Los jefes miden el doble que el enemigo más grande de su mapa (bruto / diablo negro). */
@@ -4612,8 +4607,7 @@ function angInterval(p){return Math.max(1,(1/p.rate)*p.angCd)}
 /* mejoras propias del Ángel */
 UPS.push(
   {n:'Más urnas',ic:'icono_mas_urnas',c:'o',d:'+1 urna a tu alrededor (máx. 8)',ok:function(){return P.c.kind==='urns'&&P.angN<8},f:function(){P.angN=Math.min(8,P.angN+1)}},
-  {n:'Plegaria rápida',ic:'icono_plegaria_rapida',c:'o',d:'-12% de tiempo entre disparos (mínimo 1 s)',ok:function(){return P.c.kind==='urns'&&angInterval(P)>1+1e-6},f:function(){P.angCd*=.88}},
-  {n:'Rayo divino',ic:'icono_rayo_divino',c:'o',d:'+20% de daño y de anchura de los rayos (máx. +100%)',ok:function(){return P.c.kind==='urns'&&P.angW<2-1e-6},f:function(){P.angDmg=Math.min(2,P.angDmg+.2);P.angW=Math.min(2,P.angW+.2)}},
+  {n:'Rayo divino',ic:'icono_rayo_divino',c:'o',d:'+20% de anchura de los rayos (máx. +100%)',ok:function(){return P.c.kind==='urns'&&P.angW<2-1e-6},f:function(){P.angW=Math.min(2,P.angW+.2)}},
   {n:'Órbita veloz',ic:'icono_orbita_veloz',c:'o',d:'+20% de velocidad de giro y +10% de radio de la órbita (máx. 5 veces)',ok:function(){return P.c.kind==='urns'&&P.angSpin<2-1e-6},f:function(){P.angSpin=Math.min(2,P.angSpin+.2);P.angRad=Math.min(1.5,P.angRad+.1)}}
 );
 SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.c.kind!=='urns'&&(!o||o())}}});
@@ -4754,7 +4748,7 @@ statRows=function(){
   var h=statRows_an_base();
   if(!P||P.c.kind!=='urns')return h;
   function a(l,v,mx){return '<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>'}
-  var r=a('Urnas',P.angN,P.angN>=8)+a('Disparo cada',r1(angInterval(P))+' s',angInterval(P)<=1+1e-6)+a('Daño del rayo',r1(P.dmg*P.angDmg))+a('Anchura del rayo','x'+r1(P.angW),P.angW>=2-1e-6)+a('Vuelta de las urnas','cada '+r1(6.2832/(AN_SPIN*P.angSpin))+' s',P.angSpin>=2-1e-6)+a('Radio de la órbita','x'+r1(P.angRad),P.angRad>=1.5-1e-6);
+  var r=a('Urnas',P.angN,P.angN>=8)+a('Disparo cada',r1(angInterval(P))+' s',false)+a('Daño del rayo',r1(P.dmg))+a('Anchura del rayo','x'+r1(P.angW),P.angW>=2-1e-6)+a('Vuelta de las urnas','cada '+r1(6.2832/(AN_SPIN*P.angSpin))+' s',P.angSpin>=2-1e-6)+a('Radio de la órbita','x'+r1(P.angRad),P.angRad>=1.5-1e-6);
   var i=h.indexOf('<div class="sp">');
   return i<0?h+r:h.slice(0,i)+r+h.slice(i);
 };
