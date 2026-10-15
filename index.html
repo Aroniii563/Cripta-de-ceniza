@@ -511,8 +511,8 @@ var N=60;
 var xpNeed=function(l){return Math.round(30+10*l+3.5*l*l)};
 var CLASSES={
   sorc:{key:'sorc',name:'Hechicero',role:'Magia de zona',col:'#6aa6ff',hp:30,speed:4.3,dmg:14,rate:.9,crit:.05,armor:0,kind:'zone',
-    zone:{r:1.9,dur:3.4,mult:.7,range:8},
-    atk:'Zona abrasadora',atkD:'Abre una zona bajo el enemigo más cercano que daña con el tiempo y ralentiza. Mejora su área, daño y cantidad.'},
+    zone:{r:2.1,dur:3.4,mult:1.8,range:8},
+    atk:'Zona abrasadora',atkD:'Abre una zona bajo el enemigo más cercano que daña con el tiempo y ralentiza. No vuelve a lanzar hasta que desaparecen todas sus zonas; la velocidad de ataque acorta la espera entre hechizos. Mejora su área, daño y cantidad de zonas.'},
   barb:{key:'barb',name:'Bárbaro',role:'Cuerpo a cuerpo pesado',col:'#e0793c',hp:55,speed:4.4,dmg:20,rate:1.6,crit:.05,armor:.05,kind:'melee',range:3.2,arc:2.1,
     atk:'Hachazo',atkD:'Tajo automático en arco amplio con retroceso.'},
   rogue:{key:'rogue',name:'Pícaro',role:'Velocidad y críticos',col:'#9ad36a',hp:36,speed:5.3,dmg:10,rate:1.8,crit:.2,armor:0,kind:'proj',
@@ -1509,6 +1509,8 @@ function playerStep(dt){
   if(!isFinite(P.x)||!isFinite(P.y)){P.x=P.gx||N/2+.5;P.y=P.gy||N/2+.5}else{P.gx=P.x;P.gy=P.y}
   if(!isFinite(P.hp))P.hp=P.maxHp;
   P.atkCd-=dt;P.inv-=dt;P.flash-=dt;
+  /* Hechicero: la cuenta atrás hasta el siguiente hechizo solo corre cuando ya no queda ninguna de sus zonas en el mapa */
+  if(P.c.kind==='zone'&&zones.some(function(z){return z.own===P||(!z.own&&PL.length<2)}))P.atkCd=Math.max(P.atkCd,1/P.rate);
   P.hp=Math.min(P.maxHp,P.hp+P.regen*dt);
   var n0=shots.length,z0=zones.length;
   if(attacking&&P.atkCd<=0){doAttack();P.atkCd=1/P.rate}
