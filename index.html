@@ -374,6 +374,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
       </nav>
       <main class="mmain">
       <section id="pPlay">
+        <p id="heroMsg" class="ef" style="min-height:1.2em;color:var(--gold)"></p>
         <div class="grid" id="classGrid"></div>
         <p class="curve" id="curve"></p>
         <p class="keys">WASD mueve en la vista isométrica. El personaje ataca solo al enemigo más cercano que tenga a tiro. En pantalla táctil, mantén el dedo en la pantalla para moverte. Tras elegir personaje podrás escoger mapa y, si quieres, jugar en cooperativo local con un segundo jugador (flechas).</p>
@@ -621,6 +622,7 @@ function migrateMeta(m){
   m.v=SAVE_V;
   return m;
 }
+var HERO_COST=1000,HERO_FREE=['sorc','amazona','bruja','rogue','pal','barb'],HERO_PAID=['druid','monja','necro','angel'];
 function loadMeta(){
   var m=null;
   try{m=JSON.parse(localStorage.getItem('cripta_meta')||'null')}catch(e){}
@@ -634,6 +636,9 @@ function loadMeta(){
   if(!m.bestiary)m.bestiary={};
   if(!m.diary)m.diary=[false,false,false,false,false];
   if(!m.infinite)m.infinite=false;
+  if(!m.heroes){m.heroes=HERO_FREE.slice();
+    /* quien ya jugaba con un personaje de pago lo conserva */
+    HERO_PAID.forEach(function(k){if((m.stats.cls[k]&&m.stats.cls[k].runs>0)||(m.lv&&m.lv[k]&&Object.keys(m.lv[k]).length))m.heroes.push(k)})}
   /* aspecto de prueba retirado: se devuelve su precio */
   var ri=m.skins.indexOf('pal_red');
   if(ri>=0){m.skins.splice(ri,1);m.gold+=5000}
@@ -1170,10 +1175,20 @@ function fmt(s){s=Math.floor(s);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'
 function loadBest(){try{return JSON.parse(localStorage.getItem('cripta_best')||'{}')}catch(e){return {}}}
 function saveBest(b){try{localStorage.setItem('cripta_best',JSON.stringify(b))}catch(e){}}
 
+function ownsHero(k){if(!meta.heroes)meta.heroes=HERO_FREE.slice();return meta.heroes.indexOf(k)>=0}
 function buildMenu(){
   var best=loadBest(),h='';
-  Object.keys(CLASSES).forEach(function(k){
+  var ks=Object.keys(CLASSES);ks=ks.filter(ownsHero).concat(ks.filter(function(k){return !ownsHero(k)}));
+  ks.forEach(function(k){
     var c=CLASSES[k],b=best[k];
+    if(!ownsHero(k)){
+      h+='<button class="card" type="button" data-k="'+k+'" data-lock="1" style="opacity:.8">'+
+        '<span style="filter:grayscale(1) brightness(.55);display:block">'+portHtml(k==='pal'?'pal':skinFor(k),k)+'</span><span class="nm" style="color:'+c.col+'">'+c.name+'</span><span class="role">'+c.role+'</span>'+
+        '<span class="stats"><span>Vida <b>'+c.hp+'</b></span><span>Daño <b>'+c.dmg+'</b></span><span>Vel. <b>'+c.speed.toFixed(1)+'</b></span></span>'+
+        '<p><em>'+c.atk+'.</em> '+c.atkD+'</p>'+
+        '<span class="best" style="color:var(--gold)">Bloqueado · '+HERO_COST+' oro'+(meta.gold<HERO_COST?' (te faltan '+(HERO_COST-meta.gold)+')':' · pulsa para comprar')+'</span></button>';
+      return;
+    }
     h+='<button class="card" type="button" data-k="'+k+'">'+
       portHtml(k==='pal'?'pal':skinFor(k),k)+'<span class="nm" style="color:'+c.col+'">'+c.name+'</span><span class="role">'+c.role+'</span>'+
       '<span class="stats"><span>Vida <b>'+c.hp+'</b></span><span>Daño <b>'+c.dmg+'</b></span><span>Vel. <b>'+c.speed.toFixed(1)+'</b></span></span>'+
@@ -1185,7 +1200,13 @@ function buildMenu(){
   $('curve').innerHTML='Experiencia para subir de nivel: <b>'+cs.join(' · ')+'</b>… nivel 20: <b>'+xpNeed(20)+'</b> · nivel 40: <b>'+xpNeed(40)+'</b>. Cada nivel pide bastante más que el anterior. Cada jefe derrotado te regala 2 niveles.';
 }
 $('classGrid').addEventListener('click',function(e){
-  var b=e.target.closest('[data-k]');if(b)openMaps(b.getAttribute('data-k'));
+  var b=e.target.closest('[data-k]');if(!b)return;
+  var k=b.getAttribute('data-k');
+  if(!ownsHero(k)){
+    if(meta.gold<HERO_COST){buildMenu();$('heroMsg').textContent='Te faltan '+(HERO_COST-meta.gold)+' de oro para desbloquear a '+CLASSES[k].name+'.';return}
+    meta.gold-=HERO_COST;meta.heroes.push(k);saveMeta();buildMenu();$('heroMsg').textContent='Has desbloqueado a '+CLASSES[k].name+'.';return;
+  }
+  openMaps(k);
 });
 
 /* ---------- Combate ---------- */
@@ -1764,11 +1785,15 @@ function buildMaps(msg){
       '<span class="ef">'+note+'</span></div>'+btn+'</div>';
   }).join('');
 }
-function openMaps(k){mapChar=k;$('menu').hidden=true;$('mapOv').hidden=false;$('coopBar').hidden=COARSE;$('coopChk').checked=coopOn;$('coopSel').hidden=!coopOn;buildMaps('')}
+function openMaps(k){mapChar=k;fillCoopCls();$('menu').hidden=true;$('mapOv').hidden=false;$('coopBar').hidden=COARSE;$('coopChk').checked=coopOn;$('coopSel').hidden=!coopOn;buildMaps('')}
 (function(){
   var sel=$('coopCls');
-  sel.innerHTML=Object.keys(CLASSES).map(function(k){return '<option value="'+k+'">'+CLASSES[k].name+'</option>'}).join('');
-  sel.value=coopCls;
+  window.fillCoopCls=function(){
+    sel.innerHTML=Object.keys(CLASSES).filter(ownsHero).map(function(k){return '<option value="'+k+'">'+CLASSES[k].name+'</option>'}).join('');
+    if(!ownsHero(coopCls))coopCls=sel.options[0].value;
+    sel.value=coopCls;
+  };
+  fillCoopCls();
   $('coopChk').addEventListener('change',function(){coopOn=this.checked;$('coopSel').hidden=!coopOn});
   sel.addEventListener('change',function(){coopCls=this.value});
 })();
