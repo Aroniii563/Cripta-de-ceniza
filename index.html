@@ -779,7 +779,7 @@ var bestZone=0;
 function bossKey(b){return 'boss:'+(b.map?(b.map+1)+':':'')+((b.n-1)%4)}
 function bestKills(key){return (meta.bestiary&&meta.bestiary[key])||0}
 function buildBest(){
-  var zones=MAPS.map(function(m,i){return {id:i,n:m.n}}).concat([{id:'boss',n:'Jefes'}]);
+  var zones=MAPS.map(function(m,i){return {id:i,n:m.n}}).filter(function(z){return z.id<5}).concat([{id:'boss',n:'Jefes'}]);
   $('bestTabs').innerHTML=zones.map(function(z){
     var tot=z.id==='boss'?BOSS_ENTRIES.length:BEST.filter(function(b){return b.zone===z.id}).length,seen=0;
     if(z.id==='boss')BOSS_ENTRIES.forEach(function(b){if(bestKills(bossKey(b)))seen++});
@@ -789,7 +789,7 @@ function buildBest(){
   var h='';
   if(bestZone==='boss'){
     BOSS_ENTRIES.forEach(function(b){
-      var k=bestKills(bossKey(b)),hp=Math.round(BOSS_BASE*BOSS_CFG[b.kind].hp*MAPS[b.map||0].hp),dm=Math.round(28*BOSS_CFG[b.kind].dmg*MAPS[b.map||0].dmg),ar=Math.min(.6,.3+.05*(b.n-1)),bd=BOSS_SRC.spr[b.kind]||ABYSS_BOSS_SRC.spr[b.kind]||SWAMP_BOSS_SRC.spr[b.kind]||FORGE_BOSS_SRC.spr[b.kind]||SANCT_BOSS_SRC.spr[b.kind],art='<span class="nope">Ilustración pendiente</span>';
+      var k=bestKills(bossKey(b)),hp=Math.round(BOSS_BASE*BOSS_CFG[b.kind].hp*MAPS[b.map||0].hp),dm=Math.round(28*BOSS_CFG[b.kind].dmg*MAPS[b.map||0].dmg),ar=Math.min(.6,.3+.05*(b.n-1)),bd=BOSS_SRC.spr[b.kind]||ABYSS_BOSS_SRC.spr[b.kind]||SWAMP_BOSS_SRC.spr[b.kind]||FORGE_BOSS_SRC.spr[b.kind]||SANCT_BOSS_SRC.spr[b.kind]||(typeof FIN_SRC!=='undefined'&&FIN_SRC.spr[b.kind]),art='<span class="nope">Ilustración pendiente</span>';
       if(bd){var bs=Math.min(.62,165/bd.fh),bw=bd.fw*bs,bh=bd.fh*bs;art='<span class="bsp'+(k?'':' lock')+'" style="--fw:'+bw+'px;--n:'+bd.walk+';width:'+bw+'px;height:'+bh+'px;background-image:url('+bd.src+');background-size:'+(bd.fw*bd.walk*bs)+'px '+(bd.fh*3*bs)+'px"></span>'}
       h+='<div class="skc"><span class="por">'+art+'</span><span class="nm">'+(k?b.name:'???')+'</span>'+
         (k?'<div class="stl"><span>Vida <b>≈'+hp+' golpes</b></span><span>Daño <b>'+dm+'</b></span><span>Armadura <b>'+Math.round(ar*100)+'%</b></span></div><p class="dsc">'+b.desc+'</p><span class="kn">Derrotado '+k+(k===1?' vez':' veces')+' · cifras del mapa '+((b.map||0)+1)+'; aparece como jefe n.º '+b.n+'</span>':
@@ -4412,6 +4412,14 @@ loadMapAssets=function(mi){
   })(m);
 };
 
+/* bestiario: jefes de la Librería sepia (mapa 6) */
+BOSS_ENTRIES.push(
+  {n:1,map:5,kind:'verguenza',name:'Vergüenza',desc:'Espíritu sin piernas que flota sobre una estela, encorvado y con la cara tapada con las manos. Huye si te acercas y se queda lejos. Cada pocos segundos baja las manos y deja charcos de veneno junto a ti (más con poca vida) que burbujean 4 segundos y hacen daño mientras estés dentro.'},
+  {n:2,map:5,kind:'rabia',name:'Rabia',desc:'Espíritu grande y rojo, con púas como llamas en la espalda, cuernos, colmillos y garras. Es rápida y va directa a por ti: ataca con zarpazos en combo (dobles con poca vida) y, a media distancia, te embiste tras una franja de aviso.'},
+  {n:3,map:5,kind:'miedo',name:'Miedo',desc:'Espíritu delgado y morado que se abraza a sí mismo, con ojos grandes y vacíos. Se mantiene a unos 7 metros: se aleja si te acercas y nunca entra. Abre los brazos y lanza tres esferas oscuras en abanico hacia ti (dos tandas seguidas con poca vida).'},
+  {n:4,map:5,kind:'escritor',name:'El Escritor',desc:'Un hombre de traje oscuro con chaleco burdeos, gafas redondas doradas y un libro en la mano. Huye si te acercas y abre libros que lanzan rayos, hace caer libros con lanzas, prende columnas de fuego y aporrea el suelo. Al caer se deshace en ceniza y se reconstruye al revés como el Escritor Inmortal: un esqueleto gigante con tocado de faraón, aura que quema, anillos de veneno, un gran libro en el pecho que dispara un rayo y golpes con las manos.'}
+);
+
 /* ==========================================================================
    MAPA 6 · LIBRERÍA SEPIA — ENEMIGOS, ECOS Y JEFE FINAL (EL ESCRITOR)
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
@@ -5913,7 +5921,7 @@ if(window.CRIPTA_WEB){(function(){
     else if(mode==='sync'){t.textContent='Cargando tu partida…';f.innerHTML=''}
     else if(mode==='login'){
       t.textContent='Entra con tu cuenta de Google para guardar tu progreso y aparecer en el ranking.';
-      f.innerHTML='<button class="btn" id="agIn" type="button">Entrar con Google</button>';
+      f.innerHTML=(inApp()?'<p class="age" style="min-height:0">Parece que has abierto el juego dentro de otra aplicación. Google no permite iniciar sesión desde ahí: abre este enlace en Chrome o Safari (menú ⋮ → «Abrir en el navegador»).</p>':'')+'<button class="btn" id="agIn" type="button">Entrar con Google</button>';
       ge('agIn').addEventListener('click',doSignIn);
     }else if(mode==='nick'){
       t.textContent='Elige tu apodo público. Es el nombre que verán los demás en el ranking.';
@@ -5928,6 +5936,7 @@ if(window.CRIPTA_WEB){(function(){
       ge('agRetry').addEventListener('click',function(){location.reload()});
     }
   }
+  function inApp(){return /FBAN|FBAV|Instagram|Line\/|MicroMessenger|Snapchat|TikTok|Twitter|Discord|; wv\)/i.test(navigator.userAgent)}
   function signInMsg(e){
     var c=(e&&e.code)||String(e&&e.message||e);
     if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';
@@ -6080,7 +6089,7 @@ if(window.CRIPTA_WEB){(function(){
     if(window.CriptaCloud){
       C=window.CriptaCloud;
       C.onAuth(function(u){
-        if(!u){session=null;rankDb=null;rankUid=null;setGate('login');return}
+        if(!u){session=null;rankDb=null;rankUid=null;setGate('login');if(C.redirectErr)setTimeout(function(){var m=signInMsg({code:C.redirectErr});C.redirectErr='';if(m)ge('agErr').textContent=m},600);return}
         if(session&&session.uid===u.uid)return;
         startSession(u);
       });
@@ -6198,15 +6207,17 @@ requestAnimationFrame(frame);
 })();
 </script>
 <script type="module">
-
 /* Cripta de Ceniza · servicio de cuentas y nube (Firebase: Google + Firestore). Solo se carga en la versión web alojada. */
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut as fbSignOut,deleteUser,reauthenticateWithPopup} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut as fbSignOut,deleteUser,reauthenticateWithPopup} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {getFirestore,doc,getDoc,setDoc,updateDoc,deleteDoc,collection,query,orderBy,limit,getDocs,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
+/* En la web alojada, el inicio de sesión pasa por el mismo dominio de la página (vercel.json reenvía /__/auth a Firebase).
+   Así los navegadores que bloquean el almacenamiento de terceros (Safari, móviles) no rompen el acceso. */
+const SITE='cripta-de-ceniza-psi.vercel.app';
 const cfg={
   apiKey:'AIzaSyDkHphU73mIeqRR_emSUQBHSUW7l8iG4bA',
-  authDomain:'cripta-de-ceniza.firebaseapp.com',
+  authDomain:(location.hostname===SITE?SITE:'cripta-de-ceniza.firebaseapp.com'),
   projectId:'cripta-de-ceniza',
   storageBucket:'cripta-de-ceniza.firebasestorage.app',
   messagingSenderId:'69669758134',
@@ -6223,7 +6234,18 @@ const cache={};
 const api={
   user:null,nick:'',
   onAuth(cb){onAuthStateChanged(auth,function(u){api.user=u?{uid:u.uid}:null;if(!u)api.nick='';cb(api.user)})},
-  async signIn(){await signInWithPopup(auth,provider)},
+  redirectErr:'',
+  /* Móvil: redirección directa. Ordenador: ventana emergente y, si el navegador la bloquea, redirección. */
+  async signIn(){
+    const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(mobile){await signInWithRedirect(auth,provider);return}
+    try{await signInWithPopup(auth,provider)}
+    catch(e){
+      const c=e&&e.code;
+      if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported'){await signInWithRedirect(auth,provider);return}
+      throw e;
+    }
+  },
   async signOut(){await fbSignOut(auth)},
   async getProfile(){const s=await getDoc(doc(db,'players',uid()));return s.exists()?s.data():null},
   /* Reserva un apodo único (transacción): nicks/<apodo en minúsculas> -> uid */
@@ -6293,6 +6315,7 @@ const api={
     await deleteUser(user);
   }
 };
+getRedirectResult(auth).catch(function(e){api.redirectErr=(e&&e.code)||String(e)});
 window.CriptaCloud=api;
 window.dispatchEvent(new Event('criptacloud'));
 </script>
