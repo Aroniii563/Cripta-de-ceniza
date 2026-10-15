@@ -203,6 +203,13 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 .por{display:flex;align-items:flex-end;justify-content:center;height:100px;margin:0 0 4px}
 .por img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.dpg{position:relative;background:rgba(10,20,26,.62);border:1px solid var(--line);border-radius:6px;padding:8px;text-align:center;cursor:pointer;font:inherit;color:inherit}
+.dpg img{width:100%;display:block;border-radius:3px}
+.dpg.lk{cursor:default;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:260px;color:var(--muted);filter:grayscale(1)}
+.dpg.lk b{font-size:34px;font-weight:400}
+.dpg small{display:block;margin-top:6px;color:var(--muted)}
+#deadPage img{height:170px;margin:10px auto 0;display:block;border-radius:3px;cursor:pointer}
 .skgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .skc{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);padding:14px;min-width:0}
 .skc.on{border-color:var(--gold)}
@@ -359,6 +366,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
           <button class="mt" type="button" data-m="skins" aria-pressed="false"><i></i>Aspectos</button>
           <button class="mt" type="button" data-m="shop" aria-pressed="false"><i></i>Tienda</button>
           <button class="mt" type="button" data-m="best" aria-pressed="false"><i></i>Bestiario</button>
+          <button class="mt" type="button" data-m="diary" aria-pressed="false"><i></i>Diario</button>
           <button class="mt" type="button" data-m="rank" aria-pressed="false"><i></i>Ranking</button>
           <button class="mt" type="button" data-m="stats" aria-pressed="false"><i></i>Estadísticas</button>
         </div>
@@ -402,6 +410,12 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
         <div class="skgrid bst" id="bestList"></div>
       </section>
 
+      <section id="pDiary" hidden>
+        <h2>Diario</h2>
+        <p class="lead">Al vencer por primera vez al jefe del minuto 20 de cada mapa, se desbloquea una página del escritor. Toca una página para leerla.</p>
+        <div class="dgrid" id="diaryList"></div>
+      </section>
+
       <section id="pRank" hidden>
         <h2>Ranking</h2>
         <p class="lead">Las mejores partidas por tiempo aguantado. «Global» reúne a todos los jugadores con acceso a este juego; «Este dispositivo» son solo tus marcas en este navegador. Cuenta cualquier partida de más de 30 segundos.</p>
@@ -441,7 +455,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
     <div class="wrap mapwrap">
       <header class="maphead">
         <h1>Elige un mapa</h1>
-        <p class="lead">Personaje: <b id="mapChar"></b> · Oro <b id="mapGold" style="color:var(--gold)"></b>. Sobrevive 10 minutos en un mapa para poder comprar el siguiente; cada mapa nuevo trae enemigos y jefes más duros.</p>
+        <p class="lead">Personaje: <b id="mapChar"></b> · Oro <b id="mapGold" style="color:var(--gold)"></b>. Vence al jefe del minuto 20 de un mapa para poder comprar el siguiente; cada mapa nuevo trae enemigos y jefes más duros.</p>
       </header>
       <div class="mappanel">
         <div class="coopbar" id="coopBar">
@@ -467,11 +481,13 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
     <div class="btns"><button class="btn" id="resumeBtn" type="button">Continuar</button><button class="btn alt" id="quitBtn" type="button">Abandonar partida</button></div>
   </div>
 
+  <div class="ov center" id="diaryOv" hidden style="z-index:60;background:rgba(0,0,0,.86);cursor:pointer"><img id="diaryBig" alt="Página del diario" style="max-height:92vh;max-width:94vw;image-rendering:auto"></div>
   <div class="ov center" id="deadOv" hidden>
     <div class="wrap" style="max-width:560px;margin:0">
       <h2 id="deadTitle">Has caído</h2>
       <p class="lead" id="deadSub"></p>
       <div class="sum" id="deadSum"></div>
+      <div id="deadPage" hidden></div>
       <div class="btns"><button class="btn" id="againBtn" type="button">Otra partida</button><button class="btn alt" id="menuBtn" type="button">Cambiar de clase</button></div>
     </div>
   </div>
@@ -616,6 +632,7 @@ function loadMeta(){
   if(!m.stats)m.stats={kills:0,time:0,gold:0,runs:0,bosses:0,cls:{}};
   if(!m.stats.cls)m.stats.cls={};
   if(!m.bestiary)m.bestiary={};
+  if(!m.diary)m.diary=[false,false,false,false,false];
   /* aspecto de prueba retirado: se devuelve su precio */
   var ri=m.skins.indexOf('pal_red');
   if(ri>=0){m.skins.splice(ri,1);m.gold+=5000}
@@ -796,13 +813,24 @@ function buildBest(){
 $('pBest').addEventListener('click',function(e){var t=e.target.closest('[data-bz]');if(t){var v=t.getAttribute('data-bz');bestZone=v==='boss'?'boss':+v;buildBest()}});
 function showTab(tab){
   menuTab=tab;
-  var map={play:'pPlay',upg:'metaSec',shop:'pShop',skins:'pSkins',best:'pBest',rank:'pRank',stats:'pStats'};
+  var map={play:'pPlay',upg:'metaSec',shop:'pShop',skins:'pSkins',best:'pBest',diary:'pDiary',rank:'pRank',stats:'pStats'};
   Object.keys(map).forEach(function(k){$(map[k]).hidden=(k!==tab)});
   Array.prototype.forEach.call($('menuTabs').children,function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-m')===tab))});
   $('goldTxt').textContent=meta.gold;
-  if(tab==='upg')buildMeta();else if(tab==='shop')buildShop();else if(tab==='skins')buildSkins();else if(tab==='best')buildBest();else if(tab==='stats')buildStats();else if(tab==='rank'){buildRank();refreshRank()}
+  if(tab==='upg')buildMeta();else if(tab==='shop')buildShop();else if(tab==='skins')buildSkins();else if(tab==='best')buildBest();else if(tab==='diary')buildDiary();else if(tab==='stats')buildStats();else if(tab==='rank'){buildRank();refreshRank()}
 }
 $('menuTabs').addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b)showTab(b.getAttribute('data-m'))});
+function buildDiary(){
+  var h='',i,n=0;
+  for(i=0;i<MAPS.length;i++){
+    var rn=['I','II','III','IV','V'][i];
+    if(meta.diary[i]){n++;h+='<button class="dpg" type="button" data-dp="'+i+'"><img src="diario/pagina_'+(i+1)+'.png" alt="Página '+rn+'"></button>'}
+    else h+='<div class="dpg lk"><b>'+rn+'</b><span>Página bloqueada</span><small>Vence al jefe del minuto 20 de '+MAPS[i].n+'</small></div>';
+  }
+  $('diaryList').innerHTML=h;
+}
+$('diaryList').addEventListener('click',function(e){var b=e.target.closest('[data-dp]');if(b){$('diaryBig').src='diario/pagina_'+(+b.getAttribute('data-dp')+1)+'.png';$('diaryOv').hidden=false}});
+$('diaryOv').addEventListener('click',function(){$('diaryOv').hidden=true});
 var shopCls='pal';
 function buildShop(msg){
   $('shopMsg').textContent=msg||'';
@@ -843,7 +871,7 @@ $('pSkins').addEventListener('click',function(e){
   if(g){showTab('shop');return}
   if(q&&!q.disabled){var id=q.getAttribute('data-e');if(ownsSkin(id)){meta.skinSel[skinCls]=id;saveMeta();buildSkins()}}
 });
-var WHY={muerte:'caíste en combate',abandono:'abandonaste',cierre:'cerraste la página en plena partida'};
+var WHY={victoria:'victoria',muerte:'caíste en combate',abandono:'abandonaste',cierre:'cerraste la página en plena partida'};
 function buildStats(){
   var st=meta.stats,best=loadBest();
   function box(l,v){return '<div class="mrow"><div class="ef">'+l+'</div><div class="nm val" style="font-family:var(--display)">'+v+'</div></div>'}
@@ -1044,7 +1072,7 @@ function recoverRun(){
 var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],parts=[],zones=[],later=[],sfx=[],corpses=[];
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
-var curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
+var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
 /* Cooperativo local: PL = jugadores; P apunta al jugador "actual" mientras se procesa su lógica (P=PL[0] el resto del tiempo). */
 var PL=[],coopOn=false,coopCls='barb',coop=false,refD=0;
@@ -1116,7 +1144,7 @@ function startRun(key,mi){
   P=PL[0];refD=0;
   enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];
   t=0;kills=0;spawnT=1;cam.x=P.x;cam.y=P.y;
-  zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;fromSoul=false;snapT=10;fcellA=[-1,-1];
+  zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1];
   statsOpen=W>=700;applyStatsOpen();
   $('toast').hidden=true;
   $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n;$('hudClass').style.color=c.col;
@@ -1131,7 +1159,7 @@ function startRun(key,mi){
 function showMenu(tab){
   if(typeof tab!=='string')tab='play';
   state='menu';P=null;PL=[];coop=false;enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];zones=[];later=[];sfx=[];corpses=[];haz=[];bossAlive=null;$('toast').hidden=true;
-  ['mapOv','lvlOv','pauseOv','deadOv'].forEach(function(id){$(id).hidden=true});
+  ['mapOv','lvlOv','pauseOv','deadOv','diaryOv'].forEach(function(id){$(id).hidden=true});
   $('hud').hidden=true;$('menu').hidden=false;playMenuMusic();buildMenu();showTab(tab);curMap=0;applyMap(0);genMap();carpet=null;cryptGen();cam.x=cam.y=N/2;
 }
 function fmt(s){s=Math.floor(s);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r}
@@ -1189,8 +1217,10 @@ function killEnemy(e){
     PL.forEach(function(q){q.level+=2;q.pend+=2;q.need=xpNeed(q.level)});
     bossKills++;
     toast('Jefe derrotado: +2 niveles');
-    PL.forEach(function(q){q.pendS++});
+    /* poderes especiales: solo los 4 primeros jefes (hasta el minuto 20) */
+    if(e.bossN<=4)PL.forEach(function(q){q.pendS++});
     bossAlive=null;
+    if(e.bossN===4&&state==='play'&&!won){won=true;later.push({t:2.2,f:victory})}
   }else{
     var n=e.elite?3:1,i;
     for(i=0;i<n;i++)orbs.push({x:e.x+rnd(-.3,.3),y:e.y+rnd(-.3,.3),v:e.xp/n,heal:false,t:Math.random()*6});
@@ -1235,8 +1265,23 @@ function hurtPlayer(d,who){
     else toast('J'+(q.idx+1)+' ha caído: vuelve en 25 s si su compañero resiste');
   }
 }
+function victory(){
+  if(state!=='play')return;
+  state='dead';P=PL[0];
+  meta.done[curMap]=true;
+  var newPage=!meta.diary[curMap];meta.diary[curMap]=true;
+  var r=endRun('victoria'),g=r.g,lv=0;
+  PL.forEach(function(q){lv=Math.max(lv,q.level)});
+  $('deadTitle').textContent='¡Victoria!';
+  $('deadSub').textContent='Has vencido al jefe del minuto 20 de '+MAPS[curMap].n+'.'+(curMap<MAPS.length-1?' Ya puedes comprar el siguiente mapa.':'')+(newPage?' Has desbloqueado una página del diario.':'');
+  var dp=$('deadPage');if(newPage){dp.innerHTML='<img src="diario/pagina_'+(curMap+1)+'.png" alt="Página del diario">';dp.hidden=false;dp.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dp.hidden=true;
+  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
+  saveMeta();
+  $('deadOv').hidden=false;
+}
 function die(){
   state='dead';P=PL[0];
+  $('deadTitle').textContent='Has caído';$('deadPage').hidden=true;
   var r=endRun('muerte'),g=r.g,newBest=r.newBest,lv=0;
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
   $('deadSub').textContent=coop?('Cayeron '+PL[0].c.name+' y '+PL[1].c.name+'. Partida cooperativa.'):('Caíste como '+P.c.name+'. '+(newBest?'Es tu mejor partida con esta clase.':'Tu mejor marca con esta clase sigue en pie.'));
@@ -1527,10 +1572,6 @@ function update(dt){
 
   /* spawns */
   if(t>=nextBoss&&spawnBoss())nextBoss+=300;
-  if(t>=600&&!meta.done[curMap]){
-    meta.done[curMap]=true;saveMeta();
-    toast(curMap<MAPS.length-1?'¡10 minutos superados! Ya puedes comprar el siguiente mapa':'¡10 minutos superados en el último mapa!');
-  }
   spawnT-=dt;
   if(spawnT<=0){
     spawnT=.12;
@@ -1681,7 +1722,7 @@ function chooseUp(i){
 $('lvlCards').addEventListener('click',function(e){var b=e.target.closest('[data-i]');if(b)chooseUp(+b.getAttribute('data-i'))});
 
 /* ---------- Render ---------- */
-/* Mapas: cada uno tiene su color, más vida/daño/experiencia de enemigos y se compra al superar 10 min en el anterior. */
+/* Mapas: cada uno tiene su color, más vida/daño/experiencia de enemigos y se compra al vencer al jefe del minuto 20 del anterior. */
 var MAPS=[
   {n:'Cripta gris',music:'musica/mapa1.mp3',hp:1,dmg:1,xp:1,bhp:1,floor:['#262626','#2a2a2a','#222222','#2e2e2e'],wt:'#525252',wl:'#343434',wr:'#202020',wo:'#0b0b0b',ws:'#6a6a6a',bg:'#0c0c0c',sw:'#4a4a4a'},
   {n:'Abismo azul',music:'musica/mapa2.mp3',hp:1.5,dmg:1.7,xp:1,bhp:1.75,floor:['#111b33','#14213b','#0e172b','#182643'],wt:'#34507f',wl:'#223659',wr:'#142039',wo:'#060a14',ws:'#4b6ea5',bg:'#070c18',sw:'#1e3562'},
@@ -1703,8 +1744,8 @@ function buildMaps(msg){
     if(st==='own')btn='<button class="btn" type="button" data-play="'+i+'">Jugar</button>';
     else if(st==='buy')btn='<button class="btn" type="button" data-buy="'+i+'"'+(meta.gold<MAP_COST?' disabled':'')+'>Comprar · '+MAP_COST+' oro</button>';
     else btn='<button class="btn" type="button" disabled>Bloqueado</button>';
-    if(st==='lock')note='Sobrevive 10 minutos en el mapa '+i+' para poder comprarlo.';
-    else note=meta.done[i]?'10 minutos superados.':'Aguanta 10 minutos aquí para desbloquear el siguiente.';
+    if(st==='lock')note='Vence al jefe del minuto 20 del mapa '+i+' para poder comprarlo.';
+    else note=meta.done[i]?'Mapa superado.':'Vence al jefe del minuto 20 para desbloquear el siguiente.';
     return '<div class="mapc'+(st==='lock'?' lockd':'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
       '<div class="mi"><span class="nm">'+m.n+'</span>'+
       '<span class="ef">Enemigos y jefes: daño x'+es(m.dmg)+'</span>'+
