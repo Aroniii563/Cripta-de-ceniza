@@ -569,12 +569,12 @@ var UPS=[
 var CATS={o:'Ofensiva',d:'Defensa',u:'Utilidad',s:'Mejora especial'};
 /* Mejoras especiales del ataque: las concede cada jefe derrotado. */
 var SPECS=[
-  {id:'bounce',n:'Proyectiles rebotantes',c:'s',d:'Tus proyectiles rebotan 2 veces más en las paredes (máx. 10)',ok:function(){return P.c.kind==='proj'&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+2)}},
-  {id:'boom',n:'Detonación',c:'s',d:'Los enemigos que matas explotan y dañan a los cercanos',f:function(){}},
-  {id:'split',n:'Fisión',c:'s',d:'Tus proyectiles se dividen en dos al impactar',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){}},
-  {id:'echo',n:'Eco',c:'s',d:'Cada ataque se repite una segunda vez al instante',f:function(){}},
-  {id:'soul',n:'Alma vengativa',c:'s',d:'Cada enemigo que matas libera un proyectil que persigue a otro enemigo cualquiera',f:function(){}},
-  {id:'exec',n:'Ejecutor',c:'s',d:'Rematas al momento a los enemigos con menos de 20% de vida',f:function(){}}
+  {id:'bounce',n:'Proyectiles rebotantes',c:'s',ic:'icono_orbes_rebotantes',d:'Tus proyectiles rebotan 2 veces más en las paredes (máx. 10)',ok:function(){return P.c.kind==='proj'&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+2)}},
+  {id:'boom',n:'Detonación',c:'s',ic:'icono_detonacion',d:'Los enemigos que matas explotan y dañan a los cercanos',f:function(){}},
+  {id:'split',n:'Fisión',c:'s',ic:'icono_fision',d:'Tus proyectiles se dividen en dos al impactar',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){}},
+  {id:'echo',n:'Eco',c:'s',ic:'icono_eco',d:'Cada ataque se repite una segunda vez al instante',f:function(){}},
+  {id:'soul',n:'Alma vengativa',c:'s',ic:'icono_alma_vengativa',d:'Cada enemigo que matas libera un proyectil que persigue a otro enemigo cualquiera',f:function(){}},
+  {id:'exec',n:'Ejecutor',c:'s',ic:'icono_ejecutor',d:'Rematas al momento a los enemigos con menos de 20% de vida',f:function(){}}
 ];
 function toast(m){var el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},3200)}
 
@@ -4384,7 +4384,7 @@ drawHz=function(h){
    Relámpago: cada 3 s cae un rayo sobre el enemigo más cercano (a menos de 9) y deja una zona eléctrica 1 s. Eco lo repite.
    Compañeros: tres cuervos inmortales que picotean (mitad del daño) a enemigos a menos de 7 del personaje.
    Las hojas están a 2x: se dibujan a la mitad. */
-var SPD={"barrera": {"src": "mejoras/barrera.png", "fw": 150, "fh": 170, "rows": {"aparece": 4, "bucle": 6, "rompe": 5}, "cx": 75.0, "cy": 90.1}, "rayo": {"src": "mejoras/rayo.png", "fw": 90, "fh": 280, "n": 6, "pie_y": 266}, "rayo_zona": {"src": "mejoras/rayo_zona.png", "fw": 150, "fh": 84, "n": 6, "cx": 75.0, "cy": 42.0, "radio_x": 66, "radio_y": 33}, "cuervo": {"src": "mejoras/cuervo.png", "fw": 110, "fh": 90}, "icono_barrera": {"src": "mejoras/icono_barrera.png"}, "icono_relampago": {"src": "mejoras/icono_relampago.png"}, "icono_companeros": {"src": "mejoras/icono_companeros.png"}},SPI={};
+var SPD={"barrera": {"src": "mejoras/barrera.png", "fw": 150, "fh": 170, "rows": {"aparece": 4, "bucle": 6, "rompe": 5}, "cx": 75.0, "cy": 90.1}, "rayo": {"src": "mejoras/rayo.png", "fw": 90, "fh": 280, "n": 6, "pie_y": 266}, "rayo_zona": {"src": "mejoras/rayo_zona.png", "fw": 150, "fh": 84, "n": 6, "cx": 75.0, "cy": 42.0, "radio_x": 66, "radio_y": 33}, "cuervo": {"src": "mejoras/cuervo.png", "fw": 110, "fh": 90}, "icono_barrera": {"src": "mejoras/icono_barrera.png"}, "icono_relampago": {"src": "mejoras/icono_relampago.png"}, "icono_companeros": {"src": "mejoras/icono_companeros.png"}, "icono_alma_vengativa": {"src": "mejoras/icono_alma_vengativa.png"}, "icono_fision": {"src": "mejoras/icono_fision.png"}, "icono_ejecutor": {"src": "mejoras/icono_ejecutor.png"}, "icono_eco": {"src": "mejoras/icono_eco.png"}, "icono_detonacion": {"src": "mejoras/icono_detonacion.png"}, "icono_orbes_rebotantes": {"src": "mejoras/icono_orbes_rebotantes.png"}},SPI={};
 try{
   Object.keys(SPD).forEach(function(k){var d=SPD[k];if(!d.src)return;var im=new Image();im.onload=function(){SPI[k]=im};im.src=d.src});
 }catch(e){}
@@ -5091,6 +5091,7 @@ requestAnimationFrame(frame);
 })();
 </script>
 <script type="module">
+
 /* Cripta de Ceniza · servicio de cuentas y nube (Firebase: Google + Firestore). Solo se carga en la versión web alojada. */
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged,signOut as fbSignOut,deleteUser,reauthenticateWithPopup} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
