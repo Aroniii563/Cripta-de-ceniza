@@ -512,6 +512,9 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 </div>
 
 <script>
+/* Las imágenes se descodifican al cargar (no al dibujarlas por primera vez): evita tirones de 1-2 s al aparecer un jefe o una hoja nueva */
+(function(){var I0=window.Image;window.Image=function(w,h){var im=new I0(w,h);im.addEventListener('load',function(){try{if(im.decode)im.decode().catch(function(){})}catch(e){}});return im};window.Image.prototype=I0.prototype})();
+
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
@@ -1281,10 +1284,10 @@ function killEnemy(e){
   if(P.spec.boom&&boomDepth<3){boomDepth++;explode(e.x,e.y);boomDepth--}
   if(P.spec.soul&&!fromSoul&&!e.boss&&shots.length<400){
     var cand=[],ci;
-    for(ci=0;ci<enemies.length;ci++){var ce=enemies[ci];if(!ce.dead&&ce!==e)cand.push(ce)}
+    for(ci=0;ci<enemies.length;ci++){var ce=enemies[ci];if(!ce.dead&&ce!==e&&Math.hypot(ce.x-e.x,ce.y-e.y)<12)cand.push(ce)}
     if(cand.length){
       var tg=cand[Math.floor(Math.random()*cand.length)],ang=Math.random()*6.283;
-      shots.push({x:e.x,y:e.y,vx:Math.cos(ang)*6.5,vy:Math.sin(ang)*6.5,sp:6.5,life:4,pierce:0,hit:[],friendly:true,col:'#d9a6ff',r:.3,hm:true,soul:true,tgt:tg,mul:.9,spr:'skull',own:P});
+      shots.push({x:e.x,y:e.y,vx:Math.cos(ang)*6.5,vy:Math.sin(ang)*6.5,sp:6.5,life:4,pierce:0,hit:[],friendly:true,col:'#d9a6ff',r:.3,hm:true,soul:true,tgt:tg,mul:.9,spr:'skull',own:P,sz:1});
     }
   }
 }
@@ -1976,7 +1979,7 @@ function render(){
       shadow(p,6);
       if(s.spr&&PROJS[s.spr]){
         ctx.fillStyle=s.col;ctx.globalAlpha=.18;ctx.beginPath();ctx.arc(p.x,p.y-14,11,0,6.283);ctx.fill();ctx.globalAlpha=1;
-        drawProjSprite(s.spr,s,p.x,p.y-14,s.soul?.85:1);return;
+        drawProjSprite(s.spr,s,p.x,p.y-14,s.soul?1.15:1);return;
       }
       var kz=s.hm?1.5:s.bn!==undefined?1.6:1;
       ctx.fillStyle=s.col;ctx.globalAlpha=.3;ctx.beginPath();ctx.arc(p.x,p.y-14,10*kz,0,6.283);ctx.fill();ctx.globalAlpha=1;
@@ -2064,7 +2067,7 @@ function pc(v){return Math.round(v*100)+'%'}
 function statRows(){
   var c=P.c,k=c.kind,r=[];
   function a(l,v,mx){r.push('<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>')}
-  a('Vida',Math.ceil(P.hp)+' / '+Math.round(P.maxHp));
+  a('Vida',Math.ceil(P.hp)+' / '+Math.ceil(P.maxHp));
   a('Daño',r1(P.dmg));
   a(k==='orbit'?'Proyectiles por segundo':k==='spheres'?'Esferas por segundo':k==='monks'?'Golpes por monje':'Vel. ataque',r1(k==='orbit'?P.rate*P.orbGen:k==='spheres'?Math.min(2.5,P.rate):P.rate)+(k==='orbit'?'':'/s'),k==='spheres'&&P.rate>=2.5-1e-9);
   a('Vel. movimiento',r1(P.speed));
@@ -2093,7 +2096,7 @@ function setTxt(id,v){if(hc[id]!==v){hc[id]=v;$(id).textContent=v}}
 function hud(){
   if(!P||$('hud').hidden)return;
   $('hpFill').style.transform='scaleX('+Math.max(0,P.hp/P.maxHp)+')';
-  setTxt('hpTxt',P.dead?'Caído · '+Math.ceil(Math.max(0,P.reviveT))+' s':Math.ceil(Math.max(0,P.hp))+' / '+Math.round(P.maxHp));
+  setTxt('hpTxt',P.dead?'Caído · '+Math.ceil(Math.max(0,P.reviveT))+' s':Math.ceil(Math.max(0,P.hp))+' / '+Math.ceil(P.maxHp));
   $('xpFill').style.transform='scaleX('+Math.min(1,P.xp/P.need)+')';
   setTxt('xpTxt',Math.floor(P.xp)+' / '+P.need);
   setTxt('lvlTxt',String(P.level));
@@ -2102,7 +2105,7 @@ function hud(){
   if(coop&&PL[1]){
     var q2=PL[1];
     $('hp2Fill').style.transform='scaleX('+Math.max(0,q2.hp/q2.maxHp)+')';
-    setTxt('hp2Txt',q2.dead?'Caído · '+Math.ceil(Math.max(0,q2.reviveT))+' s':Math.ceil(Math.max(0,q2.hp))+' / '+Math.round(q2.maxHp));
+    setTxt('hp2Txt',q2.dead?'Caído · '+Math.ceil(Math.max(0,q2.reviveT))+' s':Math.ceil(Math.max(0,q2.hp))+' / '+Math.ceil(q2.maxHp));
     $('xp2Fill').style.transform='scaleX('+Math.min(1,q2.xp/q2.need)+')';
     setTxt('xp2Txt','Nivel '+q2.level);
   }
@@ -5207,10 +5210,9 @@ doAttack=function(second){if(P.c.kind==='spears')return;return doAttack_am_base(
 
 /* mejoras propias de la Amazona */
 UPS.push(
-  {n:'Más lanzas',ic:'icono_mas_lanzas',c:'o',d:'+1 lanza a la vez (máx. 5)',ok:function(){return P.c.kind==='spears'&&P.amMax<5},f:function(){P.amMax=Math.min(5,P.amMax+1)}},
+  {n:'Más lanzas',ic:'icono_mas_lanzas',c:'o',d:'+1 lanza a la vez (máx. 15)',ok:function(){return P.c.kind==='spears'&&P.amMax<15},f:function(){P.amMax=Math.min(15,P.amMax+1)}},
   {n:'Llamada rápida',ic:'icono_llamada_rapida',c:'o',d:'Llamas a tus lanzas 0,5 s antes (de 4 s hasta un mínimo de 2,5 s)',ok:function(){return P.c.kind==='spears'&&P.amCallInt>2.5+1e-9},f:function(){P.amCallInt=Math.max(2.5,P.amCallInt-.5)}},
-  {n:'Regreso afilado',ic:'icono_regreso_afilado',c:'o',d:'+10% del daño de las lanzas al volver (de 60% hasta un máximo de 90%)',ok:function(){return P.c.kind==='spears'&&P.amRet<.9-1e-9},f:function(){P.amRet=Math.min(.9,P.amRet+.1)}},
-  {n:'Lanzas lastre',ic:'icono_lanzas_lastre',c:'u',d:'Las lanzas clavadas en el suelo ralentizan un 30% a los enemigos que pasen cerca',ok:function(){return P.c.kind==='spears'&&!P.amLastre},f:function(){P.amLastre=true}}
+  {n:'Regreso afilado',ic:'icono_regreso_afilado',c:'o',d:'+10% del daño de las lanzas al volver (de 60% hasta un máximo de 90%)',ok:function(){return P.c.kind==='spears'&&P.amRet<.9-1e-9},f:function(){P.amRet=Math.min(.9,P.amRet+.1)}}
 );
 /* el Eco no se aplica a un ataque que no es una andanada */
 SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.c.kind!=='spears'&&(!o||o())}}});
@@ -5353,7 +5355,9 @@ startRun=function(key,mi){
   try{
     var b=$('atkBtn'),nm=$('atkName'),isA=CLASSES[key].kind==='spears'&&SPD.icono_lanzas_que_vuelven;
     if(isA){b.style.backgroundImage='url('+SPD.icono_lanzas_que_vuelven.src+')';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
-    else{b.style.backgroundImage='';b.style.backgroundSize='';b.style.imageRendering=''}
+    else{var WI={sorc:'hechicero',barb:'barbaro',rogue:'picaro',pal:'paladin',druid:'druida',necro:'nigromante',monja:'monja',bruja:'bruja'}[key];
+      if(WI){b.style.backgroundImage='url(mejoras/icono_arma_'+WI+'.png)';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
+      else{b.style.backgroundImage='';b.style.backgroundSize='';b.style.imageRendering=''}}
   }catch(e){}
 };
 var statRows_am_base=statRows;
@@ -5361,7 +5365,7 @@ statRows=function(){
   var h=statRows_am_base();
   if(!P||P.c.kind!=='spears')return h;
   function a(l,v,mx){return '<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>'}
-  var r=a('Lanzas',P.amMax,P.amMax>=5)+a('Llamada cada',r1(P.amCallInt)+' s',P.amCallInt<=2.5+1e-9)+a('Daño al volver',pc(P.amRet),P.amRet>=.9-1e-9)+(P.amLastre?a('Lanzas lastre','−30% de velocidad'):'');
+  var r=a('Lanzas',P.amMax,P.amMax>=15)+a('Llamada cada',r1(P.amCallInt)+' s',P.amCallInt<=2.5+1e-9)+a('Daño al volver',pc(P.amRet),P.amRet>=.9-1e-9);
   var i=h.indexOf('<div class="sp">');
   return i<0?h+r:h.slice(0,i)+r+h.slice(i);
 };
@@ -5563,8 +5567,7 @@ genMap=function(){genMap_jn_base();jnFx=[]};
 /* mejoras propias del Jinete */
 UPS.push(
   {n:'Otro dragón',ic:'icono_otro_dragon',c:'o',d:'+1 dragón (máx. 3)',ok:function(){return P.c.kind==='rider'&&P.dgMax<3},f:function(){P.dgMax=Math.min(3,P.dgMax+1)}},
-  {n:'Mordisco feroz',ic:'icono_mordisco_feroz',c:'o',d:'+25% del daño de tus dragones (máx. +200%)',ok:function(){return P.c.kind==='rider'&&P.dgMul<3-1e-9},f:function(){P.dgMul=Math.min(3,P.dgMul+.25)}},
-  {n:'Vínculo',ic:'icono_vinculo',c:'u',d:'Tus dragones atacan un 15% más rápido y recuperas 1 de vida por cada mordisco',ok:function(){return P.c.kind==='rider'&&!P.dgBond},f:function(){P.dgBond=true}}
+  {n:'Mordisco feroz',ic:'icono_mordisco_feroz',c:'o',d:'+25% del daño de tus dragones (máx. +200%)',ok:function(){return P.c.kind==='rider'&&P.dgMul<3-1e-9},f:function(){P.dgMul=Math.min(3,P.dgMul+.25)}}
 );
 
 function jnNewDragon(i){
@@ -5691,7 +5694,7 @@ statRows=function(){
   var h=statRows_jn_base();
   if(!P||P.c.kind!=='rider')return h;
   function a(l,v,mx){return '<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>'}
-  var r=a('Alcance',r1(P.c.range*P.reach))+a('Dragones',P.dgMax,P.dgMax>=3)+a('Daño de dragones',pc(.5*P.dgMul),P.dgMul>=3-1e-9)+(P.dgBond?a('Vínculo','+15% vel. · +1 vida/mordisco'):'');
+  var r=a('Alcance',r1(P.c.range*P.reach))+a('Dragones',P.dgMax,P.dgMax>=3)+a('Daño de dragones',pc(.5*P.dgMul),P.dgMul>=3-1e-9);
   var i=h.indexOf('<div class="sp">');
   return i<0?h+r:h.slice(0,i)+r+h.slice(i);
 };
@@ -5870,7 +5873,7 @@ var ANIMD={"sorc": {"src": "skins/sorcv2_anim.png", "fw": 215, "fh": 136, "pie_x
 function animEnsure(id){
   if(!id||!ANIMD[id]||ANIML[id])return;
   ANIML[id]=1;
-  try{var im=new Image();im.onload=function(){ANIMI[id]=im};im.src=ANIMD[id].src}catch(e){}
+  try{var im=new Image();im.onload=function(){var f=function(){ANIMI[id]=im};if(im.decode)im.decode().then(f,f);else f()};im.src=ANIMD[id].src}catch(e){}
 }
 function animPreload(){try{Object.keys(CLASSES).forEach(function(c){animEnsure(skinFor(c))})}catch(e){}}
 setTimeout(animPreload,200);
