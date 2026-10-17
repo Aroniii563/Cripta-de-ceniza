@@ -6643,7 +6643,8 @@ function onUi(){
   $('onCls').addEventListener('change',function(){var m=ON.mem[ON.me];if(m){m.cls=this.value;m.rdy=ON.host;onSendMe()}});
   var sel=$('onCls');Object.keys(CLASSES).forEach(function(k){if(ownsHero(k)){var o=document.createElement('option');o.value=k;o.textContent=CLASSES[k].name;sel.appendChild(o)}});
 }
-function onOwned(){var a=[];for(var i=0;i<MAPS.length;i++)a.push(i===0||!!(meta.owned&&meta.owned[i]));return a}
+function onMapName(i){return i===CEN_MAP?'Torre de ceniza':(MAPS[i]?MAPS[i].n:'')}
+function onOwned(){var a=[];for(var i=0;i<MAPS.length;i++)a.push(i===0||(i===CEN_MAP?twUnlocked():!!(meta.owned&&meta.owned[i])));return a}
 function onCommon(){var r=[];for(var i=0;i<MAPS.length;i++){if(ON.mem.every(function(m){return !m.owned||m.owned[i]!==false&&(i===0||m.owned[i])}))r.push(i)}return r.length?r:[0]}
 function onMsg(t){$('onMsg').textContent=t||''}
 function onOpen(){ON.inLobby=true;$('onl').hidden=false;$('onHome').hidden=false;$('onRoom').hidden=true;onMsg('')}
@@ -6664,8 +6665,8 @@ function onList(){
   $('onRdy').textContent=ON.mem[ON.me]&&ON.mem[ON.me].rdy?'Quitar listo':'Listo';
   $('onRdy').hidden=ON.host;
   var sel=$('onMap'),tx=$('onMapTxt');
-  if(ON.host){var cm=onCommon();if(cm.indexOf(ON.map)<0)ON.map=cm[0];var h='';cm.forEach(function(i){h+='<option value="'+i+'"'+(i===ON.map?' selected':'')+'>'+MAPS[i].n+'</option>'});if(sel._h!==h){sel._h=h;sel.innerHTML=h}sel.value=String(ON.map);sel.hidden=false;tx.textContent=''}
-  else{sel.hidden=true;tx.textContent=MAPS[ON.map||0]?MAPS[ON.map||0].n:''}
+  if(ON.host){var cm=onCommon();if(cm.indexOf(ON.map)<0)ON.map=cm[0];var h='';cm.forEach(function(i){h+='<option value="'+i+'"'+(i===ON.map?' selected':'')+'>'+onMapName(i)+'</option>'});if(sel._h!==h){sel._h=h;sel.innerHTML=h}sel.value=String(ON.map);sel.hidden=false;tx.textContent=''}
+  else{sel.hidden=true;tx.textContent=onMapName(ON.map||0)}
 }
 function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,m:ON.mem.map(function(m){return {cls:m.cls,rdy:m.rdy,nick:m.nick||''}})})}
 function onSendMe(){
@@ -6776,10 +6777,10 @@ function onBegin(cls,me,host,msg,mapBytes){
   PL=cls.map(function(k,i){var p=mkPlayer(k,i);p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
   coop=true;P=PL[me];ON.own=P;
   if(!host&&mapBytes){map=ub64(mapBytes);vari=ub64(msg.vari)}
-  if(mi===5)PL.forEach(function(q){q.pendS++});
+  if(mi===5||mi===CEN_MAP)PL.forEach(function(q){q.pendS++});
   cam.x=P.x;cam.y=P.y;ON.cx=cam.x;ON.cy=cam.y;
   $('hud2').hidden=true;onAtkIcon(P.key);$('hudClass').style.color=P.c.col;
-  $('hudClass').textContent=onName(me)+' · '+P.c.name+' · '+MAPS[mi].n;
+  $('hudClass').textContent=onName(me)+' · '+P.c.name+' · '+onMapName(mi);
   onTeamUi();
   if(host){ON.tx=setInterval(onSend,33)}
   else{ON.tx=setInterval(onSendIn,33)}
@@ -6827,7 +6828,7 @@ function onSend(){
     if(gi===0||!g.net)return;
     var c=g,bossI=-1;
     var en=cap(enemies,c,110,true);
-    var A={t:'s',q:++ON.q,T:+t.toFixed(2),k:kills,nb:Math.round(nextBoss),
+    var A={t:'s',q:++ON.q,cm:curMap,tw:TW.on?[TW.cur,TW.te,TW.tn]:0,T:+t.toFixed(2),k:kills,nb:Math.round(nextBoss),
       pl:PL.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),Math.round(p.hp),Math.round(p.maxHp),p.dead?1:0,+(p.fx||0).toFixed(2),+(p.fy||0).toFixed(2),p.flip?1:0,p.moving?1:0,p.level,Math.round(p.xp),p.need,+(p.ax||0).toFixed(2),+(p.ay||0).toFixed(2)]})};
     en.forEach(function(e,i){if(!e.nid)e.nid=++NID;if(bossAlive===e)bossI=i});
     A.E=en.map(function(e){return recOf(e,EK)});A.ba=bossI;
@@ -6860,6 +6861,8 @@ function onSend(){
 function onApplySnap(s){
   if(s.q<=ON.last)return;ON.last=s.q;
   t=s.T;kills=s.k;nextBoss=s.nb;
+  if(s.tw){TW.cur=s.tw[0];TW.te=s.tw[1];TW.tn=s.tw[2]}
+  if(s.cm!==undefined&&s.cm!==curMap){curMap=s.cm;try{loadMapAssets(curMap);setMapMusic(curMap)}catch(e){}}
   s.pl.forEach(function(a,i){var p=PL[i];if(!p)return;
     p.tx=a[0];p.ty=a[1];p.hp=a[2];p.maxHp=a[3];p.dead=!!a[4];p.level=a[9];p.xp=a[10];p.need=a[11];p.ax=a[12];p.ay=a[13];if(p!==ON.own||p.dead){p.fx=a[5];p.fy=a[6];p.flip=!!a[7];p.moving=!!a[8]}
     if(p.x===undefined||Math.hypot(p.tx-p.x,p.ty-p.y)>4){p.x=p.tx;p.y=p.ty}});
