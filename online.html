@@ -6538,22 +6538,24 @@ var NET=(function(){
   function onSig(topic,d){
     if(topic.indexOf('cripta1/room/')===0){if(N.onroom)N.onroom(d);return}
     if(d.type==='OFFER'){N.diag.push('oferta recibida');onOffer(d)}
-    else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).then(function(){p.q.forEach(function(c){p.pc.addIceCandidate(c).catch(function(){})});p.q=[]}).catch(function(){})}
-    else if(d.type==='CANDIDATE'){var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
+    else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).then(function(){N.diag.push('remoto:ok');p.q.forEach(function(c){p.pc.addIceCandidate(c).catch(function(){})});p.q=[]}).catch(function(e){N.diag.push('remoto-error:'+(e&&e.message||e))})}
+    else if(d.type==='CANDIDATE'){N.cin=(N.cin||0)+1;var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
   }
   function mkPeer(pid){
     var p={id:pid,pc:new RTCPeerConnection({iceServers:ICE}),r:null,u:null,q:[],open:false};
     N.peers[pid]=p;
     p.pc.onicecandidate=function(e){if(e.candidate){var ty=(/ typ (\w+)/.exec(e.candidate.candidate)||[])[1]||'?';N.cand[ty]=(N.cand[ty]||0)+1;sig('CANDIDATE',pid,{candidate:e.candidate})}};
     p.pc.oniceconnectionstatechange=function(){N.diag.push('ice:'+p.pc.iceConnectionState)};
-    p.pc.onconnectionstatechange=function(){var s=p.pc.connectionState;
+    p.pc.onsignalingstatechange=function(){N.diag.push('sig:'+p.pc.signalingState)};
+    p.pc.onicegatheringstatechange=function(){N.diag.push('reco:'+p.pc.iceGatheringState)};
+    p.pc.onconnectionstatechange=function(){var s=p.pc.connectionState;N.diag.push('conn:'+s);
       if(s==='failed'||s==='closed'||s==='disconnected')drop(pid)};
     return p;
   }
   function wire(p,ch){
     ch.binaryType='arraybuffer';
     if(ch.label==='r')p.r=ch;else p.u=ch;
-    ch.onopen=function(){if(p.r&&p.u&&p.r.readyState==='open'&&p.u.readyState==='open'&&!p.open){p.open=true;if(N.onpeer)N.onpeer(p.id)}};
+    ch.onopen=function(){N.diag.push('canal:'+ch.label);if(p.r&&p.u&&p.r.readyState==='open'&&p.u.readyState==='open'&&!p.open){p.open=true;if(N.onpeer)N.onpeer(p.id)}};
     ch.onmessage=function(e){var m;try{m=JSON.parse(e.data)}catch(x){return}if(N.onmsg)N.onmsg(p.id,m)};
     ch.onclose=function(){drop(p.id)};
   }
@@ -6680,11 +6682,11 @@ function onHostMsg(pid,m){
 }
 function onJoin(){
   var c=$('onCode').value.trim().toUpperCase();if(c.length<4){onMsg('Escribe el código de sala.');return}
-  onMsg('Conectando…');NET.diag=[];NET.cand={};
+  onMsg('Conectando…');NET.diag=[];NET.cand={};NET.cin=0;
   NET.onerror=function(e){if(e==='nohost')onMsg('No existe esa sala.')};
   NET.join(c,function(err){
     if(err==='nohost'){onMsg('No existe esa sala. Revisa el código y que el anfitrión tenga la sala abierta.');return}
-    if(err){onMsg((err==='timeout'?'No se pudo establecer la conexión con la sala.':'No se pudo conectar con el servidor de señal.')+' Detalle: '+NET.diag.join(' › ')+' · candidatos '+JSON.stringify(NET.cand));return}
+    if(err){onMsg((err==='timeout'?'No se pudo establecer la conexión con la sala.':'No se pudo conectar con el servidor de señal.')+' Detalle: '+NET.diag.join(' › ')+' · candidatos propios '+JSON.stringify(NET.cand)+' · recibidos '+(NET.cin||0));return}
     ON.host=false;ON.seen[NET.hostId]=performance.now();
     NET.onmsg=onGuestMsg;NET.onleave=function(){if(ON.inLobby||ON.on){toast('Se perdió la conexión con el anfitrión');onStop()}};
     onBeat();ON.mem=[];onRoomUi();onMsg('Conectado. Elige personaje y pulsa Listo.');
