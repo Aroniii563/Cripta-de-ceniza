@@ -6499,42 +6499,53 @@ var NET=(function(){
   var TU={username:'openrelayproject',credential:'openrelayproject'};
   var ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},{urls:'stun:openrelay.metered.ca:80'},
     {urls:'turn:openrelay.metered.ca:80',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:TU.username,credential:TU.credential}];
-  var N={diag:[],cand:{},ws:null,id:null,code:null,isHost:false,peers:{},onmsg:null,onpeer:null,onleave:null,onerror:null,hostId:null};
+  var N={wss:[],subs:[],diag:[],cand:{},ws:null,id:null,code:null,isHost:false,peers:{},onmsg:null,onpeer:null,onleave:null,onerror:null,hostId:null};
   function rid(n){var s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<n;i++)r+=s[Math.random()*s.length|0];return r}
   /* Señalización: broker MQTT público por WebSocket (sin registro, gratuito). Cada jugador escucha "cripta1/<id>". */
   var BROKERS=window.NET_BROKERS||['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081'];
   function mstr(s){var u=new TextEncoder().encode(s);var o=new Uint8Array(2+u.length);o[0]=u.length>>8;o[1]=u.length&255;o.set(u,2);return o}
   function mcat(){var n=0,i;for(i=0;i<arguments.length;i++)n+=arguments[i].length;var o=new Uint8Array(n),k=0;for(i=0;i<arguments.length;i++){o.set(arguments[i],k);k+=arguments[i].length}return o}
   function mpkt(first,body){var l=body.length,h=[first];do{var d=l%128;l=Math.floor(l/128);if(l>0)d|=128;h.push(d)}while(l>0);return mcat(new Uint8Array(h),body)}
-  function mqSend(pkt){try{N.ws.send(pkt)}catch(e){}}
+  function mqSend(pkt){N.wss.forEach(function(w){if(w.open){try{w.ws.send(pkt)}catch(e){}}})}
   function mqPub(topic,msg,retain){var pl=new TextEncoder().encode(msg);mqSend(mpkt(0x30|(retain?1:0),mcat(mstr(topic),pl)))}
   function mqSub(topic){mqSend(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr(topic),new Uint8Array([0]))))}
-  function sigConnect(id,bi,cb){
-    var done=false,ws;
-    function fail(){if(done)return;done=true;try{ws.close()}catch(e){}if(bi+1<BROKERS.length)sigConnect(id,bi+1,cb);else cb('conn')}
-    try{ws=new WebSocket(BROKERS[bi],'mqtt')}catch(e){fail();return}
-    ws.binaryType='arraybuffer';N.ws=ws;N.id=id;var buf=new Uint8Array(0);
-    var to=setTimeout(fail,6000);
-    ws.onopen=function(){mqSend(mpkt(0x10,mcat(mstr('MQTT'),new Uint8Array([4,2,0,30]),mstr('cr'+rid(12)))))};
-    ws.onerror=fail;
-    ws.onclose=function(){if(!done)fail();else if(N.ws===ws){N.diag.push('señal:cerrada');if(N.onsigclose)N.onsigclose()}};
-    ws.onmessage=function(ev){
-      buf=mcat(buf,new Uint8Array(ev.data));
-      while(buf.length>=2){
-        var i=1,l=0,m=1,b;do{if(i>=buf.length)return;b=buf[i++];l+=(b&127)*m;m*=128}while(b&128);
-        if(buf.length<i+l)return;
-        var type=buf[0]>>4,body=buf.slice(i,i+l);buf=buf.slice(i+l);
-        if(type===2){ if(body[1]===0&&!done){done=true;clearTimeout(to);N.diag.push('señal:ok('+BROKERS[bi].split('/')[2]+')');mqSub('cripta1/'+id);N._hb=setInterval(function(){mqSend(new Uint8Array([0xC0,0]))},20000);cb(null)} else fail() }
-        else if(type===3){
-          var tl=(body[0]<<8)|body[1],topic=new TextDecoder().decode(body.slice(2,2+tl)),pay=new TextDecoder().decode(body.slice(2+tl));
-          var d;try{d=JSON.parse(pay)}catch(e){continue}
-          onSig(topic,d);
+  var seenM={},seenN=0;
+  /* Se conecta a TODOS los brokers a la vez y se envía por todos; así dos jugadores coinciden aunque cada uno tenga alguno caído. */
+  function sigOpen(id,cb){
+    N.id=id;N.wss=[];var left=BROKERS.length,fired=false;
+    function settle(){if(fired||left>0)return;fired=true;cb(N.wss.some(function(w){return w.open})?null:'conn')}
+    BROKERS.forEach(function(url){
+      var w={ws:null,open:false,done:false,buf:new Uint8Array(0)};N.wss.push(w);
+      function fin(ok){if(w.done)return;w.done=true;left--;if(!ok){try{w.ws.close()}catch(e){}}settle();if(fired&&left>0&&!N._t){N._t=setTimeout(function(){},0)}}
+      var to=setTimeout(function(){fin(false)},6000);
+      try{w.ws=new WebSocket(url,'mqtt')}catch(e){clearTimeout(to);fin(false);return}
+      w.ws.binaryType='arraybuffer';
+      w.ws.onopen=function(){try{w.ws.send(mpkt(0x10,mcat(mstr('MQTT'),new Uint8Array([4,2,0,30]),mstr('cr'+rid(12)))))}catch(e){}};
+      w.ws.onerror=function(){clearTimeout(to);fin(false)};
+      w.ws.onclose=function(){clearTimeout(to);if(w.open){w.open=false;N.diag.push('señal:cerrada '+url.split('/')[2])}fin(false)};
+      w.ws.onmessage=function(ev){
+        w.buf=mcat(w.buf,new Uint8Array(ev.data));
+        while(w.buf.length>=2){
+          var buf=w.buf,i=1,l=0,m=1,b;do{if(i>=buf.length)return;b=buf[i++];l+=(b&127)*m;m*=128}while(b&128);
+          if(buf.length<i+l)return;
+          var type=buf[0]>>4,body=buf.slice(i,i+l);w.buf=buf.slice(i+l);
+          if(type===2){if(body[1]===0){clearTimeout(to);w.open=true;N.diag.push('señal:ok('+url.split('/')[2]+')');
+              w.ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr('cripta1/'+id),new Uint8Array([0]))));
+              (N._hb=N._hb||[]).push(setInterval(function(){try{w.ws.send(new Uint8Array([0xC0,0]))}catch(e){}},20000));
+              if(fired&&N.subs)N.subs.forEach(function(t){w.ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr(t),new Uint8Array([0]))))});
+              fin(true)}else fin(false)}
+          else if(type===3){
+            var tl=(body[0]<<8)|body[1],topic=new TextDecoder().decode(body.slice(2,2+tl)),pay=new TextDecoder().decode(body.slice(2+tl));
+            var d;try{d=JSON.parse(pay)}catch(e){continue}
+            if(d.m){if(seenM[d.m])continue;seenM[d.m]=1;if(++seenN>500){seenM={};seenN=0}}
+            onSig(topic,d);
+          }
         }
-      }
-    };
+      };
+    });
+    setTimeout(function(){if(!fired&&N.wss.some(function(w){return w.open})){fired=true;cb(null)}},3500);
   }
-  function sigOpen(id,cb){sigConnect(id,0,cb)}
-  function sig(type,dst,payload){mqPub('cripta1/'+dst,JSON.stringify({type:type,src:N.id,payload:payload}))}
+  function sig(type,dst,payload){mqPub('cripta1/'+dst,JSON.stringify({type:type,src:N.id,payload:payload,m:rid(10)+Date.now()}))}
   function onSig(topic,d){
     if(topic.indexOf('cripta1/room/')===0){if(N.onroom)N.onroom(d);return}
     if(d.type==='OFFER'){N.diag.push('oferta recibida');onOffer(d)}
@@ -6579,7 +6590,7 @@ var NET=(function(){
     N.isHost=false;code=String(code).toUpperCase().trim();N.hostId='cripta-'+code;
     sigOpen('g'+rid(10),function(err){
       if(err){cb(err);return}
-      var seen=false;N.onroom=function(){seen=true};mqSub('cripta1/room/'+code);
+      var seen=false;N.onroom=function(){seen=true};N.subs.push('cripta1/room/'+code);mqSub('cripta1/room/'+code);
       setTimeout(function(){if(!seen){N.diag.push('sala no existe');cb('nohost');var pp=N.peers[N.hostId];if(pp)drop(N.hostId)}},4000);
       var p=mkPeer(N.hostId);var to=setTimeout(function(){if(!p.open){drop(N.hostId);cb('timeout')}},25000);
       wire(p,p.pc.createDataChannel('r',{ordered:true}));
@@ -6592,7 +6603,7 @@ var NET=(function(){
     if(ch&&ch.readyState==='open'){if(unrel&&ch.bufferedAmount>65536)return;try{ch.send(JSON.stringify(m))}catch(e){}}};
   N.bcast=function(m,unrel,except){for(var k in N.peers)if(k!==except)N.send(k,m,unrel)};
   N.drop=drop;
-  N.close=function(){clearInterval(N._hb);if(N.isHost&&N.code)mqPub('cripta1/room/'+N.code,'',true);for(var k in N.peers)drop(k);try{N.ws.close()}catch(e){}N.ws=null};
+  N.close=function(){(N._hb||[]).forEach(clearInterval);if(N.isHost&&N.code)mqPub('cripta1/room/'+N.code,'',true);for(var k in N.peers)drop(k);N.wss.forEach(function(w){try{w.ws.close()}catch(e){}});N.wss=[]};
   return N;
 })();
 
