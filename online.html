@@ -5407,7 +5407,7 @@ var ANGD={"urna": {"src": "ataques/ang_urna.png", "fw": 72, "fh": 72, "n": 4, "d
 try{
   Object.keys(ANGD).forEach(function(k){if(k==='boca')return;var d=ANGD[k],im=new Image();im.onload=function(){ANGI[k]=im};im.src=d.src});
 }catch(e){}
-var angFx=[],AN_R=46,AN_RY=23,AN_UP=30,AN_SPIN=2.1,AN_LEN=150,AN_DUR=.4,AN_CHARGE=.35;
+var angFx=[],AN_R=46,AN_RY=23,AN_UP=30,AN_SPIN=2.1,AN_LEN=210,AN_HW=18,AN_DUR=.4,AN_CHARGE=.35;
 
 var mkPlayer_an_base=mkPlayer;
 mkPlayer=function(key,idx){
@@ -5472,7 +5472,7 @@ function updateUrns(dt){
     r=L[j];r.t+=dt;
     if(r.t>=AN_DUR||r.i>=P.angN){L.splice(j,1);continue}
     mo=angMouth(P,r.i);
-    var ca=Math.cos(mo.ang),sa=Math.sin(mo.ang),ex=mo.x+ca*AN_LEN,ey=mo.y+sa*AN_LEN,hw=12*P.angW;
+    var ca=Math.cos(mo.ang),sa=Math.sin(mo.ang),ex=mo.x+ca*AN_LEN,ey=mo.y+sa*AN_LEN,hw=AN_HW*P.angW;
     var wx=(ca/32+sa/16)/2,wy=(sa/16-ca/32)/2,wl=Math.hypot(wx,wy)||1;wx/=wl;wy/=wl;
     for(i=0;i<enemies.length;i++){
       e=enemies[i];
@@ -5534,7 +5534,7 @@ drawHz=function(h){
     ctx.save();
     ctx.translate(Math.round(mo.x),Math.round(mo.y));ctx.rotate(mo.ang);
     ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.max(0,al);
-    ctx.drawImage(ir,0,fi*dr.fh,dr.fw,dr.fh,-4,-12*pl.angW,AN_LEN,24*pl.angW);
+    ctx.drawImage(ir,0,fi*dr.fh,dr.fw,dr.fh,-4,-AN_HW*pl.angW,AN_LEN,2*AN_HW*pl.angW);
     ctx.restore();
     return;
   }
@@ -6777,8 +6777,8 @@ function onBegin(cls,me,host,msg){
 function onAtkIcon(key){
   try{
     var b=$('atkBtn'),nm=$('atkName'),c=CLASSES[key];nm.textContent=c.atk;
-    var isA=c.kind==='spears'&&SPD.icono_lanzas_que_vuelven;
-    if(isA){b.style.backgroundImage='url('+SPD.icono_lanzas_que_vuelven.src+')';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
+    var KI={spears:'icono_lanzas_que_vuelven',urns:'icono_urnas_de_luz',rider:'icono_jinete_dragon',meteor:'icono_lluvia_de_fuego'}[c.kind],isA=KI&&SPD[KI];
+    if(isA){b.style.backgroundImage='url('+SPD[KI].src+')';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
     else{var WI={sorc:'hechicero',barb:'barbaro',rogue:'picaro',pal:'paladin',druid:'druida',necro:'nigromante',monja:'monja',bruja:'bruja'}[key];
       if(WI){b.style.backgroundImage='url(mejoras/icono_arma_'+WI+'.png)';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
       else{b.style.backgroundImage='';b.style.backgroundSize='';b.style.imageRendering=''}}
