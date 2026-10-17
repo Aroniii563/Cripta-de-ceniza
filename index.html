@@ -378,6 +378,8 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
       <main class="mmain">
       <section id="pPlay">
         <p id="heroMsg" class="ef" style="min-height:1.2em;color:var(--gold)"></p>
+        <div class="tabs" id="modeBar"></div>
+        <p class="ef" id="modeNote" style="min-height:1.2em"></p>
         <div class="grid" id="classGrid"></div>
         <p class="curve" id="curve"></p>
         <p class="keys">WASD mueve en la vista isométrica. El personaje ataca solo al enemigo más cercano que tenga a tiro. En pantalla táctil, mantén el dedo en la pantalla para moverte. Tras elegir personaje podrás escoger mapa y, si quieres, jugar en cooperativo local con un segundo jugador (flechas).</p>
@@ -567,7 +569,7 @@ var CLASSES={
    Jefes: BOSS_HITS golpes normales (tras armadura) x BOSS_K ("un 50% más"). */
 var PROJ_MAX=20;
 var HPF={zombie:1.3,archer:1,brute:8},HP_REF=18,HP_TIME=240,BOSS_BASE=1500,BOSS_HITS=10,BOSS_K=1.7;
-function enemyHp(hf){return HP_REF*hf*(1+t/HP_TIME)*(1+t/1200)*MAPS[curMap].hp}
+function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp}
 function bossHf(n,armor){return BOSS_HITS*BOSS_K*(1+.6*(n-1))}
 var ETYPES={
   zombie:{hp:14,speed:1.9,dmg:8,r:.32,xp:5,h:30,col:'#7f9d6c',name:'Zombi'},
@@ -592,7 +594,7 @@ var UPS=[
   {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp*=1.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 60%)',ok:function(){return P.armor<.6-1e-9},f:function(){P.armor=Math.min(.6,P.armor+.07)}},
-  {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 3% del daño infligido',f:function(){P.steal+=.03}},
+  {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 0,5% del daño infligido',f:function(){P.steal+=.005}},
   {n:'Pies ligeros',ic:'icono_pies_ligeros',c:'u',d:'+8% de velocidad de movimiento',f:function(){P.speed*=1.08}},
   {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida',f:function(){P.pick*=1.15}},
   {n:'Sabiduría',ic:'icono_sabiduria',c:'u',d:'+5% de experiencia ganada',f:function(){P.xpMul+=.05}}
@@ -618,6 +620,7 @@ var META=[
   {k:'arm',n:'Armadura',e:'+1,5% de reducción de daño',cost:80},
   {k:'crit',n:'Crítico',e:'+1,5% de probabilidad de crítico',cost:80},
   {k:'reg',n:'Regeneración',e:'+0,1 de vida por segundo',cost:60},
+  {k:'ls',n:'Robo de vida',e:'+0,15% del daño infligido recuperado como vida',cost:90},
   {k:'mag',n:'Imán',e:'+6% de radio de recogida',cost:40},
   {k:'xp',n:'Sabiduría',e:'+3% de experiencia',cost:90},
   {k:'gold',n:'Fortuna',e:'+10% de oro ganado por partida',cost:100}
@@ -790,7 +793,7 @@ BOSS_ENTRIES.push(
   {n:1,map:2,kind:'arbol',name:'El Anciano del Musgo',desc:'Gigante de corteza con barba de liquen, ojos de brasa y corona de ramas secas. Hace brotar raíces espinosas del suelo, con círculos de aviso ámbar: en grupo a tu alrededor o en línea hacia ti. Con menos de la mitad de vida lanza más raíces y tres líneas en abanico. Si estás a su lado, golpea el suelo con el brazo.'},
   {n:2,map:2,kind:'sapo',name:'El Sapo Cebado',desc:'Sapo enorme, verrugoso y con musgo en el lomo. Avanza a saltos. De lejos lanza la lengua en línea recta: si te alcanza te arrastra hasta su boca y te muerde nada más llegar. De cerca da mordiscos.'},
   {n:3,map:2,kind:'libelula',name:'La Libélula Colmilluda',desc:'Insecto de grandes mandíbulas curvas, alas ahumadas y antenas largas. Marca una franja en el suelo y embiste volando, atravesando troncos y árboles. Con menos de la mitad de vida encadena dos embestidas seguidas.'},
-  {n:4,map:2,kind:'wendigo',name:'El Wendigo',desc:'Cuerpo demacrado con costillas marcadas, crin negra, cráneo de ciervo y una cornamenta enorme. De cerca ataca con las garras (doble zarpazo con poca vida). Si te alejas, persigue y devora a los enemigos cercanos: cada uno le cura un 7% de vida, o le sube la vida máxima un 3% si ya está lleno, y le da un 4% más de daño (hasta +80%). Un aura roja bajo sus pies crece a medida que se fortalece.'}
+  {n:4,map:2,kind:'wendigo',name:'El Wendigo',desc:'Cuerpo demacrado con costillas marcadas, crin negra, cráneo de ciervo y una cornamenta enorme. De cerca ataca con las garras (doble zarpazo con poca vida). Si te alejas, persigue y devora a los enemigos cercanos: cada uno le cura un 3% de vida, o le sube la vida máxima un 3% si ya está lleno, y le da un 4% más de daño (hasta +80%). Un aura roja bajo sus pies crece a medida que se fortalece.'}
 );
 BOSS_ENTRIES.push(
   {n:1,map:3,kind:'gusano',name:'El Gusano Ceniciento',desc:'Gusano gris acorazado con una boca redonda llena de dientes en anillo, como una lamprea. Rápido, avanza serpenteando hacia ti. Su cuerpo son 12 segmentos que siguen el rastro de la cabeza y hacen daño si los tocas. De cerca muerde; con menos de la mitad de vida se mueve más rápido. Tus ataques solo le hacen daño en la cabeza: los segmentos no reciben golpes.'},
@@ -960,10 +963,12 @@ $('bkTxtImp').addEventListener('click',function(){var v=$('bkTxt').value.trim();
 var RK_KEY='cripta_rank',rankScope='global',rankMode='sorc',rankRows=[],rankNames={},rankState='idle',rankDb=null,rankU=null,rankUid=null;
 function loadRankLocal(){try{return JSON.parse(localStorage.getItem(RK_KEY)||'[]')}catch(e){return []}}
 function saveRankLocal(a){try{localStorage.setItem(RK_KEY,JSON.stringify(a))}catch(e){}}
+function loadRankTw(){try{return JSON.parse(localStorage.getItem(RK_KEY+'_torre')||'[]')}catch(e){return []}}
+function saveRankTw(a){try{localStorage.setItem(RK_KEY+'_torre',JSON.stringify(a))}catch(e){}}
 function getNick(){try{return localStorage.getItem('cripta_nick')||''}catch(e){return ''}}
 function setNick(v){try{localStorage.setItem('cripta_nick',v)}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function modeName(m){return m==='coop'?'Cooperativo':CLASSES[m].name}
+function modeName(m){return m==='coop'?'Cooperativo':m==='torre'?'Torre de ceniza':CLASSES[m].name}
 function clsLabel(c){return String(c).split('+').map(function(k){return CLASSES[k]?CLASSES[k].name:''}).filter(Boolean).join(' + ')}
 (function(){
   try{
@@ -972,7 +977,22 @@ function clsLabel(c){return String(c).split('+').map(function(k){return CLASSES[
   }catch(e){}
 })();
 function postRank(lvl){
-  if(t<30||!PL.length)return;
+  if(!PL.length)return;
+  if(TW.on){
+    if(!won)return;
+    var te={mode:'torre',cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:5,ts:Date.now()};
+    var ta=loadRankTw();ta.push(te);ta.sort(function(x,y){return x.time-y.time});saveRankTw(ta.slice(0,40));
+    if(!rankDb||!rankUid)return;
+    var tref=rankDb.collection('ranking').doc(rankUid);
+    tref.get().then(function(sn){
+      var d=sn.exists?sn.data():{},m=Object.assign({},d.modes||{}),o=m.torre;
+      if(o&&o.time<=te.time)return;
+      m.torre={cls:te.cls,time:te.time,level:te.level,kills:te.kills,map:5};
+      return tref.set({nick:getNick(),modes:m,ts:te.ts});
+    }).catch(function(){});
+    return;
+  }
+  if(t<30)return;
   var e={mode:coop?'coop':PL[0].key,cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:curMap,ts:Date.now()};
   var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,40));
   if(!rankDb||!rankUid)return;
@@ -995,14 +1015,14 @@ function refreshRank(){
 function buildRank(){
   $('rankScope').innerHTML=[['global','Global'],['local','Este dispositivo']].map(function(a){return '<button class="tab" type="button" data-rs="'+a[0]+'" aria-pressed="'+(a[0]===rankScope)+'">'+a[1]+'</button>'}).join('')+
     '<button class="tab" type="button" data-rr="1">Actualizar</button>';
-  $('rankTabs').innerHTML=Object.keys(CLASSES).concat(['coop']).map(function(k){
-    var col=k==='coop'?'#6ad2ff':CLASSES[k].col;
+  $('rankTabs').innerHTML=Object.keys(CLASSES).concat(['coop','torre']).map(function(k){
+    var col=k==='coop'?'#6ad2ff':k==='torre'?'#d3a94a':CLASSES[k].col;
     return '<button class="tab" type="button" data-rm="'+k+'" aria-pressed="'+(k===rankMode)+'"'+(k===rankMode?' style="color:'+col+'"':'')+'>'+modeName(k)+'</button>';
   }).join('');
   if(document.activeElement!==$('rankNick'))$('rankNick').value=getNick();
   var rows=[],msg='';
   if(rankScope==='local'){
-    rows=loadRankLocal().filter(function(e){return e.mode===rankMode}).sort(function(x,y){return y.time-x.time}).slice(0,20).map(function(e){return {name:getNick()||'Tú',cls:e.cls,time:e.time,level:e.level,kills:e.kills,map:e.map,me:true}});
+    rows=(rankMode==='torre'?loadRankTw():loadRankLocal().filter(function(e){return e.mode===rankMode}).sort(function(x,y){return y.time-x.time})).slice(0,20).map(function(e){return {name:getNick()||'Tú',cls:e.cls,time:e.time,level:e.level,kills:e.kills,map:e.map,me:true}});
   }else if(!rankDb||!rankUid){
     msg='El ranking global no está disponible en esta sesión (hace falta abrir el juego con tu cuenta y permiso de contribuidor). Tus marcas se guardan igualmente en «Este dispositivo».';
   }else if(rankState==='load')msg='Cargando…';
@@ -1011,13 +1031,13 @@ function buildRank(){
     rows=rankRows.filter(function(r){return r.modes&&r.modes[rankMode]}).map(function(r){
       var m=r.modes[rankMode],pn=rankNames&&rankNames[r.id]&&rankNames[r.id].name;
       return {name:r.nick||pn||'Jugador',cls:m.cls,time:+m.time||0,level:+m.level||0,kills:+m.kills||0,map:+m.map||0,me:r.id===rankUid};
-    }).sort(function(x,y){return y.time-x.time}).slice(0,20);
+    }).sort(function(x,y){return rankMode==='torre'?x.time-y.time:y.time-x.time}).slice(0,20);
   }
   if(!rows.length&&!msg)msg='Aún no hay marcas en esta categoría. ¡Sé el primero!';
   $('rankMsg').textContent=msg;
   var h=rows.length?'<tr><th>#</th><th>Jugador</th><th>Personaje</th><th>Tiempo</th><th>Nivel</th><th>Bajas</th><th>Mapa</th></tr>':'';
   rows.forEach(function(r,i){
-    h+='<tr'+(r.me?' class="me"':'')+'><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(clsLabel(r.cls))+'</td><td>'+fmt(r.time)+'</td><td>'+r.level+'</td><td>'+r.kills+'</td><td>'+(r.map+1)+'</td></tr>';
+    h+='<tr'+(r.me?' class="me"':'')+'><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(clsLabel(r.cls))+'</td><td>'+fmt(r.time)+'</td><td>'+r.level+'</td><td>'+r.kills+'</td><td>'+(rankMode==='torre'?'—':r.map+1)+'</td></tr>';
   });
   $('rankTable').innerHTML=h;
 }
@@ -1078,7 +1098,7 @@ function endRun(why){
   meta.last={cls:P.key,map:curMap,kills:kills,time:t,gold:g,level:lvl,why:why};
   meta.run=null;
   var b=loadBest(),o=b[P.key],newBest=false;
-  if(!coop){newBest=!o||t>o.time;if(newBest&&t>=5){b[P.key]={time:t,level:lvl,kills:kills};saveBest(b)}else newBest=false}
+  if(!coop&&!TW.on){newBest=!o||t>o.time;if(newBest&&t>=5){b[P.key]={time:t,level:lvl,kills:kills};saveBest(b)}else newBest=false}
   saveMeta();
   postRank(lvl);
   return {g:g,newBest:newBest};
@@ -1104,6 +1124,7 @@ function recoverRun(){
 var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],parts=[],zones=[],later=[],sfx=[],corpses=[];
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
+var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
 var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
 /* Cooperativo local: PL = jugadores; P apunta al jugador "actual" mientras se procesa su lógica (P=PL[0] el resto del tiempo). */
@@ -1164,7 +1185,7 @@ function mkPlayer(key,idx){
   var L=function(k){return lvOf(key,k)};
   p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.rate=c.rate*(1+.03*L('rate'));
   p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.6,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
-  p.regen=.1*L('reg');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
+  p.regen=.1*L('reg');p.steal=.0015*L('ls');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
   p.skinId=skinFor(key);
   return p;
 }
@@ -1268,9 +1289,9 @@ function killEnemy(e){
     bossKills++;
     toast('Jefe derrotado: +2 niveles');
     /* poderes especiales: solo los 4 primeros jefes (hasta el minuto 20) */
-    if(e.bossN<=4&&!(curMap===5&&e.bossN===4))PL.forEach(function(q){q.pendS++});
-    bossAlive=null;
-    if(e.bossN===4&&state==='play'&&!won){
+    if(e.bossN<=4&&!(curMap===5&&e.bossN===4)&&(!TW.on||TW.cur<3))PL.forEach(function(q){q.pendS++});
+    bossAlive=null;if(TW.on)TW.nextT=t+3;
+    if(e.bossN===4&&state==='play'&&!won&&(!TW.on||TW.bi>=24)){
       if(curMap===5||!meta.infinite){won=true;later.push({t:2.2,f:victory})}
       else{
         /* modo infinito: la partida sigue tras el jefe del minuto 20 */
@@ -1296,7 +1317,7 @@ function spawnBoss(){
     var a=Math.random()*6.283,d=rnd(10,13),T=livePlayer(),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(blocked(x,y,.9))continue;
     bossN++;
-    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*(1+t/1200)*(coop?1.7:1);
+    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*(1+tB()/1200)*tK()*(coop?1.7:1);
     var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:(curMap===0||curMap===5)?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg,
       xp:0,h:76,col:(curMap===0||curMap===5)?'#a89c78':curMap===1?'#4ea2b0':curMap===2?'#5a7a2a':curMap===3?'#8a2a1a':'#d0a032',armor:bar,elite:false,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:2.5,side:1,dead:false,ai:1.2,wind:-1,sc:0};
     enemies.push(b);bossAlive=b;S('bossRoar');toast(kind==='muerte'||kind==='cangrejo'||kind==='wendigo'||kind==='devorador'||kind==='papa'?'¡'+b.name+' ha llegado!':'Jefe: '+b.name);
@@ -1405,9 +1426,9 @@ function spawnEnemy(){
     var a=Math.random()*6.283,d=rnd(10,14),T=livePlayer(),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(blocked(x,y,.6))continue;
     var typ='zombie',r=Math.random();
-    if(t>90&&r<.14)typ='brute';else if(t>40&&r<.38)typ='archer';
-    var def=ETYPES[typ],elite=t>60&&Math.random()<.07;
-    var hf=HPF[typ]*(elite?2.4:1),dm=(1+t/300)*(elite?1.3:1)*MAPS[curMap].dmg;
+    if(tE()>90&&r<.14)typ='brute';else if(tE()>40&&r<.38)typ='archer';
+    var def=ETYPES[typ],elite=tE()>60&&Math.random()<.07;
+    var hf=HPF[typ]*(elite?2.4:1),dm=(1+tE()/300)*(elite?1.3:1)*MAPS[curMap].dmg;
     enemies.push({type:typ,x:x,y:y,r:def.r*(elite?1.2:1),hf:hf,hp:enemyHp(hf),maxHp:enemyHp(hf),speed:def.speed*(elite?1.1:1),dmg:def.dmg*dm,
       xp:def.xp*(elite?4:1)*MAPS[curMap].xp,h:def.h*(elite?1.2:1),col:curMap===0?'#a89c78':curMap===1?({zombie:'#b07c78',archer:'#4ea2b0',brute:'#6e4a30'})[typ]:curMap===2?({zombie:'#4a6a1c',archer:'#c4321c',brute:'#1e4a4a'})[typ]:curMap===3?({zombie:'#9c2816',archer:'#5a2a8a',brute:'#6e2416'})[typ]:curMap===4?({zombie:'#8a7a7a',archer:'#d6a62c',brute:'#dddbe2'})[typ]:def.col,elite:elite,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:rnd(1,2.5),side:Math.random()<.5?1:-1,dead:false});
     return;
@@ -1628,12 +1649,12 @@ function update(dt){
   for(var li=later.length-1;li>=0;li--){later[li].t-=dt;if(later[li].t<=0){var lf=later.splice(li,1)[0].f;lf()}}
 
   /* spawns */
-  if(t>=nextBoss&&spawnBoss())nextBoss+=300;
+  if(TW.on)twUpdate();else if(t>=nextBoss&&spawnBoss())nextBoss+=300;
   spawnT-=dt;
   if(spawnT<=0){
     spawnT=.12;
     /* Enemigos objetivo en pantalla: sube un 10% cada 10 segundos (tope 320). */
-    var target=Math.round(Math.min(coop?420:260,16*Math.pow(1.09,Math.floor(t/10))*(coop?1.6:1))*capScale);
+    var target=Math.round(Math.min(coop?420:260,16*Math.pow(1.09,Math.floor(tE()/10))*(coop?1.6:1))*capScale);
     var need=Math.min(6,target-enemies.length);
     for(var k=0;k<need;k++)spawnEnemy();
   }
@@ -2064,6 +2085,7 @@ $('statBtn').style.pointerEvents='auto';
 $('statBtn').addEventListener('click',toggleStats);
 function r1(v){return (Math.round(v*10)/10).toString().replace('.',',')}
 function pc(v){return Math.round(v*100)+'%'}
+function pc2(v){return (Math.round(v*1000)/10).toString().replace('.',',')+'%'}
 function statRows(){
   var c=P.c,k=c.kind,r=[];
   function a(l,v,mx){r.push('<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>')}
@@ -2074,7 +2096,7 @@ function statRows(){
   a('Crítico',pc(P.crit),P.crit>=1-1e-9);
   a('Armadura',pc(P.armor),P.armor>=.6-1e-9);
   a('Regeneración',r1(P.regen)+'/s');
-  if(P.steal)a('Robo de vida',pc(P.steal));
+  if(P.steal)a('Robo de vida',pc2(P.steal));
   a('Radio de recogida',r1(P.pick));
   a('Exp. ganada','x'+r1(P.xpMul));
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR),P.auraR>=1.75-1e-9);
@@ -2110,7 +2132,7 @@ function hud(){
     setTxt('xp2Txt','Nivel '+q2.level);
   }
   if(statsOpen){var sh=statRows();if(sh!==stHtml){stHtml=sh;$('statBody').innerHTML=sh}}
-  setTxt('killTxt',kills+(kills===1?' baja':' bajas')+(bossAlive?'':' · jefe en '+fmt(Math.max(0,nextBoss-t))));
+  setTxt('killTxt',kills+(kills===1?' baja':' bajas')+(TW.on?' · jefe '+Math.min(24,TW.cur+1+(bossAlive?0:1))+'/24':(bossAlive?'':' · jefe en '+fmt(Math.max(0,nextBoss-t)))));
   var bb=$('bossBar');
   if(bossAlive&&!bossAlive.dead){
     if(bb.hidden)bb.hidden=false;
@@ -2148,7 +2170,7 @@ $('resumeBtn').addEventListener('click',function(){setPause(false)});
 $('quitBtn').addEventListener('click',function(){endRun('abandono');showMenu('stats')});
 /* al cerrar o recargar la página con una partida en marcha, también cuenta */
 window.addEventListener('pagehide',function(){if(P&&!P.awarded&&state!=='menu')endRun('cierre')});
-$('againBtn').addEventListener('click',function(){startRun(lastKey,curMap)});
+$('againBtn').addEventListener('click',function(){startRun(lastKey,TW.on?CEN_MAP:curMap)});
 $('menuBtn').addEventListener('click',function(){showMenu('play')});
 
 /* ---------- Skins de los personajes (sprites incrustados; w y h en píxeles a escala 1) ---------- */
@@ -3228,7 +3250,7 @@ function sbStrike(e){
     if(q&&!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<e.r+q.r+1.2){
       q.dead=true;burst(q.x,q.y,'#8a1010',14);
       e.feed++;
-      if(e.hp<e.maxHp){var h=e.maxHp*.07;e.hp=Math.min(e.maxHp,e.hp+h);addText(e.x,e.y,'+'+Math.round(h),'#7ae05a',15)}
+      if(e.hp<e.maxHp){var h=e.maxHp*.03;e.hp=Math.min(e.maxHp,e.hp+h);addText(e.x,e.y,'+'+Math.round(h),'#7ae05a',15)}
       else{e.maxHp*=1.03;e.hp=e.maxHp;addText(e.x,e.y,'+vida máx.','#7ae05a',14)}
       e.dmg=e.dmg0*(1+Math.min(e.feed,20)*.04);
       if(e.feed%5===0)addText(e.x,e.y-.6,'¡Más fuerte!','#ff5a4a',15);
@@ -4500,13 +4522,14 @@ var FIN_MAP=(typeof LIB_MAP!=='undefined')?LIB_MAP:5;
 var FIN_SHOT={1:['alga','#4a8a3a'],2:['moho','#e04a1a'],3:['llama','#a050ff'],4:['aguab','#a8d0ff']};
 var FIN_COL={0:{zombie:'#a89c78',archer:'#a89c78',brute:'#a89c78'},1:{zombie:'#b07c78',archer:'#4ea2b0',brute:'#6e4a30'},
   2:{zombie:'#4a6a2a',archer:'#c04030',brute:'#3a7a6a'},3:{zombie:'#7a2a1a',archer:'#6a3aa0',brute:'#5a1a10'},4:{zombie:'#8a7a7a',archer:'#d6a62c',brute:'#dddbe2'}};
+var FIN_ESPR={};
 try{
   Object.keys(FIN_SRC.spr).forEach(function(k){
     var d=FIN_SRC.spr[k],im=new Image();
     im.onload=function(){
       var fc=document.createElement('canvas');fc.width=im.width;fc.height=im.height;
       var fq=fc.getContext('2d');fq.drawImage(im,0,0);fq.globalCompositeOperation='source-in';fq.fillStyle='#ffffff';fq.fillRect(0,0,fc.width,fc.height);
-      ESPR[k]={img:im,flash:fc,d:d};
+      ESPR[k]={img:im,flash:fc,d:d};FIN_ESPR[k]=ESPR[k];
     };
     im.src=d.src;
   });
@@ -4514,6 +4537,8 @@ try{
     var d=FIN_SRC.fx[k],im=new Image();im.onload=function(){FIN_FX[k]={img:im,fw:d.fw,fh:d.fh,n:d.n}};im.src=d.src;
   });
 }catch(e){}
+var loadMapAssets_fin=loadMapAssets;
+loadMapAssets=function(mi){var had=(loadedEnemyMap===mi);loadMapAssets_fin(mi);if(!had&&mi===FIN_MAP)Object.keys(FIN_ESPR).forEach(function(k){ESPR[k]=FIN_ESPR[k]})};
 BOSS_CFG.escritor={r:.55,speed:2.6,hp:3,dmg:1.2};
 var FIN_SPIRITS=['verguenza','rabia','miedo'],FIN_SPIRIT_NAMES=['Vergüenza','Rabia','Miedo'],FIN_SPIRIT_COL=['#3ab864','#d84228','#8034b8'];
 BOSS_CFG.verguenza={r:.55,speed:2.4,hp:1.2,dmg:1.05};
@@ -4572,7 +4597,7 @@ spawnBoss=function(){
     if(ok&&bossAlive){
       var b=bossAlive,i=Math.min(b.bossN,3)-1,kind=FIN_SPIRITS[i],cf=BOSS_CFG[kind];
       b.kind=kind;b.spr=kind;b.name=FIN_SPIRIT_NAMES[i];b.r=cf.r;b.speed=cf.speed;
-      b.hp=b.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+t/1200)*(coop?1.7:1);b.dmg=28*cf.dmg*MAPS[curMap].dmg;b.col=FIN_SPIRIT_COL[i];
+      b.hp=b.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+tB()/1200)*tK()*(coop?1.7:1);b.dmg=28*cf.dmg*MAPS[curMap].dmg;b.col=FIN_SPIRIT_COL[i];
       b.ai=1.2;b.sc=0;b.combo=0;b.dash=0;toast('Jefe: '+b.name);
     }
     return ok;
@@ -4581,7 +4606,7 @@ spawnBoss=function(){
   if(ok2&&bossAlive){
     var w=bossAlive,cf=BOSS_CFG.escritor;
     w.kind='escritor';w.spr='escritor';w.name='El Escritor';w.r=cf.r;w.speed=cf.speed;w.phase=1;
-    w.hp=w.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+t/1200)*(coop?1.7:1);w.dmg=28*cf.dmg*MAPS[curMap].dmg;w.col='#c8a060';
+    w.hp=w.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+tB()/1200)*tK()*(coop?1.7:1);w.dmg=28*cf.dmg*MAPS[curMap].dmg;w.col='#c8a060';
     w.cyc=0;w.ai=1.5;w.sc=0;w.trans=0;w.tt=0;w.aura=0;w.beam=null;w.h=76;
     finBooks=[];finFire=[];finOrbs=[];finBeams=[];
     toast('¡'+w.name+' ha llegado!');
@@ -4623,7 +4648,7 @@ bossAI=function(e,dt,d){
     if(e.trans<=0){
       var cf=BOSS_CFG.faraon;
       e.phase=2;e.spr='faraon';e.name='El Escritor Inmortal';e.speed=cf.speed;e.r=cf.r;
-      e.hp=e.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+t/1200)*(coop?1.7:1);e.dmg=28*cf.dmg*MAPS[curMap].dmg;e.ai=1.2;e.sc=1;e.cyc=0;e.atkT=99;
+      e.hp=e.maxHp=BOSS_BASE*cf.hp*MAPS[curMap].hp*(1+tB()/1200)*tK()*(coop?1.7:1);e.dmg=28*cf.dmg*MAPS[curMap].dmg;e.ai=1.2;e.sc=1;e.cyc=0;e.atkT=99;
       ring(e.x,e.y,3.8,.7,'#6ae0c8');addSfx('impact',e.x,e.y,.6);
     }
     return res;
@@ -6562,6 +6587,314 @@ if(window.CRIPTA_WEB){(function(){
 })()}
 
 /* ==========================================================================
+   MAPA 7 · CENIZA BLANCA (mapa del modo nuevo)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS del bloque de la Librería (usa los mismos puntos de dibujo:
+   abyssOn, drawAbyssFloor, drawAbyssProp y drawAbyssAtmos, ampliados aquí
+   solo para este mapa).
+   Añade el mapa al final de MAPS (y su retrato a MAP_IMG). Índice: CEN_MAP.
+   Con CEN_HIDE=true NO sale en la pantalla normal de mapas: es para el modo
+   nuevo, que lo arranca con startRun(clase, CEN_MAP) o con cenStart(clase).
+   Contenido: llanura de ceniza blanca con losas de mármol medio enterradas,
+   pocos obstáculos (columnas estriadas rotas, tambores caídos, montones de
+   escombros, una estatua partida y pilastras sueltas), dunas de ceniza,
+   cascotes, huesos y grietas en el suelo. Muros del borde de mármol con banda
+   de ovas y dardos y panel con meandro griego. Ceniza cayendo y bruma gris.
+   ========================================================================== */
+var CEN_SRC={"tw": 128, "th": 64, "floors": 4, "props": {"columna0": {"w": 110, "h": 166, "fx": 55.0, "fy": 122.0}, "columna1": {"w": 140, "h": 228, "fx": 70.0, "fy": 184.0}, "deco0": {"w": 72, "h": 48, "fx": 36.0, "fy": 24.0}, "deco1": {"w": 72, "h": 48, "fx": 36.0, "fy": 24.0}, "deco2": {"w": 72, "h": 48, "fx": 36.0, "fy": 24.0}, "deco3": {"w": 72, "h": 48, "fx": 36.0, "fy": 24.0}, "deco4": {"w": 72, "h": 48, "fx": 36.0, "fy": 24.0}, "escombros0": {"w": 130, "h": 134, "fx": 65.0, "fy": 90.0}, "escombros1": {"w": 130, "h": 130, "fx": 65.0, "fy": 86.0}, "estatua": {"w": 140, "h": 193, "fx": 70.0, "fy": 149.0}, "muro0": {"w": 150, "h": 260, "fx": 75.0, "fy": 216.0}, "muro1": {"w": 150, "h": 260, "fx": 75.0, "fy": 216.0}, "muro2": {"w": 150, "h": 260, "fx": 75.0, "fy": 216.0}, "tambor": {"w": 140, "h": 127, "fx": 70.0, "fy": 83.0}}, "retrato": "mapimg/ceniza/retrato.png", "img": {"suelo": "mapimg/ceniza/suelo.png", "columna0": "mapimg/ceniza/columna0.png", "columna1": "mapimg/ceniza/columna1.png", "deco0": "mapimg/ceniza/deco0.png", "deco1": "mapimg/ceniza/deco1.png", "deco2": "mapimg/ceniza/deco2.png", "deco3": "mapimg/ceniza/deco3.png", "deco4": "mapimg/ceniza/deco4.png", "escombros0": "mapimg/ceniza/escombros0.png", "escombros1": "mapimg/ceniza/escombros1.png", "estatua": "mapimg/ceniza/estatua.png", "muro0": "mapimg/ceniza/muro0.png", "muro1": "mapimg/ceniza/muro1.png", "muro2": "mapimg/ceniza/muro2.png", "tambor": "mapimg/ceniza/tambor.png"}},CEN={img:{},n:0,ready:false},cenCache={},cenOrder=[],cenType=null,cenPave=null;
+var CEN_TYPES=['columna0','columna1','tambor','escombros0','escombros1','estatua','muro2'];
+var CEN_HIDE=true,CEN_MAP=(typeof MAPS!=='undefined')?MAPS.length:6;
+if(typeof MAPS!=='undefined'){
+  MAPS.push({n:'Ceniza blanca',hp:6.5,dmg:3.5,xp:1,bhp:4.75,floor:['#b1aea7','#bbb8b1','#a6a39c','#c5c2bb'],wt:'#e2e0da',wl:'#aeaca5',wr:'#807e79',wo:'#2a2927',ws:'#f2f0ea',bg:'#3a3936',sw:'#98968f'});
+  if(typeof MAP_IMG!=='undefined')MAP_IMG.push(CEN_SRC.retrato);
+}
+try{
+  var cenKeys=Object.keys(CEN_SRC.img);
+  cenKeys.forEach(function(k){
+    var im=new Image();
+    im.onload=function(){CEN.img[k]=im;CEN.n++;if(CEN.n===cenKeys.length)CEN.ready=true};
+    im.src=CEN_SRC.img[k];
+  });
+}catch(e){}
+function cenOn(){return (curMap===CEN_MAP||TW.on)&&CEN.ready&&!!cenType}
+function cenStart(key){return startRun(key,CEN_MAP)}
+/* pocos obstáculos: en cada módulo de 12x12 hay 0-2 grupos pequeños (ruina de columna,
+   escombros, estatua o pilastra suelta). Zonas de losas (plazas) repartidas por ruido. */
+function cenGen(){
+  cenType=new Int8Array(N*N).fill(-1);cenPave=new Uint8Array(N*N);cenCache={};cenOrder=[];
+  var x,y,c=N/2;
+  for(y=1;y<N-1;y++)for(x=1;x<N-1;x++)map[y*N+x]=0;
+  function put(x,y,t){
+    if(x<2||y<2||x>N-3||y>N-3)return;
+    if(Math.hypot(x+.5-c,y+.5-c)<6)return;
+    var i=y*N+x;if(map[i])return;map[i]=1;cenType[i]=t;
+  }
+  for(var my=0;my<5;my++)for(var mx=0;mx<5;mx++){
+    var ox=mx*12,oy=my*12,ng=1+Math.floor(cHash(my*31+mx*7,401)*2.4);
+    for(var g=0;g<ng;g++){
+      var gx=ox+2+Math.floor(cHash(my*13+mx*5+g,402)*8),gy=oy+2+Math.floor(cHash(my*17+mx*3+g,403)*8),r=cHash(mx*11+my*19+g,404);
+      if(r<.3){                       /* ruina de columna: columna + tambor o escombros al lado */
+        put(gx,gy,cHash(g+mx,405)<.5?0:1);
+        if(cHash(g+my,406)<.7)put(gx+1,gy,cHash(g,407)<.5?2:4);
+        if(cHash(g+mx+my,408)<.3)put(gx,gy+1,0);
+      }else if(r<.55){                /* hilera de columnas rotas (resto de un pórtico) */
+        var along=cHash(g+mx*3,409)<.5;
+        for(var k=0;k<3;k++)if(cHash(k+g*7+mx,410)<.8)put(along?gx+k*2:gx,along?gy:gy+k*2,cHash(k+g,411)<.6?0:1);
+      }else if(r<.75){                /* escombros */
+        put(gx,gy,cHash(g,412)<.5?3:4);
+        if(cHash(g+my,413)<.4)put(gx+1,gy+1,4);
+      }else if(r<.88)put(gx,gy,5);    /* estatua partida */
+      else{put(gx,gy,6);if(cHash(g+mx,414)<.5)put(gx,gy+1,6)}   /* pilastra suelta del mismo muro */
+    }
+  }
+  for(y=0;y<N;y++)for(x=0;x<N;x++){
+    var px=Math.floor(x/5),py=Math.floor(y/5),h=cHash(px*53+py*29,415);
+    if(h<.3&&cHash(y*N+x,416)<.85)cenPave[y*N+x]=1;
+  }
+}
+function cenProp(x,y){
+  var i=y*N+x,h=cHash(i,421);
+  if(x===0||y===0||x===N-1||y===N-1)return 'muro'+(h<.6?0:h<.82?1:2);
+  var t=cenType?cenType[i]:-1;
+  if(t<0)return 'escombros1';
+  return CEN_TYPES[t];
+}
+function drawCenProp(x,y){
+  var k=cenProp(x,y),d=CEN_SRC.props[k],im=CEN.img[k];
+  if(!d||!im)return false;
+  var c=sp(x+.5,y+.5);
+  ctx.drawImage(im,Math.round(c.x-d.fx/2),Math.round(c.y-d.fy/2),d.w/2,d.h/2);
+  return true;
+}
+function cenChunk(cx,cy){
+  var key=cx+','+cy,c=cenCache[key];
+  if(c){var kk=cenOrder.indexOf(key);if(kk>0){cenOrder.splice(kk,1);cenOrder.unshift(key)}return c}
+  var x0=cx*CHUNK,y0=cy*CHUNK,x1=Math.min(N,x0+CHUNK),y1=Math.min(N,y0+CHUNK),pad=16,S=2;
+  var minX=sp(x0,y1).x-pad,maxX=sp(x1,y0).x+pad,minY=sp(x0,y0).y-pad,maxY=sp(x1,y1).y+pad;
+  var cv2=document.createElement('canvas');cv2.width=Math.ceil((maxX-minX)*S);cv2.height=Math.ceil((maxY-minY)*S);
+  var g=cv2.getContext('2d');g.setTransform(S,0,0,S,-minX*S,-minY*S);
+  var x,y,i,A=CEN_SRC;
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){
+    i=y*N+x;var q=sp(x,y),f=Math.floor(cHash(i,423)*A.floors),row=cenPave[i]?1:0;
+    g.drawImage(CEN.img.suelo,f*A.tw,row*A.th,A.tw,A.th,q.x-32,q.y,64,32);
+  }
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){
+    i=y*N+x;if(map[i]===1)continue;
+    var r=cHash(i,424),dk=null;
+    if(r<.03)dk='deco0';else if(r<.05)dk='deco1';else if(r<.058)dk=cenPave[i]?'deco4':'deco2';else if(r<.064)dk='deco3';else if(r<.072)dk='deco4';
+    var dd=dk&&A.props[dk];
+    if(dd){var cc=sp(x+.5,y+.5);g.drawImage(CEN.img[dk],Math.round(cc.x-dd.fx/2),Math.round(cc.y-dd.fy/2),dd.w/2,dd.h/2)}
+  }
+  c={cv:cv2,x:minX,y:minY,w:maxX-minX,h:maxY-minY};
+  cenCache[key]=c;cenOrder.unshift(key);
+  while(cenOrder.length>28){delete cenCache[cenOrder.pop()]}
+  return c;
+}
+function drawCenFloor(x0,x1,y0,y1,vl,vr,vt,vb){
+  for(var cy=Math.floor(y0/CHUNK);cy<=Math.floor(y1/CHUNK);cy++)for(var cx=Math.floor(x0/CHUNK);cx<=Math.floor(x1/CHUNK);cx++){
+    var ax=cx*CHUNK,ay=cy*CHUNK,bx=Math.min(N,ax+CHUNK),by=Math.min(N,ay+CHUNK);
+    if(sp(bx,ay).x<vl||sp(ax,by).x>vr||sp(bx,by).y<vt||sp(ax,ay).y>vb)continue;
+    var c=cenChunk(cx,cy);ctx.drawImage(c.cv,c.x,c.y,c.w,c.h);
+  }
+}
+/* ---------- atmósfera: ceniza que cae, bruma gris que se desplaza, viñeta suave ---------- */
+var cenCv=null,cenG=null;
+function drawCenAtmos(){
+  var cs=sp(cam.x,cam.y),pp=P?sp(P.x,P.y):cs,k;
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);
+  /* copos de ceniza: dos capas (lejana lenta y pequeña, cercana más grande) */
+  for(k=0;k<110;k++){
+    var near=k%5===0,cellW=W*1.2,cellH=H*1.2,par=near?1.15:.85;
+    var bx=cHash(k,431)*cellW,by=cHash(k,432)*cellH,sp0=near?26:14;
+    var sx=((bx-cs.x*Z*par+Math.sin(t*.5+k)*20+t*(near?10:5))%cellW+cellW)%cellW-W*.1;
+    var sy=((by-cs.y*Z*par+t*sp0)%cellH+cellH)%cellH-H*.1;
+    var sz=near?3:(k%3===0?2:1);
+    ctx.globalAlpha=near?.75:.5+.3*cHash(k,433);
+    ctx.fillStyle=k%4===0?'#8a8780':'#f2f0ea';
+    ctx.fillRect(Math.round(sx),Math.round(sy),sz,near&&Math.sin(t*3+k)>0?2:sz);
+  }
+  ctx.globalAlpha=1;
+  /* capa a 1/4: bandas de bruma, polvo levantado y viñeta gris */
+  var q=4,cw=Math.ceil(W/q),ch=Math.ceil(H/q);
+  if(!cenCv){cenCv=document.createElement('canvas');cenG=cenCv.getContext('2d')}
+  if(cenCv.width!==cw||cenCv.height!==ch){cenCv.width=cw;cenCv.height=ch}
+  var g=cenG;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cw,ch);
+  for(var b=0;b<5;b++){
+    var span=ch*1.8,yy=((cHash(b,441)*span-cs.y*Z/q*.8+t*1.5*(b%2?1:-1))%span+span)%span-ch*.4;
+    var hh=ch*(.12+cHash(b,442)*.12),a=.1+.05*Math.sin(t*.25+b*1.7);
+    var gr=g.createLinearGradient(0,yy-hh,0,yy+hh);
+    gr.addColorStop(0,'rgba(225,222,215,0)');gr.addColorStop(.5,'rgba(225,222,215,'+a+')');gr.addColorStop(1,'rgba(225,222,215,0)');
+    g.fillStyle=gr;g.fillRect(0,yy-hh,cw,hh*2);
+  }
+  var dx2=((pp.x-cs.x)*Z+W/2)/q,dy2=((pp.y-16-cs.y)*Z+H/2)/q,R=Math.max(cw,ch);
+  var dg=g.createRadialGradient(dx2,dy2,R*.25,dx2,dy2,R*.75);
+  dg.addColorStop(0,'rgba(40,40,42,0)');dg.addColorStop(.65,'rgba(40,40,42,.22)');dg.addColorStop(1,'rgba(28,28,30,.55)');
+  g.fillStyle=dg;g.fillRect(0,0,cw,ch);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(cenCv,0,0,cw,ch,0,0,cw*q,ch*q);
+  ctx.restore();
+}
+/* --- enganches --- */
+var genMap_cen_base=genMap;
+genMap=function(){genMap_cen_base();if(curMap===CEN_MAP)cenGen();else{cenType=null;cenPave=null}};
+var abyssOn_cen_base=abyssOn;
+abyssOn=function(){return abyssOn_cen_base()||cenOn()};
+var drawAbyssFloor_cen_base=drawAbyssFloor;
+drawAbyssFloor=function(x0,x1,y0,y1,vl,vr,vt,vb){if(cenOn())return drawCenFloor(x0,x1,y0,y1,vl,vr,vt,vb);return drawAbyssFloor_cen_base(x0,x1,y0,y1,vl,vr,vt,vb)};
+var drawAbyssProp_cen_base=drawAbyssProp;
+drawAbyssProp=function(x,y){if(cenOn())return drawCenProp(x,y);return drawAbyssProp_cen_base(x,y)};
+var drawAbyssAtmos_cen_base=drawAbyssAtmos;
+drawAbyssAtmos=function(){if(cenOn())return drawCenAtmos();return drawAbyssAtmos_cen_base()};
+/* fuera de la lista normal de mapas: se quita de MAPS mientras se dibuja esa pantalla */
+if(typeof buildMaps==='function'){
+  var buildMaps_cen_base=buildMaps;
+  buildMaps=function(msg){
+    if(!CEN_HIDE||MAPS.length<=CEN_MAP)return buildMaps_cen_base(msg);
+    var cut=MAPS.splice(CEN_MAP,1);
+    try{return buildMaps_cen_base(msg)}finally{MAPS.splice(CEN_MAP,0,cut[0])}
+  };
+}
+
+/* ==========================================================================
+   TORRE DE CENIZA — modo de juego nuevo (se desbloquea derrotando al Escritor)
+   · Se juega en el mapa «Ceniza blanca». Empiezas con una mejora especial.
+   · A los 5 s sale el primer jefe. Cada jefe sale 3 s después de morir el anterior,
+     en el orden de los mapas del modo clásico (24 jefes; el último, El Escritor).
+   · Los enemigos (y su dureza) son los del mapa al que pertenece el jefe actual.
+   · La partida acaba al derrotar al Escritor.
+   Internamente se juega con curMap = mapa «virtual» (0-5) para que enemigos, jefes
+   y música sean exactamente los del modo clásico; solo el suelo es el de Ceniza blanca.
+   ========================================================================== */
+var TW_N=24,twMode='classic';
+try{twMode=localStorage.getItem('cripta_mode')==='tower'?'tower':'classic'}catch(e){}
+function twUnlocked(){return !!meta.infinite||!!window.TEST_BUILD}
+/* ---- versión de prueba: todo desbloqueado y mejorado ---- */
+function twSeed(){
+  try{
+    meta.gold=Math.max(meta.gold||0,999999);
+    meta.heroes=Object.keys(CLASSES);
+    meta.owned=[true,true,true,true,true,true];meta.done=[true,true,true,true,true,true];
+    meta.infinite=true;meta.diary=[true,true,true,true,true,true];
+    meta.skins=SKINCAT.map(function(q){return q.id});
+    var mx=metaMax();
+    Object.keys(CLASSES).forEach(function(k){meta.lv[k]=meta.lv[k]||{};META.forEach(function(m){meta.lv[k][m.k]=mx})});
+    saveMeta();
+  }catch(e){}
+}
+if(window.TEST_BUILD)twSeed();
+
+/* ---- «Jugar»: primero se elige el modo (dos tarjetas) y luego el personaje ---- */
+var twStage='modes';
+(function(){
+  var st=document.createElement('style');
+  st.textContent='[hidden]{display:none!important}#modeBar{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin:18px 0}'+
+  '.mdcard{display:flex;flex-direction:column;align-items:center;gap:10px;width:min(560px,44%);min-width:260px;padding:40px 24px;min-height:min(72vh,720px);justify-content:center;background:var(--panel2,#18262a);border:1px solid var(--line,#2c3f40);color:var(--fg,#f7f5ee);font:inherit;text-align:center;cursor:pointer}'+
+  '.mdcard:hover:not([disabled]){border-color:var(--gold,#d3a94a)}'+
+  '.mdcard[disabled]{opacity:.65;cursor:default}'+
+  '.mdcard img{width:min(100%,380px);height:auto;aspect-ratio:1;image-rendering:pixelated;object-fit:cover;border:1px solid var(--line,#2c3f40)}'+
+  '.mdcard .nm{font-family:var(--display);font-size:clamp(30px,3.2vw,52px);color:var(--gold,#d3a94a);line-height:1.1}'+
+  '.mdcard p{margin:0;font-size:clamp(15px,1.3vw,22px);line-height:1.4;color:var(--muted,#e9e7df)}'+
+  '.mdcard .lk{color:#e8786a;font-size:13px}'+
+  '#modeBack{margin:6px 0 12px}';
+  document.head.appendChild(st);
+})();
+function twBar(){
+  var b=$('modeBar');if(!b)return;
+  var un=twUnlocked(),cg=$('classGrid'),cv=$('curve'),ky=document.querySelector('#pPlay .keys');
+  if(!un&&twMode==='tower')twMode='classic';
+  var modes=(twStage==='modes');
+  cg.hidden=modes;if(cv)cv.hidden=modes;if(ky)ky.hidden=modes;
+  if(modes){
+    b.style.display='flex';
+    b.innerHTML='<button class="mdcard" type="button" data-md="classic"><img alt="" src="mapas/mapa1.png"><span class="nm">Clásico</span><p>Elige mapa y sobrevive: un jefe cada 5 minutos hasta el minuto 20.</p></button>'+
+      '<button class="mdcard" type="button" data-md="tower"'+(un?'':' disabled')+'><img alt="" src="mapimg/ceniza/retrato.png"><span class="nm">Torre de ceniza</span><p>24 jefes seguidos, en el orden de los mapas, con una mejora especial desde el inicio.</p>'+(un?'':'<span class="lk">Bloqueado: derrota al Escritor en el modo clásico</span>')+'</button>';
+    $('modeNote').textContent='';
+  }else{
+    b.style.display='block';
+    b.innerHTML='<button class="btn alt" id="modeBack" type="button">← Cambiar de modo</button>';
+    $('modeNote').textContent=twMode==='tower'?'Modo: Torre de ceniza. Elige tu personaje.':'Modo: Clásico. Elige tu personaje.';
+  }
+}
+document.addEventListener('click',function(e){
+  var t0=e.target.closest?e.target:null;if(!t0)return;
+  var b=t0.closest('#modeBar [data-md]');
+  if(b){
+    var m=b.getAttribute('data-md');
+    if(m==='tower'&&!twUnlocked())return;
+    twMode=m;try{localStorage.setItem('cripta_mode',m)}catch(er){}
+    twStage='classes';twBar();return;
+  }
+  if(t0.closest('#modeBack')){twStage='modes';twBar()}
+});
+var buildMenu_tw=buildMenu;
+buildMenu=function(){buildMenu_tw.apply(this,arguments);twBar()};
+/* tarjeta de la Torre en la pantalla de mapas (ahí está también el modo cooperativo) */
+var TW_H1=null,TW_LEAD=null;
+var openMaps_tw=openMaps;
+openMaps=function(k){
+  openMaps_tw(k);
+  var h1=document.querySelector('#mapOv h1'),ld=document.querySelector('#mapOv .maphead .lead');
+  if(TW_H1===null){TW_H1=h1.textContent;TW_LEAD=ld.innerHTML}
+  if(twMode==='tower'&&twUnlocked()){
+    h1.textContent='Torre de ceniza';
+    ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a los 24 jefes seguidos para completar la torre.';
+    $('mapGrid').innerHTML='<div class="mapc"><img class="ic" alt="" style="image-rendering:pixelated" src="mapimg/ceniza/retrato.png">'+
+      '<div class="mi"><span class="nm">Torre de ceniza</span>'+
+      '<span class="ef">Jefes y enemigos: los de cada mapa del modo clásico, en orden.</span>'+
+      '<span class="ef">Primer jefe a los 5 s · mejora especial inicial · termina con El Escritor.</span></div>'+
+      '<button class="btn" type="button" data-tower="1">Jugar</button></div>';
+  }else{h1.textContent=TW_H1;ld.innerHTML=TW_LEAD;buildMaps('')}
+};
+$('mapGrid').addEventListener('click',function(e){
+  if(e.target.closest('[data-tower]'))startRun(mapChar,CEN_MAP);
+});
+
+/* ---- partida ---- */
+function twSetMap(m,first){
+  curMap=m;TW.map=m;
+  if(!first){enemies=enemies.filter(function(e){return e.boss});shots=shots.filter(function(s){return s.friendly});orbs=orbs.filter(function(o){return true})}
+  loadMapAssets(m);setMapMusic(m);
+  try{$('hudClass').textContent=(coop?'J1 · ':'')+PL[0].c.name+' · Torre de ceniza · '+MAPS[m].n}catch(e){}
+}
+/* precarga (escalonada) de los sprites de enemigos y jefes de todos los mapas, para que el cambio de mapa no espere a la red */
+var TW_PRE=[];
+function twPreload(){
+  var urls=[],seen={};
+  function add(u){if(u&&!seen[u]){seen[u]=1;urls.push(u)}}
+  try{for(var mi=0;mi<ENEMY_ASSETS.length;mi++){var s=ENEMY_ASSETS[mi];if(s)Object.keys(s).forEach(function(k){add(ENEMY_DIR[mi]+s[k].name+'.png')})}}catch(e){}
+  [function(){return BOSS_SRC},function(){return ABYSS_BOSS_SRC},function(){return SWAMP_BOSS_SRC},function(){return FORGE_BOSS_SRC},function(){return SANCT_BOSS_SRC},function(){return FIN_SRC}].forEach(function(g){
+    try{var S=g();['spr','fx'].forEach(function(p){if(S&&S[p])Object.keys(S[p]).forEach(function(k){var d=S[p][k];if(d&&typeof d.src==='string')add(d.src)})})}catch(e){}
+  });
+  urls.forEach(function(u,i){setTimeout(function(){try{var im=new Image();im.src=u;TW_PRE.push(im)}catch(e){}},300+i*90)});
+}
+function twBegin(){
+  TW.bi=0;TW.cur=-1;TW.te=300;TW.tn=30;TW.nextT=5;
+  PL.forEach(function(q){q.pendS++});
+  twSetMap(0,true);twPreload();
+  dispatchLevel();
+}
+function twUpdate(){
+  if(won||TW.bi>=TW_N||bossAlive||t<TW.nextT)return;
+  var m=Math.floor(TW.bi/4),n=TW.bi%4+1;
+  if(m!==curMap)twSetMap(m,false);
+  bossN=n-1;TW.te=n*300;TW.tn=30+(n-1)*270;
+  if(spawnBoss()){TW.cur=TW.bi;TW.bi++}
+}
+var startRun_tw_base=startRun;
+startRun=function(key,mi){
+  TW.on=(mi===CEN_MAP);
+  var r=startRun_tw_base.apply(this,arguments);
+  if(TW.on&&state==='play')twBegin();
+  return r;
+};
+var showMenu_tw=showMenu;
+showMenu=function(){TW.on=false;twStage='modes';return showMenu_tw.apply(this,arguments)};
+var victory_tw=victory;
+victory=function(){
+  victory_tw();
+  if(TW.on){$('deadTitle').textContent='¡Torre de ceniza superada!';$('deadSub').textContent='Has derrotado a los 24 jefes, hasta El Escritor.';$('deadPage').hidden=true}
+};
+
+/* ==========================================================================
    GOBLIN DEL TESORO — enemigo especial que huye y no ataca
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
    DESPUÉS de todos los demás bloques (es el último que envuelve funciones).
@@ -6668,7 +7001,7 @@ updateEnemies=function(dt){
   enemies=rest;_gobUE(dt);
   for(i=0;i<gs.length;i++){gobStep(gs[i],dt);if(!gs[i].dead)enemies.push(gs[i])}
   if(gobNext<0)gobSchedule(0);
-  if(!gobAlive&&t>=gobNext){if(bossAlive)gobNext=t+20;else if(!gobSpawn())gobNext=t+2}
+  if(!gobAlive&&t>=gobNext&&!TW.on){if(bossAlive)gobNext=t+20;else if(!gobSpawn())gobNext=t+2}
 };
 var _gobSR=startRun;
 startRun=function(){gobAlive=null;gobNext=-1;return _gobSR.apply(this,arguments)};
