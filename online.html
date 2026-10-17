@@ -6812,6 +6812,13 @@ function onSendIn(){
   NET.send(NET.hostId,k,true)}
 window.addEventListener('keydown',function(){if(ON.on&&!ON.host)onSendIn()});
 window.addEventListener('keyup',function(){if(ON.on&&!ON.host)onSendIn()});
+/* ---------- sonido: el anfitrión reenvía los sonidos con posición a cada invitado ---------- */
+ON.snd=[];
+var S_base=S;
+S=function(name,x,y,dl,vol){
+  if(ON.on&&ON.host&&x!=null&&ON.snd.length<60)ON.snd.push([name,+x.toFixed(1),+y.toFixed(1),vol===undefined?1:+vol.toFixed(2),dl?+dl.toFixed(2):0]);
+  return S_base(name,x,y,dl,vol);
+};
 /* ---------- anfitrión: instantánea para cada invitado ---------- */
 function onSend(){
   if(!ON.on||!ON.host||state==='menu'||state==='dead')return;
@@ -6825,6 +6832,7 @@ function onSend(){
     en.forEach(function(e,i){if(!e.nid)e.nid=++NID;if(bossAlive===e)bossI=i});
     A.E=en.map(function(e){return recOf(e,EK)});A.ba=bossI;
     var B3={t:'s3',q:ON.q,S:cap(shots,c,150,true).map(function(e){return recOf(e,SK)}),O:cap(orbs,c,70,true).map(function(e){return recOf(e,OK)})};
+    var sa=[],seen={};ON.snd.forEach(function(a){if(sa.length>=12||Math.hypot(a[1]-c.x,a[2]-c.y)>20)return;var kk=a[0]+Math.round(a[1])+Math.round(a[2]);if(seen[kk])return;seen[kk]=1;sa.push(a)});if(sa.length)B3.A=sa;
     var B={t:'s2',q:ON.q};
     B.X=cap(texts,c,40,true).map(function(e){return recOf(e,XK)});
     B.C=cap(corpses,c,30,true).map(function(e){return recOf(e,CK)});
@@ -6845,6 +6853,7 @@ function onSend(){
     msgs.forEach(function(m){var txt=JSON.stringify(m);if(m.t==='s')ON.bytes=txt.length;if(ON.dbg){ON.brk=ON.brk||{};ON.brk[m.t]=txt.length}
       if(pr&&pr.u&&pr.u.readyState==='open'&&pr.u.bufferedAmount<60000)try{pr.u.send(txt)}catch(e){}});
   });
+  ON.snd=[];
 }
 
 /* ---------- invitado: aplicar instantánea ---------- */
@@ -6861,6 +6870,7 @@ function onApplySnap(s){
 }
 function onApplySnap3(s){
   if(s.q<ON.last)return;
+  if(s.A)s.A.forEach(function(a){S_base(a[0],a[1],a[2],a[4]||undefined,a[3])});
   shots=s.S.map(function(a){return fromRec(a,SK)});
   orbs=s.O.map(function(a){return fromRec(a,OK)});
 }
