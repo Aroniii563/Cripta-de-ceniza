@@ -6496,17 +6496,19 @@ hud=function(){
 /* Capa de red P2P (WebRTC DataChannel) con señalización compatible con PeerJS Cloud */
 var NET=(function(){
   var SIG=(window.NET_SIG||'wss://0.peerjs.com/peerjs?key=peerjs');
-  var ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];
-  var N={ws:null,id:null,code:null,isHost:false,peers:{},onmsg:null,onpeer:null,onleave:null,onerror:null,hostId:null};
+  var TU={username:'openrelayproject',credential:'openrelayproject'};
+  var ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},{urls:'stun:openrelay.metered.ca:80'},
+    {urls:'turn:openrelay.metered.ca:80',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:TU.username,credential:TU.credential}];
+  var N={diag:[],cand:{},ws:null,id:null,code:null,isHost:false,peers:{},onmsg:null,onpeer:null,onleave:null,onerror:null,hostId:null};
   function rid(n){var s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<n;i++)r+=s[Math.random()*s.length|0];return r}
   function sigOpen(id,cb){
     var tok=Math.random().toString(36).slice(2),done=false;
     var ws=new WebSocket(SIG+'&id='+id+'&token='+tok);N.ws=ws;N.id=id;
     ws.onmessage=function(ev){var d;try{d=JSON.parse(ev.data)}catch(e){return}
-      if(d.type==='OPEN'){if(!done){done=true;cb(null)}}
+      if(d.type==='OPEN'){N.diag.push('señal:ok');if(!done){done=true;cb(null)}}
       else if(d.type==='ID-TAKEN'){if(!done){done=true;cb('taken')}}
-      else if(d.type==='OFFER')onOffer(d);
-      else if(d.type==='ANSWER'){var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).catch(function(){})}
+      else if(d.type==='OFFER'){N.diag.push('oferta recibida');onOffer(d)}
+      else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).catch(function(){})}
       else if(d.type==='CANDIDATE'){var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
       else if(d.type==='EXPIRE'){if(N.onerror)N.onerror('nohost')}};
     ws.onerror=function(){if(!done){done=true;cb('conn')}};
@@ -6517,7 +6519,8 @@ var NET=(function(){
   function mkPeer(pid){
     var p={id:pid,pc:new RTCPeerConnection({iceServers:ICE}),r:null,u:null,q:[],open:false};
     N.peers[pid]=p;
-    p.pc.onicecandidate=function(e){if(e.candidate)sig('CANDIDATE',pid,{candidate:e.candidate})};
+    p.pc.onicecandidate=function(e){if(e.candidate){var ty=(/ typ (\w+)/.exec(e.candidate.candidate)||[])[1]||'?';N.cand[ty]=(N.cand[ty]||0)+1;sig('CANDIDATE',pid,{candidate:e.candidate})}};
+    p.pc.oniceconnectionstatechange=function(){N.diag.push('ice:'+p.pc.iceConnectionState)};
     p.pc.onconnectionstatechange=function(){var s=p.pc.connectionState;
       if(s==='failed'||s==='closed'||s==='disconnected')drop(pid)};
     return p;
@@ -6548,7 +6551,7 @@ var NET=(function(){
     N.isHost=false;code=String(code).toUpperCase().trim();N.hostId='cripta-'+code;
     sigOpen('g'+rid(10),function(err){
       if(err){cb(err);return}
-      var p=mkPeer(N.hostId);var to=setTimeout(function(){if(!p.open){drop(N.hostId);cb('timeout')}},12000);
+      var p=mkPeer(N.hostId);var to=setTimeout(function(){if(!p.open){drop(N.hostId);cb('timeout')}},25000);
       wire(p,p.pc.createDataChannel('r',{ordered:true}));
       wire(p,p.pc.createDataChannel('u',{ordered:false,maxRetransmits:0}));
       var prev=N.onpeer;N.onpeer=function(id){clearTimeout(to);N.onpeer=prev;cb(null);if(prev)prev(id)};
@@ -6650,10 +6653,10 @@ function onHostMsg(pid,m){
 }
 function onJoin(){
   var c=$('onCode').value.trim().toUpperCase();if(c.length<4){onMsg('Escribe el código de sala.');return}
-  onMsg('Conectando…');
+  onMsg('Conectando…');NET.diag=[];NET.cand={};
   NET.onerror=function(e){if(e==='nohost')onMsg('No existe esa sala.')};
   NET.join(c,function(err){
-    if(err){onMsg(err==='timeout'||err==='nohost'?'No se encontró la sala o la conexión falló.':'No se pudo conectar con el servidor de señal.');return}
+    if(err){onMsg((err==='timeout'||err==='nohost'?'No se pudo establecer la conexión con la sala.':'No se pudo conectar con el servidor de señal.')+' Detalle: '+NET.diag.join(' › ')+' · candidatos '+JSON.stringify(NET.cand));return}
     ON.host=false;ON.seen[NET.hostId]=performance.now();
     NET.onmsg=onGuestMsg;NET.onleave=function(){if(ON.inLobby||ON.on){toast('Se perdió la conexión con el anfitrión');onStop()}};
     onBeat();ON.mem=[];onRoomUi();onMsg('Conectado. Elige personaje y pulsa Listo.');
