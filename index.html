@@ -2008,7 +2008,7 @@ function render(){
     }
     if(it.e){
       var e=it.e,p0=sp(e.x,e.y);
-      if(e.elite||e.boss){ctx.strokeStyle='#d3a94a';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p0.x,p0.y,e.r*58,e.r*29,0,0,6.283);ctx.stroke();ctx.lineWidth=1}
+      if(e.elite||e.boss){ctx.strokeStyle=e.boss?'#d83a2a':'#d3a94a';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p0.x,p0.y,e.r*58,e.r*29,0,0,6.283);ctx.stroke();ctx.lineWidth=1}
       var p;
       if(useSpr(e)){
         var p1=sp(e.x,e.y),kk=sprScale(e),fr=enemyFrame(e);
@@ -4070,7 +4070,7 @@ spawnBoss=function(){
   var ok=spawnBoss_s5_base();
   if(ok&&curMap===4&&bossAlive){
     var b=bossAlive;
-    b.plt=1;b.rot=0;b.vol=0;b.summonT=6;b.combo=0;
+    b.plt=1;b.rot=0;b.vol=0;b.summonT=2;b.combo=0;
     if(b.kind==='orquesta')s5Orq=b;
   }
   return ok;
@@ -5980,7 +5980,7 @@ function animDraw(p){
    Relámpago: cada 3 s cae un rayo sobre el enemigo más cercano (a menos de 9) y deja una zona eléctrica 1 s. Eco lo repite.
    Compañeros: tres cuervos inmortales que picotean (mitad del daño) a enemigos a menos de 7 del personaje.
    Las hojas están a 2x: se dibujan a la mitad. */
-var SPD={"barrera": {"src": "mejoras/barrera.png", "fw": 150, "fh": 170, "rows": {"aparece": 4, "bucle": 6, "rompe": 5}, "cx": 75.0, "cy": 90.1}, "rayo": {"src": "mejoras/rayo.png", "fw": 90, "fh": 280, "n": 6, "pie_y": 266}, "rayo_zona": {"src": "mejoras/rayo_zona.png", "fw": 150, "fh": 84, "n": 6, "cx": 75.0, "cy": 42.0, "radio_x": 66, "radio_y": 33}, "cuervo": {"src": "mejoras/cuervo.png", "fw": 110, "fh": 90}, "icono_barrera": {"src": "mejoras/icono_barrera.png"}, "icono_relampago": {"src": "mejoras/icono_relampago.png"}, "icono_companeros": {"src": "mejoras/icono_companeros.png"}, "icono_alma_vengativa": {"src": "mejoras/icono_alma_vengativa.png"}, "icono_fision": {"src": "mejoras/icono_fision.png"}, "icono_ejecutor": {"src": "mejoras/icono_ejecutor.png"}, "icono_eco": {"src": "mejoras/icono_eco.png"}, "icono_detonacion": {"src": "mejoras/icono_detonacion.png"}, "icono_orbes_rebotantes": {"src": "mejoras/icono_orbes_rebotantes.png"}, "icono_lanzas_que_vuelven": {"src": "mejoras/icono_lanzas_que_vuelven.png"}, "icono_mas_lanzas": {"src": "mejoras/icono_mas_lanzas.png"}, "icono_llamada_rapida": {"src": "mejoras/icono_llamada_rapida.png"}, "icono_regreso_afilado": {"src": "mejoras/icono_regreso_afilado.png"}, "icono_lanzas_lastre": {"src": "mejoras/icono_lanzas_lastre.png"}, "icono_urnas_de_luz": {"src": "mejoras/icono_urnas_de_luz.png"}, "icono_mas_urnas": {"src": "mejoras/icono_mas_urnas.png"}, "icono_plegaria_rapida": {"src": "mejoras/icono_plegaria_rapida.png"}, "icono_rayo_divino": {"src": "mejoras/icono_rayo_divino.png"}, "icono_orbita_veloz": {"src": "mejoras/icono_orbita_veloz.png"}, "icono_otro_monje": {"src": "mejoras/icono_otro_monje.png"}, "icono_golpe_ampliado": {"src": "mejoras/icono_golpe_ampliado.png"}, "icono_habito_reforzado_defensa": {"src": "mejoras/icono_habito_reforzado_defensa.png"}, "icono_esfera_extra": {"src": "mejoras/icono_esfera_extra.png"}, "icono_esferas_veloces": {"src": "mejoras/icono_esferas_veloces.png"}, "icono_estallido_ampliado": {"src": "mejoras/icono_estallido_ampliado.png"}, "icono_poder": {"src": "mejoras/icono_poder.png"}, "icono_frenesi": {"src": "mejoras/icono_frenesi.png"}, "icono_ojo_certero": {"src": "mejoras/icono_ojo_certero.png"}, "icono_descarga_doble": {"src": "mejoras/icono_descarga_doble.png"}, "icono_estallido": {"src": "mejoras/icono_estallido.png"}, "icono_zona_ampliada": {"src": "mejoras/icono_zona_ampliada.png"}, "icono_zona_virulenta": {"src": "mejoras/icono_zona_virulenta.png"}, "icono_zonas_gemelas": {"src": "mejoras/icono_zonas_gemelas.png"}, "icono_perforacion": {"src": "mejoras/icono_perforacion.png"}, "icono_aura_ampliada": {"src": "mejoras/icono_aura_ampliada.png"}, "icono_aura_virulenta": {"src": "mejoras/icono_aura_virulenta.png"}, "icono_almas_extra": {"src": "mejoras/icono_almas_extra.png"}, "icono_invocacion_veloz": {"src": "mejoras/icono_invocacion_veloz.png"}, "icono_almas_veloces": {"src": "mejoras/icono_almas_veloces.png"}, "icono_rebotes_extra": {"src": "mejoras/icono_rebotes_extra.png"}, "icono_alcance_largo": {"src": "mejoras/icono_alcance_largo.png"}, "icono_vitalidad": {"src": "mejoras/icono_vitalidad.png"}, "icono_regeneracion": {"src": "mejoras/icono_regeneracion.png"}, "icono_coraza": {"src": "mejoras/icono_coraza.png"}, "icono_sed_de_sangre": {"src": "mejoras/icono_sed_de_sangre.png"}, "icono_pies_ligeros": {"src": "mejoras/icono_pies_ligeros.png"}, "icono_iman_de_almas": {"src": "mejoras/icono_iman_de_almas.png"}, "icono_sabiduria": {"src": "mejoras/icono_sabiduria.png"}, "icono_orbe_adicional": {"src": "mejoras/icono_orbe_adicional.png"}, "icono_jinete_dragon": {"src": "mejoras/icono_jinete_dragon.png"}, "icono_otro_dragon": {"src": "mejoras/icono_otro_dragon.png"}, "icono_mordisco_feroz": {"src": "mejoras/icono_mordisco_feroz.png"}, "icono_vinculo": {"src": "mejoras/icono_vinculo.png"}, "icono_lluvia_de_fuego": {"src": "mejoras/icono_lluvia_de_fuego.png"}, "icono_mas_meteoros": {"src": "mejoras/icono_mas_meteoros.png"}, "icono_fuego_persistente": {"src": "mejoras/icono_fuego_persistente.png"}, "icono_crater_ampliado": {"src": "mejoras/icono_crater_ampliado.png"}, "icono_lluvia_rapida": {"src": "mejoras/icono_lluvia_rapida.png"}, "icono_lluvia_lanzas": {"src": "mejoras/icono_lluvia_lanzas.png"}, "icono_libros_rayo": {"src": "mejoras/icono_libros_rayo.png"}},SPI={};
+var SPD={"barrera": {"src": "mejoras/barrera.png", "fw": 150, "fh": 170, "rows": {"aparece": 4, "bucle": 6, "rompe": 5}, "cx": 75.0, "cy": 90.1}, "rayo": {"src": "mejoras/rayo.png", "fw": 90, "fh": 280, "n": 6, "pie_y": 266}, "rayo_zona": {"src": "mejoras/rayo_zona.png", "fw": 150, "fh": 84, "n": 6, "cx": 75.0, "cy": 42.0, "radio_x": 66, "radio_y": 33}, "cuervo": {"src": "mejoras/cuervo.png", "fw": 110, "fh": 90}, "icono_barrera": {"src": "mejoras/icono_barrera.png"}, "icono_relampago": {"src": "mejoras/icono_relampago.png"}, "icono_companeros": {"src": "mejoras/icono_companeros.png"}, "icono_alma_vengativa": {"src": "mejoras/icono_alma_vengativa.png"}, "icono_fision": {"src": "mejoras/icono_fision.png"}, "icono_ejecutor": {"src": "mejoras/icono_ejecutor.png"}, "icono_eco": {"src": "mejoras/icono_eco.png"}, "icono_detonacion": {"src": "mejoras/icono_detonacion.png"}, "icono_orbes_rebotantes": {"src": "mejoras/icono_orbes_rebotantes.png"}, "icono_lanzas_que_vuelven": {"src": "mejoras/icono_lanzas_que_vuelven.png"}, "icono_mas_lanzas": {"src": "mejoras/icono_mas_lanzas.png"}, "icono_llamada_rapida": {"src": "mejoras/icono_llamada_rapida.png"}, "icono_regreso_afilado": {"src": "mejoras/icono_regreso_afilado.png"}, "icono_lanzas_lastre": {"src": "mejoras/icono_lanzas_lastre.png"}, "icono_urnas_de_luz": {"src": "mejoras/icono_urnas_de_luz.png"}, "icono_mas_urnas": {"src": "mejoras/icono_mas_urnas.png"}, "icono_plegaria_rapida": {"src": "mejoras/icono_plegaria_rapida.png"}, "icono_rayo_divino": {"src": "mejoras/icono_rayo_divino.png"}, "icono_orbita_veloz": {"src": "mejoras/icono_orbita_veloz.png"}, "icono_otro_monje": {"src": "mejoras/icono_otro_monje.png"}, "icono_golpe_ampliado": {"src": "mejoras/icono_golpe_ampliado.png"}, "icono_habito_reforzado_defensa": {"src": "mejoras/icono_habito_reforzado_defensa.png"}, "icono_esfera_extra": {"src": "mejoras/icono_esfera_extra.png"}, "icono_esferas_veloces": {"src": "mejoras/icono_esferas_veloces.png"}, "icono_estallido_ampliado": {"src": "mejoras/icono_estallido_ampliado.png"}, "icono_poder": {"src": "mejoras/icono_poder.png"}, "icono_frenesi": {"src": "mejoras/icono_frenesi.png"}, "icono_ojo_certero": {"src": "mejoras/icono_ojo_certero.png"}, "icono_descarga_doble": {"src": "mejoras/icono_descarga_doble.png"}, "icono_estallido": {"src": "mejoras/icono_estallido.png"}, "icono_zona_ampliada": {"src": "mejoras/icono_zona_ampliada.png"}, "icono_zona_virulenta": {"src": "mejoras/icono_zona_virulenta.png"}, "icono_zonas_gemelas": {"src": "mejoras/icono_zonas_gemelas.png"}, "icono_perforacion": {"src": "mejoras/icono_perforacion.png"}, "icono_aura_ampliada": {"src": "mejoras/icono_aura_ampliada.png"}, "icono_aura_virulenta": {"src": "mejoras/icono_aura_virulenta.png"}, "icono_almas_extra": {"src": "mejoras/icono_almas_extra.png"}, "icono_invocacion_veloz": {"src": "mejoras/icono_invocacion_veloz.png"}, "icono_almas_veloces": {"src": "mejoras/icono_almas_veloces.png"}, "icono_rebotes_extra": {"src": "mejoras/icono_rebotes_extra.png"}, "icono_alcance_largo": {"src": "mejoras/icono_alcance_largo.png"}, "icono_vitalidad": {"src": "mejoras/icono_vitalidad.png"}, "icono_regeneracion": {"src": "mejoras/icono_regeneracion.png"}, "icono_coraza": {"src": "mejoras/icono_coraza.png"}, "icono_sed_de_sangre": {"src": "mejoras/icono_sed_de_sangre.png"}, "icono_pies_ligeros": {"src": "mejoras/icono_pies_ligeros.png"}, "icono_iman_de_almas": {"src": "mejoras/icono_iman_de_almas.png"}, "icono_sabiduria": {"src": "mejoras/icono_sabiduria.png"}, "icono_orbe_adicional": {"src": "mejoras/icono_orbe_adicional.png"}, "icono_jinete_dragon": {"src": "mejoras/icono_jinete_dragon.png"}, "icono_otro_dragon": {"src": "mejoras/icono_otro_dragon.png"}, "icono_mordisco_feroz": {"src": "mejoras/icono_mordisco_feroz.png"}, "icono_vinculo": {"src": "mejoras/icono_vinculo.png"}, "icono_lluvia_de_fuego": {"src": "mejoras/icono_lluvia_de_fuego.png"}, "icono_mas_meteoros": {"src": "mejoras/icono_mas_meteoros.png"}, "icono_fuego_persistente": {"src": "mejoras/icono_fuego_persistente.png"}, "icono_crater_ampliado": {"src": "mejoras/icono_crater_ampliado.png"}, "icono_lluvia_rapida": {"src": "mejoras/icono_lluvia_rapida.png"}, "icono_lluvia_lanzas": {"src": "mejoras/icono_lluvia_lanzas.png"}, "icono_libros_rayo": {"src": "mejoras/icono_libros_rayo.png"}, "icono_cinco_tornados": {"src": "mejoras/icono_cinco_tornados.png"}, "icono_sed_de_sangre_esp": {"src": "mejoras/icono_sed_de_sangre_esp.png"}, "tornado": {"src": "mejoras/tornado.png", "fw": 96, "fh": 152}},SPI={};
 try{
   Object.keys(SPD).forEach(function(k){var d=SPD[k];if(!d.src)return;var im=new Image();im.onload=function(){SPI[k]=im};im.src=d.src});
 }catch(e){}
@@ -6386,6 +6386,110 @@ hud=function(){
   for(var i=0;i<PL.length;i++){
     var q=PL[i];
     if(q.spec.rain){var el=spSlot(q,{id:'rain',ic:'icono_lluvia_lanzas'});if(el){if(q.rn>0)spSet(el,q.rn/RN_CD,String(Math.ceil(q.rn)),false);else spSet(el,0,'',true)}}
+  }
+};
+
+/* ---------- Cinco tornados y Sed de sangre (mejoras especiales) ----------
+   Cinco tornados: cada 2 s salen cinco tornados del personaje en abanico completo; atraviesan enemigos y los dañan mientras giran. Eco repite la tanda.
+   Sed de sangre: con menos del 60% de vida, recuperas un 3% extra del daño infligido (tope: 10% de la vida máxima por segundo). */
+var TN_CD=2,TN_N=5,TN_LIFE=2.4,TN_SPD=4.5,TN_R=.8,TN_TICK=.3,TN_ROW={gira:0,sale:1,fin:2},TN_ID=0;
+var SG_THR=.6,SG_RATE=.03,SG_CAP=.1;
+var mkPlayer_tn_base=mkPlayer;
+mkPlayer=function(key,idx){var p=mkPlayer_tn_base(key,idx);p.tnT=0;p.tors=[];p.sgW=0;p.sgA=0;return p};
+
+function tnVolley(off,second){
+  for(var i=0;i<TN_N;i++){
+    var a=off+i*6.2832/TN_N;
+    P.tors.push({x:P.x,y:P.y,a:a,t:0,id:++TN_ID,stop:false,q:P});
+  }
+  S('sorc',P.x,P.y,0,.5);
+  if(P.spec.echo&&!second){
+    var me=P;
+    later.push({t:.5,f:function(){if(state==='play'&&!me.dead){var sv=P;P=me;tnVolley(off+3.1416/TN_N,true);P=sv}}});
+  }
+}
+var playerStep_tn_base=playerStep;
+playerStep=function(dt){
+  playerStep_tn_base(dt);
+  if(!P||!P.tors)return;
+  if(P.dead){P.tors=[];return}
+  var i,k,j,e,key;
+  if(P.spec.tornado){
+    P.tnT-=dt;
+    if(P.tnT<=0){tnVolley(Math.random()*6.2832,false);P.tnT=TN_CD}
+  }
+  for(i=P.tors.length-1;i>=0;i--){
+    k=P.tors[i];k.t+=dt;
+    var fin=TN_LIFE-.43;
+    if(!k.stop&&k.t<fin){
+      var sp2=TN_SPD*(k.t<.4?.6:1),nx=k.x+Math.cos(k.a)*sp2*dt,ny=k.y+Math.sin(k.a)*sp2*dt;
+      if(solid(nx,ny))k.t=Math.max(k.t,fin);else{k.x=nx;k.y=ny}
+    }
+    if(k.t>=.2&&k.t<fin+.1){
+      key='_tn'+k.id;
+      for(j=0;j<enemies.length;j++){e=enemies[j];if(e.dead)continue;
+        if(Math.hypot(e.x-k.x,e.y-k.y)<TN_R+e.r*.5&&(e[key]===undefined||t-e[key]>=TN_TICK)){e[key]=t;hitEnemy(e,roll(.45),0,0,0,true)}}
+    }
+    if(k.t>=TN_LIFE)P.tors.splice(i,1);
+  }
+};
+/* Sed de sangre */
+var hitEnemy_sg_base=hitEnemy;
+hitEnemy=function(e,r,kx,ky,kb,quiet){
+  if(P&&P.spec&&P.spec.sangre&&!P.dead&&!e.dead&&P.hp<P.maxHp*SG_THR){
+    if(t-P.sgW>=1||t<P.sgW){P.sgW=t;P.sgA=0}
+    var h=Math.min(r.d*SG_RATE,P.maxHp*SG_CAP-P.sgA);
+    if(h>0){P.sgA+=h;P.hp=Math.min(P.maxHp,P.hp+h)}
+  }
+  return hitEnemy_sg_base.apply(this,arguments);
+};
+
+/* ---------- dibujo ---------- */
+var hazItems_tn_base=hazItems;
+hazItems=function(list){
+  hazItems_tn_base(list);
+  for(var i=0;i<PL.length;i++){
+    var q=PL[i];if(!q.tors)continue;
+    q.tors.forEach(function(k){list.push({d:k.x+k.y+.2,hz:{k:'tn_t',b:k}})});
+  }
+};
+var drawHz_tn_base=drawHz;
+drawHz=function(h){
+  if(h.k==='tn_t'){
+    var k=h.b,im=SPI.tornado,d=SPD.tornado;if(!im||!d)return;
+    var row,col,fin=TN_LIFE-.43;
+    if(k.t<.375){row=1;col=Math.min(5,Math.floor(k.t*16))}
+    else if(k.t>=fin){row=2;col=Math.min(5,Math.floor((k.t-fin)*14))}
+    else{row=0;col=Math.floor(k.t*14)%8}
+    var p=sp(k.x,k.y);shadow(p,14);
+    ctx.drawImage(im,col*d.fw,row*d.fh,d.fw,d.fh,Math.round(p.x-d.fw/4),Math.round(p.y-136/2),d.fw/2,d.fh/2);
+    return;
+  }
+  return drawHz_tn_base(h);
+};
+
+/* ---------- lista de especiales ---------- */
+SPECS.push(
+  {id:'tornado',n:'Cinco tornados',c:'s',ic:'icono_cinco_tornados',d:'Cada 2 s salen cinco tornados de ti en todas direcciones. Atraviesan a los enemigos y los dañan mientras giran (45% de tu daño cada 0,3 s). Eco repite la tanda.',f:function(){}},
+  {id:'sangre',n:'Sed de sangre',c:'s',ic:'icono_sed_de_sangre_esp',d:'Con menos del 60% de vida recuperas un 3% extra del daño que infliges (máx. 10% de tu vida máxima por segundo).',f:function(){}}
+);
+SPECS.forEach(function(s){
+  if(s.id==='echo'){
+    s.d='Cada ataque se repite una segunda vez al instante (también el Relámpago, la Lluvia de lanzas y los Cinco tornados)';
+    var o=s.ok;s.ok=function(){return !!P.spec.tornado||(o?o():true)};
+  }
+});
+/* el resto de especiales (pasivas) también se muestran junto a la barra de experiencia */
+SPSK.push({id:'bounce',ic:'icono_orbes_rebotantes'},{id:'boom',ic:'icono_detonacion'},{id:'split',ic:'icono_fision'},{id:'echo',ic:'icono_eco'},{id:'soul',ic:'icono_alma_vengativa'},{id:'exec',ic:'icono_ejecutor'});
+SPSK.push({id:'tornado',ic:'icono_cinco_tornados'},{id:'sangre',ic:'icono_sed_de_sangre_esp'});
+var hud_tn_base=hud;
+hud=function(){
+  hud_tn_base();
+  if(!PL.length||$('hud').hidden)return;
+  for(var i=0;i<PL.length;i++){
+    var q=PL[i],el;
+    if(q.spec.tornado){el=spSlot(q,{id:'tornado',ic:'icono_cinco_tornados'});if(el){if(q.tnT>0)spSet(el,q.tnT/TN_CD,'',false);else spSet(el,0,'',true)}}
+    if(q.spec.sangre){el=spSlot(q,{id:'sangre',ic:'icono_sed_de_sangre_esp'});if(el)spSet(el,0,'',q.hp<q.maxHp*SG_THR)}
   }
 };
 
