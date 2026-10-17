@@ -6541,6 +6541,7 @@ var NET=(function(){
     else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).then(function(){N.diag.push('remoto:ok');p.q.forEach(function(c){p.pc.addIceCandidate(c).catch(function(){})});p.q=[]}).catch(function(e){N.diag.push('remoto-error:'+(e&&e.message||e))})}
     else if(d.type==='CANDIDATE'){N.cin=(N.cin||0)+1;var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
   }
+  function waitIce(pc,ms){return new Promise(function(res){if(pc.iceGatheringState==='complete'){res();return}var t=setTimeout(done,ms);function done(){clearTimeout(t);pc.removeEventListener('icegatheringstatechange',ck);res()}function ck(){if(pc.iceGatheringState==='complete')done()}pc.addEventListener('icegatheringstatechange',ck)})}
   function mkPeer(pid){
     var p={id:pid,pc:new RTCPeerConnection({iceServers:ICE}),r:null,u:null,q:[],open:false};
     N.peers[pid]=p;
@@ -6566,7 +6567,7 @@ var NET=(function(){
     p.pc.ondatachannel=function(e){wire(p,e.channel)};
     p.pc.setRemoteDescription(d.payload.sdp).then(function(){
       p.q.forEach(function(c){p.pc.addIceCandidate(c).catch(function(){})});p.q=[];
-      return p.pc.createAnswer()}).then(function(a){return p.pc.setLocalDescription(a).then(function(){sig('ANSWER',d.src,{sdp:p.pc.localDescription})})}).catch(function(){drop(d.src)});
+      return p.pc.createAnswer()}).then(function(a){return p.pc.setLocalDescription(a).then(function(){return waitIce(p.pc,3000)}).then(function(){N.diag.push('respuesta enviada');sig('ANSWER',d.src,{sdp:p.pc.localDescription})})}).catch(function(){drop(d.src)});
   }
   N.host=function(cb){
     N.isHost=true;var tries=0;
@@ -6584,7 +6585,7 @@ var NET=(function(){
       wire(p,p.pc.createDataChannel('r',{ordered:true}));
       wire(p,p.pc.createDataChannel('u',{ordered:false,maxRetransmits:0}));
       var prev=N.onpeer;N.onpeer=function(id){clearTimeout(to);N.onpeer=prev;cb(null);if(prev)prev(id)};
-      p.pc.createOffer().then(function(o){return p.pc.setLocalDescription(o).then(function(){sig('OFFER',N.hostId,{sdp:p.pc.localDescription,type:'data'})})}).catch(function(){cb('conn')});
+      p.pc.createOffer().then(function(o){return p.pc.setLocalDescription(o).then(function(){return waitIce(p.pc,3000)}).then(function(){N.diag.push('oferta enviada');sig('OFFER',N.hostId,{sdp:p.pc.localDescription,type:'data'})})}).catch(function(){cb('conn')});
     });
   };
   N.send=function(pid,m,unrel){var p=N.peers[pid];if(!p||!p.open)return;var ch=unrel?p.u:p.r;
@@ -6611,6 +6612,7 @@ function onUi(){
     '<div id="onList" style="display:flex;flex-direction:column;gap:6px"></div>'+
     '<label>Tu personaje: <select id="onCls" style="background:#050a0b;color:inherit;border:1px solid #3a4a4c;padding:6px;font:inherit"></select></label>'+
     '<div style="display:flex;gap:8px"><button id="onRdy" class="btn" type="button">Listo</button><button id="onGo" class="btn" type="button" hidden>Empezar</button></div></div>'+
+  '<p id="onDiag" style="margin:0;font-size:11px;color:#6a7a7c;word-break:break-word"></p>'+
   '<p id="onMsg" style="min-height:1.3em;margin:0;color:#c8a05a"></p>'+
   '<button id="onBack" class="btn" type="button">Volver</button></div>';
   document.body.appendChild(d);
@@ -6638,6 +6640,7 @@ function onRoomUi(){
   $('onHome').hidden=true;$('onRoom').hidden=false;$('onCodeTxt').textContent=NET.code||NET.hostId.replace('cripta-','');
   $('onGo').hidden=!ON.host;onList();
 }
+function onDiag(){if(!ON.inLobby)return;var el=$('onDiag');if(el)el.textContent='Conexión: '+NET.diag.slice(-8).join(' › ')+' · cand '+JSON.stringify(NET.cand)+' · rec '+(NET.cin||0)}
 function onList(){
   $('onList').innerHTML=ON.mem.map(function(m,i){return '<div style="display:flex;justify-content:space-between;border:1px solid #2a3638;padding:6px 10px"><span>'+ONL_NAMES[i]+(i===ON.me?' (tú)':'')+' · <b style="color:'+CLASSES[m.cls].col+'">'+CLASSES[m.cls].name+'</b></span><span style="color:'+(m.rdy?'#8cf09a':'#8a9a9c')+'">'+(i===0?'anfitrión':m.rdy?'listo':'esperando')+'</span></div>'}).join('');
   $('onRdy').textContent=ON.mem[ON.me]&&ON.mem[ON.me].rdy?'Quitar listo':'Listo';
@@ -6756,7 +6759,7 @@ var render_on=render;render=function(){render_on();if(ON.on&&!ON.host&&PL[ON.me]
 var setPause_on=setPause;setPause=function(v){if(ON.on&&v)return;setPause_on(v)};
 var die_on=die;die=function(){if(ON.on&&ON.host)NET.bcast({t:'end'});die_on()};
 var showMenu_on=showMenu;showMenu=function(tab){if(ON.on||ON.inLobby)onStop();showMenu_on(tab)};
-onUi();
+onUi();setInterval(onDiag,500);
 
 /* ---------- Efectos de sonido (sintetizados con Web Audio, volumen aparte de la música) ---------- */
 var SFX={vol:70,mute:false,ctx:null,master:null,nbuf:null,last:{},act:0,offline:false,combo:0,comboT:0};
