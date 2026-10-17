@@ -6501,21 +6501,46 @@ var NET=(function(){
     {urls:'turn:openrelay.metered.ca:80',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443',username:TU.username,credential:TU.credential},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:TU.username,credential:TU.credential}];
   var N={diag:[],cand:{},ws:null,id:null,code:null,isHost:false,peers:{},onmsg:null,onpeer:null,onleave:null,onerror:null,hostId:null};
   function rid(n){var s='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<n;i++)r+=s[Math.random()*s.length|0];return r}
-  function sigOpen(id,cb){
-    var tok=Math.random().toString(36).slice(2),done=false;
-    var ws=new WebSocket(SIG+'&id='+id+'&token='+tok);N.ws=ws;N.id=id;
-    ws.onmessage=function(ev){var d;try{d=JSON.parse(ev.data)}catch(e){return}
-      if(d.type==='OPEN'){N.diag.push('señal:ok');if(!done){done=true;cb(null)}}
-      else if(d.type==='ID-TAKEN'){if(!done){done=true;cb('taken')}}
-      else if(d.type==='OFFER'){N.diag.push('oferta recibida');onOffer(d)}
-      else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).catch(function(){})}
-      else if(d.type==='CANDIDATE'){var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
-      else if(d.type==='EXPIRE'){if(N.onerror)N.onerror('nohost')}};
-    ws.onerror=function(){if(!done){done=true;cb('conn')}};
-    ws.onclose=function(){if(!done){done=true;cb('conn')}};
-    N._hb=setInterval(function(){try{ws.send('{"type":"HEARTBEAT"}')}catch(e){}},5000);
+  /* Señalización: broker MQTT público por WebSocket (sin registro, gratuito). Cada jugador escucha "cripta1/<id>". */
+  var BROKERS=window.NET_BROKERS||['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081'];
+  function mstr(s){var u=new TextEncoder().encode(s);var o=new Uint8Array(2+u.length);o[0]=u.length>>8;o[1]=u.length&255;o.set(u,2);return o}
+  function mcat(){var n=0,i;for(i=0;i<arguments.length;i++)n+=arguments[i].length;var o=new Uint8Array(n),k=0;for(i=0;i<arguments.length;i++){o.set(arguments[i],k);k+=arguments[i].length}return o}
+  function mpkt(first,body){var l=body.length,h=[first];do{var d=l%128;l=Math.floor(l/128);if(l>0)d|=128;h.push(d)}while(l>0);return mcat(new Uint8Array(h),body)}
+  function mqSend(pkt){try{N.ws.send(pkt)}catch(e){}}
+  function mqPub(topic,msg,retain){var pl=new TextEncoder().encode(msg);mqSend(mpkt(0x30|(retain?1:0),mcat(mstr(topic),pl)))}
+  function mqSub(topic){mqSend(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr(topic),new Uint8Array([0]))))}
+  function sigConnect(id,bi,cb){
+    var done=false,ws;
+    function fail(){if(done)return;done=true;try{ws.close()}catch(e){}if(bi+1<BROKERS.length)sigConnect(id,bi+1,cb);else cb('conn')}
+    try{ws=new WebSocket(BROKERS[bi],'mqtt')}catch(e){fail();return}
+    ws.binaryType='arraybuffer';N.ws=ws;N.id=id;var buf=new Uint8Array(0);
+    var to=setTimeout(fail,6000);
+    ws.onopen=function(){mqSend(mpkt(0x10,mcat(mstr('MQTT'),new Uint8Array([4,2,0,30]),mstr('cr'+rid(12)))))};
+    ws.onerror=fail;
+    ws.onclose=function(){if(!done)fail();else if(N.ws===ws){N.diag.push('señal:cerrada');if(N.onsigclose)N.onsigclose()}};
+    ws.onmessage=function(ev){
+      buf=mcat(buf,new Uint8Array(ev.data));
+      while(buf.length>=2){
+        var i=1,l=0,m=1,b;do{if(i>=buf.length)return;b=buf[i++];l+=(b&127)*m;m*=128}while(b&128);
+        if(buf.length<i+l)return;
+        var type=buf[0]>>4,body=buf.slice(i,i+l);buf=buf.slice(i+l);
+        if(type===2){ if(body[1]===0&&!done){done=true;clearTimeout(to);N.diag.push('señal:ok('+BROKERS[bi].split('/')[2]+')');mqSub('cripta1/'+id);N._hb=setInterval(function(){mqSend(new Uint8Array([0xC0,0]))},20000);cb(null)} else fail() }
+        else if(type===3){
+          var tl=(body[0]<<8)|body[1],topic=new TextDecoder().decode(body.slice(2,2+tl)),pay=new TextDecoder().decode(body.slice(2+tl));
+          var d;try{d=JSON.parse(pay)}catch(e){continue}
+          onSig(topic,d);
+        }
+      }
+    };
   }
-  function sig(type,dst,payload){try{N.ws.send(JSON.stringify({type:type,dst:dst,payload:payload}))}catch(e){}}
+  function sigOpen(id,cb){sigConnect(id,0,cb)}
+  function sig(type,dst,payload){mqPub('cripta1/'+dst,JSON.stringify({type:type,src:N.id,payload:payload}))}
+  function onSig(topic,d){
+    if(topic.indexOf('cripta1/room/')===0){if(N.onroom)N.onroom(d);return}
+    if(d.type==='OFFER'){N.diag.push('oferta recibida');onOffer(d)}
+    else if(d.type==='ANSWER'){N.diag.push('respuesta recibida');var p=N.peers[d.src];if(p&&p.pc)p.pc.setRemoteDescription(d.payload.sdp).then(function(){p.q.forEach(function(c){p.pc.addIceCandidate(c).catch(function(){})});p.q=[]}).catch(function(){})}
+    else if(d.type==='CANDIDATE'){var p2=N.peers[d.src];if(p2&&p2.pc){if(p2.pc.remoteDescription)p2.pc.addIceCandidate(d.payload.candidate).catch(function(){});else p2.q.push(d.payload.candidate)}}
+  }
   function mkPeer(pid){
     var p={id:pid,pc:new RTCPeerConnection({iceServers:ICE}),r:null,u:null,q:[],open:false};
     N.peers[pid]=p;
@@ -6544,13 +6569,15 @@ var NET=(function(){
   N.host=function(cb){
     N.isHost=true;var tries=0;
     (function go(){var c=rid(5);N.code=c;sigOpen('cripta-'+c,function(err){
-      if(err==='taken'&&tries++<5){go();return}
-      cb(err,c)})})();
+      if(err){cb(err);return}
+      mqPub('cripta1/room/'+c,JSON.stringify({t:Date.now()}),true);N.diag.push('sala publicada');cb(null,c)})})();
   };
   N.join=function(code,cb){
     N.isHost=false;code=String(code).toUpperCase().trim();N.hostId='cripta-'+code;
     sigOpen('g'+rid(10),function(err){
       if(err){cb(err);return}
+      var seen=false;N.onroom=function(){seen=true};mqSub('cripta1/room/'+code);
+      setTimeout(function(){if(!seen){N.diag.push('sala no existe');cb('nohost');var pp=N.peers[N.hostId];if(pp)drop(N.hostId)}},4000);
       var p=mkPeer(N.hostId);var to=setTimeout(function(){if(!p.open){drop(N.hostId);cb('timeout')}},25000);
       wire(p,p.pc.createDataChannel('r',{ordered:true}));
       wire(p,p.pc.createDataChannel('u',{ordered:false,maxRetransmits:0}));
@@ -6562,7 +6589,7 @@ var NET=(function(){
     if(ch&&ch.readyState==='open'){if(unrel&&ch.bufferedAmount>65536)return;try{ch.send(JSON.stringify(m))}catch(e){}}};
   N.bcast=function(m,unrel,except){for(var k in N.peers)if(k!==except)N.send(k,m,unrel)};
   N.drop=drop;
-  N.close=function(){clearInterval(N._hb);for(var k in N.peers)drop(k);try{N.ws.close()}catch(e){}N.ws=null};
+  N.close=function(){clearInterval(N._hb);if(N.isHost&&N.code)mqPub('cripta1/room/'+N.code,'',true);for(var k in N.peers)drop(k);try{N.ws.close()}catch(e){}N.ws=null};
   return N;
 })();
 
@@ -6656,7 +6683,8 @@ function onJoin(){
   onMsg('Conectando…');NET.diag=[];NET.cand={};
   NET.onerror=function(e){if(e==='nohost')onMsg('No existe esa sala.')};
   NET.join(c,function(err){
-    if(err){onMsg((err==='timeout'||err==='nohost'?'No se pudo establecer la conexión con la sala.':'No se pudo conectar con el servidor de señal.')+' Detalle: '+NET.diag.join(' › ')+' · candidatos '+JSON.stringify(NET.cand));return}
+    if(err==='nohost'){onMsg('No existe esa sala. Revisa el código y que el anfitrión tenga la sala abierta.');return}
+    if(err){onMsg((err==='timeout'?'No se pudo establecer la conexión con la sala.':'No se pudo conectar con el servidor de señal.')+' Detalle: '+NET.diag.join(' › ')+' · candidatos '+JSON.stringify(NET.cand));return}
     ON.host=false;ON.seen[NET.hostId]=performance.now();
     NET.onmsg=onGuestMsg;NET.onleave=function(){if(ON.inLobby||ON.on){toast('Se perdió la conexión con el anfitrión');onStop()}};
     onBeat();ON.mem=[];onRoomUi();onMsg('Conectado. Elige personaje y pulsa Listo.');
