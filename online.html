@@ -6836,8 +6836,18 @@ function onSend(){
     var A={t:'s',q:++ON.q,cm:curMap,tw:TW.on?[TW.cur,TW.te,TW.tn]:0,T:+t.toFixed(2),k:kills,nb:Math.round(nextBoss),
       pl:PL.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),Math.round(p.hp),Math.round(p.maxHp),p.dead?1:0,+(p.fx||0).toFixed(2),+(p.fy||0).toFixed(2),p.flip?1:0,p.moving?1:0,p.level,Math.round(p.xp),p.need,+(p.ax||0).toFixed(2),+(p.ay||0).toFixed(2)]})};
     en.forEach(function(e,i){if(!e.nid)e.nid=++NID;if(bossAlive===e)bossI=i});
-    A.E=en.map(function(e){return recOf(e,EK)});A.ba=bossI;
-    var B3={t:'s3',q:ON.q,S:cap(shots,c,150,true).map(function(e){return recOf(e,SK)}),O:cap(orbs,c,70,true).map(function(e){return recOf(e,OK)})};
+    if(ON.tk%2===0){
+      var nl=g.nl||{},nl2={},nf=g.nf||{},nf2={},EKL=EK.length;
+      A.E=en.map(function(e){
+        var rec=recOf(e,EK),id=e.nid,pv=nl[id],cnt=nf[id]||0;
+        nl2[id]=rec;nf2[id]=cnt<2?cnt+1:cnt;
+        if(!pv||cnt<2||(ON.tk/2+id)%24===0){var f=[id,-1];for(var i=1;i<EKL;i++)f.push(rec[i]);return f}
+        var m=0,vs=[];for(var j=1;j<EKL;j++){if(rec[j]!==pv[j]){m|=(1<<(j-1));vs.push(rec[j])}}
+        return [id,m].concat(vs)});
+      g.nl=nl2;g.nf=nf2;A.ba=bossI;
+    }
+    var B3={t:'s3',q:ON.q};
+    if(ON.tk%2===1){B3.S=cap(shots,c,150,true).map(function(e){return recOf(e,SK)});B3.O=cap(orbs,c,70,true).map(function(e){return recOf(e,OK)})}
     var sa=[],seen={};ON.snd.forEach(function(a){if(sa.length>=12||Math.hypot(a[1]-c.x,a[2]-c.y)>20)return;var kk=a[0]+Math.round(a[1])+Math.round(a[2]);if(seen[kk])return;seen[kk]=1;sa.push(a)});if(sa.length)B3.A=sa;
     var B={t:'s2',q:ON.q};
     B.X=cap(texts,c,40,true).map(function(e){return recOf(e,XK)});
@@ -6852,11 +6862,11 @@ function onSend(){
     if(typeof fbWorm!=='undefined'&&fbWorm&&fbWorm.segs)G.W=fbWorm.segs.map(function(q){return [+q.x.toFixed(2),+q.y.toFixed(2)]});
     if(typeof s5Light!=='undefined'){G.sl=s5Light.slice(0,40).map(function(z){return gen(z,1)});G.sn=s5Notes.slice(0,100).map(function(z){return gen(z,1)})}
     B.G=G;
-    var msgs=[A,B3];if(ON.tk%2===0)msgs.push(B);
+    var msgs=[A,B3];var prb=NET.peers[g.net];var busy=prb&&prb.u&&prb.u.bufferedAmount>20000;if(ON.tk%2===0&&!busy)msgs.push(B);
     if(ON.tk%4===0){msgs.push({t:'v',q:ON.q,pv:PL.map(function(p,j){if(j!==gi&&!inView(c,p.x,p.y))return null;var o={};PVK.forEach(function(k){if(p[k]!==undefined)o[k]=gen(p[k],0)});return o})})}
     if(ON.tk%10===0){var st={t:'st',me:gi,s:{}};STK.forEach(function(k){st.s[k]=gen(g[k],0)});NET.send(g.net,st)}
     var pr=NET.peers[g.net];
-    msgs.forEach(function(m){var txt=JSON.stringify(m);if(m.t==='s')ON.bytes=txt.length;if(ON.dbg){ON.brk=ON.brk||{};ON.brk[m.t]=txt.length}
+    msgs.forEach(function(m){var txt=JSON.stringify(m);if(m.t==='s')ON.bytes=txt.length;if(ON.dbg){ON.brk=ON.brk||{};ON.brk[m.t]=(ON.brk[m.t]||0)+txt.length}
       if(pr&&pr.u&&pr.u.readyState==='open'&&pr.u.bufferedAmount<60000)try{pr.u.send(txt)}catch(e){}});
   });
   ON.snd=[];
@@ -6872,13 +6882,20 @@ function onApplySnap(s){
     p.tx=a[0];p.ty=a[1];p.hp=a[2];p.maxHp=a[3];p.dead=!!a[4];p.level=a[9];p.xp=a[10];p.need=a[11];p.ax=a[12];p.ay=a[13];if(p!==ON.own||p.dead){p.fx=a[5];p.fy=a[6];p.flip=!!a[7];p.moving=!!a[8]}
     if(p.x===undefined||Math.hypot(p.tx-p.x,p.ty-p.y)>4){p.x=p.tx;p.y=p.ty}});
   var old=ON.nid,nm={},list=[];
-  s.E.forEach(function(a){var id=a[0];var o=old[id]||{};fromRec(a,EK,o);o.tx=o.x;o.ty=o.y;if(old[id]===undefined){}else{o.x=old[id].x;o.y=old[id].y}nm[id]=o;list.push(o)});
+  if(!s.E)return;
+  s.E.forEach(function(a){var id=a[0],o=old[id],px=o?o.x:undefined,py=o?o.y:undefined;
+    if(a[1]===-1){o=o||{};for(var i=1;i<EK.length;i++){var v=a[i+1];if(v!==null&&v!==undefined)o[EK[i]]=v;else if(o[EK[i]]!==undefined)delete o[EK[i]]}o.nid=id}
+    else{if(!o)return;var m=a[1],k=2;for(var j=1;j<EK.length;j++){if(m&(1<<(j-1))){var v2=a[k++];if(v2!==null&&v2!==undefined)o[EK[j]]=v2;else if(o[EK[j]]!==undefined)delete o[EK[j]]}}}
+    o.tx=o.x;o.ty=o.y;
+    if(px!==undefined&&Math.hypot(o.tx-px,o.ty-py)<4){o.x=px;o.y=py}
+    nm[id]=o;list.push(o)});
   ON.nid=nm;enemies=list;
   bossAlive=s.ba>=0?list[s.ba]:null;
 }
 function onApplySnap3(s){
   if(s.q<ON.last)return;
   if(s.A)s.A.forEach(function(a){S_base(a[0],a[1],a[2],a[4]||undefined,a[3])});
+  if(!s.S)return;
   shots=s.S.map(function(a){return fromRec(a,SK)});
   orbs=s.O.map(function(a){return fromRec(a,OK)});
 }
