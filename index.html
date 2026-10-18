@@ -179,6 +179,7 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 .abtn:hover{border-color:var(--gold)}
 #pauseBtn{position:absolute;right:96px;top:0;display:none;font-size:16px;touch-action:manipulation}
 #hud:not([hidden]) ~ .audio #pauseBtn{display:flex}
+.onrun #pauseBtn{display:none!important}
 #langBtn{position:absolute;right:48px;top:0;width:auto;min-width:40px;padding:0 9px;font:600 13px/1 var(--display,inherit);letter-spacing:.04em}
 #langPanel{position:absolute;right:48px;top:48px;width:150px;padding:6px;gap:2px}
 #langPanel button{background:transparent;border:0;color:var(--fg);text-align:left;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}
@@ -6666,7 +6667,7 @@ function onOpen(){ON.inLobby=true;$('onl').hidden=false;onMsg('');if(ON.room){on
 function onStop(){
   try{NET.close()}catch(e){}
   NET.onmsg=NET.onpeer=NET.onleave=NET.onerror=null;NET.peers={};
-  var was=ON.on;ON.room=false;ON.on=false;ON.host=false;ON.mem=[];ON.inLobby=false;$('onl').hidden=true;
+  var was=ON.on;ON.room=false;ON.on=false;document.documentElement.classList.remove('onrun');ON.host=false;ON.mem=[];ON.inLobby=false;$('onl').hidden=true;
   clearInterval(ON.hb);clearInterval(ON.tx);
   if(was&&state!=='menu'){state='menu';showMenu('play')}
 }
@@ -6787,7 +6788,7 @@ function cap(arr,c,max,fx){var o=[];for(var i=0;i<arr.length;i++){var e=arr[i];i
 /* ---------- inicio de partida ---------- */
 function seeded(seed,fn){var o=Math.random,x=seed>>>0;Math.random=function(){x=(x+0x6D2B79F5)>>>0;var t=x;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};try{return fn()}finally{Math.random=o}}
 function onBegin(cls,me,host,msg,mapBytes){
-  ON.on=true;ON.rk=false;ON.cls=cls.slice();ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
+  ON.on=true;document.documentElement.classList.add('onrun');ON.rk=false;ON.cls=cls.slice();ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
   var mi=(msg&&msg.map)||0;ON.mi=mi;
   seeded((msg&&msg.seed)||1,function(){startRun(cls[0],mi)});
   PL=cls.map(function(k,i){var p=mkPlayer(k,i);p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
@@ -7045,7 +7046,7 @@ var postRank_on=postRank;postRank=function(l){
 /* al salir de la partida se vuelve a la sala sin desconectar a nadie */
 function onToRoom(){
   offerStyle(false);var tm=$('onTeam');if(tm)tm.hidden=true;
-  clearInterval(ON.tx);ON.on=false;ON.snd=[];
+  clearInterval(ON.tx);ON.on=false;document.documentElement.classList.remove('onrun');ON.snd=[];
   ON.mem.forEach(function(m,i){m.rdy=(i===0&&ON.host)});
   var me=ON.mem[ON.me];if(me)me.rdy=ON.host;
   if(ON.host)onLobbyBroadcast();else onSendMe();
