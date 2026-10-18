@@ -853,16 +853,18 @@ function showTab(tab){
 }
 $('menuTabs').addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b)showTab(b.getAttribute('data-m'))});
 var DIARY_PAGES=6;
+function diaryImg(n){return 'diario/pagina_'+n+((typeof LANG!=='undefined'&&LANG!=='es')?'_'+LANG:'')+'.png'}
+function diaryReSrc(){Array.prototype.forEach.call(document.querySelectorAll('img[src*="diario/pagina_"]'),function(im){var m=/pagina_(\d)/.exec(im.getAttribute('src'));if(m){var s=diaryImg(+m[1]);if(im.getAttribute('src')!==s)im.setAttribute('src',s)}})}
 function buildDiary(){
   var h='',i,n=0;
   for(i=0;i<DIARY_PAGES;i++){
     var rn=['I','II','III','IV','V','VI'][i];
-    if(meta.diary[i]){n++;h+='<button class="dpg" type="button" data-dp="'+i+'"><img src="diario/pagina_'+(i+1)+'.png" alt="Página '+rn+'"></button>'}
+    if(meta.diary[i]){n++;h+='<button class="dpg" type="button" data-dp="'+i+'"><img src="'+diaryImg(i+1)+'" alt="Página '+rn+'"></button>'}
     else h+='<div class="dpg lk"><b>'+rn+'</b><span>Página bloqueada</span><small>Vence al jefe del minuto 20 de '+MAPS[i].n+'</small></div>';
   }
   $('diaryList').innerHTML=h;
 }
-$('diaryList').addEventListener('click',function(e){var b=e.target.closest('[data-dp]');if(b){$('diaryBig').src='diario/pagina_'+(+b.getAttribute('data-dp')+1)+'.png';$('diaryOv').hidden=false}});
+$('diaryList').addEventListener('click',function(e){var b=e.target.closest('[data-dp]');if(b){$('diaryBig').src=diaryImg(+b.getAttribute('data-dp')+1);$('diaryOv').hidden=false}});
 $('diaryOv').addEventListener('click',function(){$('diaryOv').hidden=true});
 var shopCls='pal';
 function buildShop(msg){
@@ -1357,7 +1359,7 @@ function victory(){
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
   $('deadTitle').textContent='¡Victoria!';
   $('deadSub').textContent=(curMap===5?'Has derrotado al Escritor.'+(newInf?' ¡Modo infinito desbloqueado en los demás mapas!':''):'Has vencido al jefe del minuto 20 de '+MAPS[curMap].n+'.')+(curMap<MAPS.length-1?' Ya puedes comprar el siguiente mapa.':'')+(newPage?' Has desbloqueado una página del diario.':'');
-  var dp=$('deadPage');if(newPage){dp.innerHTML='<img src="diario/pagina_'+(curMap+1)+'.png" alt="Página del diario">';dp.hidden=false;dp.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dp.hidden=true;
+  var dp=$('deadPage');if(newPage){dp.innerHTML='<img src="'+diaryImg(curMap+1)+'" alt="Página del diario">';dp.hidden=false;dp.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dp.hidden=true;
   $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
   saveMeta();
   $('deadOv').hidden=false;
@@ -7211,6 +7213,7 @@ function i18nSet(l){
   LANG=l;I18N.touched=true;
   try{localStorage.setItem('cripta_lang',l)}catch(e){}
   i18nApply();
+  try{diaryReSrc()}catch(e){}
 }
 /* --- canvas --- */
 (function(){
