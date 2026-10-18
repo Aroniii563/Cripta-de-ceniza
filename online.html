@@ -6652,10 +6652,19 @@ function onUi(){
   $('onGo').addEventListener('click',onGo);
   $('onMap').addEventListener('change',function(){ON.map=+this.value;onLobbyBroadcast();onList()});
   $('onCls').addEventListener('change',function(){var m=ON.mem[ON.me];if(m){m.cls=this.value;m.rdy=ON.host;onSendMe()}});
-  var sel=$('onCls');Object.keys(CLASSES).forEach(function(k){if(ownsHero(k)){var o=document.createElement('option');o.value=k;o.textContent=CLASSES[k].name;sel.appendChild(o)}});
+  onFillCls();
 }
 (function(){var st=document.createElement('style');st.textContent='#modeBar{gap:18px 48px!important;margin:8px 0!important}#modeBar .mdcard:not(#onCoop){min-height:clamp(220px,calc(38vh + (100vh - 800px)*.19),620px);padding:14px 24px}#modeBar .mdcard:not(#onCoop) img{width:min(100%,clamp(120px,calc(19vh + (100vh - 800px)*.42),380px))}#onCoop .nm{font-size:clamp(26px,2.6vw,60px)}';document.head.appendChild(st)})();
 function onMapName(i){return i===CEN_MAP?'Torre de ceniza':(MAPS[i]?MAPS[i].n:'')}
+function onHeroes(){return Object.keys(CLASSES).filter(ownsHero)}
+function onFillCls(){
+  var sel=$('onCls');if(!sel)return;
+  var ks=onHeroes(),cur=sel.value,h=ks.join(',');
+  if(sel._h!==h){sel._h=h;sel.innerHTML='';ks.forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=CLASSES[k].name;sel.appendChild(o)})}
+  if(ks.indexOf(cur)>=0)sel.value=cur;
+}
+function onAllowed(m,k){var a=Array.isArray(m.heroes)?m.heroes:HERO_FREE;return a.indexOf(k)>=0}
+function onFixCls(m){if(!onAllowed(m,m.cls))m.cls=(Array.isArray(m.heroes)&&m.heroes.length?m.heroes[0]:HERO_FREE[0])}
 function onOwned(){var a=[];for(var i=0;i<MAPS.length;i++)a.push(i===0||(i===CEN_MAP?twUnlocked():!!(meta.owned&&meta.owned[i])));return a}
 function onCommon(){var r=[];for(var i=0;i<MAPS.length;i++){if(ON.mem.every(function(m){return !m.owned||m.owned[i]!==false&&(i===0||m.owned[i])}))r.push(i)}return r.length?r:[0]}
 function onMsg(t){$('onMsg').textContent=t||''}
@@ -6665,7 +6674,7 @@ function onPill(){
   pl.hidden=!show;
   if(show){var t='Sala '+(NET.code||(NET.hostId||'').replace('cripta-',''))+' · Jugadores: '+ON.mem.length;if($('onPillTx').textContent!==t)$('onPillTx').textContent=t}
 }
-function onOpen(){ON.inLobby=true;$('onl').hidden=false;onPill();onMsg('');if(ON.room){onRoomUi()}else{$('onHome').hidden=false;$('onRoom').hidden=true}}
+function onOpen(){onFillCls();ON.inLobby=true;$('onl').hidden=false;onPill();onMsg('');if(ON.room){onRoomUi()}else{$('onHome').hidden=false;$('onRoom').hidden=true}}
 function onStop(){
   try{NET.close()}catch(e){}
   NET.onmsg=NET.onpeer=NET.onleave=NET.onerror=null;NET.peers={};
@@ -6680,6 +6689,7 @@ function onRoomUi(){
 }
 function onDiag(){if(!ON.inLobby)return;var el=$('onDiag');if(el)el.textContent='Conexión: '+NET.diag.slice(-8).join(' › ')+' · cand '+JSON.stringify(NET.cand)+' · rec '+(NET.cin||0)}
 function onList(){
+  (function(){var me=ON.mem[ON.me],sl=$('onCls');if(me&&sl&&sl.value!==me.cls&&sl.querySelector('option[value="'+me.cls+'"]'))sl.value=me.cls})();
   onPill();
   $('onList').innerHTML=ON.mem.map(function(m,i){return '<div style="display:flex;justify-content:space-between;border:1px solid #2a3638;padding:6px 10px"><span>'+onName(i)+(i===ON.me?' (tú)':'')+' · <b style="color:'+CLASSES[m.cls].col+'">'+CLASSES[m.cls].name+'</b></span><span style="color:'+(m.rdy?'#8cf09a':'#8a9a9c')+'">'+(i===0?'anfitrión':m.rdy?'listo':'esperando')+'</span></div>'}).join('');
   $('onRdy').textContent=ON.mem[ON.me]&&ON.mem[ON.me].rdy?'Quitar listo':'Listo';
@@ -6691,7 +6701,7 @@ function onList(){
 function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,m:ON.mem.map(function(m){return {cls:m.cls,rdy:m.rdy,nick:m.nick||''}})})}
 function onSendMe(){
   if(ON.host){onLobbyBroadcast();onList()}
-  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned()})}
+  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes()})}
 }
 function onBeat(){
   ON.hb=setInterval(function(){NET.bcast({t:'pg'});var now=performance.now();
@@ -6702,11 +6712,11 @@ function onCreate(){
   NET.onerror=function(){};
   NET.host(function(err,code){
     if(err){onMsg('No se pudo conectar con el servidor de señal.');return}
-    ON.host=true;ON.me=0;ON.map=0;ON.mem=[{id:'host',cls:$('onCls').value,rdy:true,nick:getNick(),owned:onOwned()}];
+    ON.host=true;ON.me=0;ON.map=0;ON.mem=[{id:'host',cls:$('onCls').value,rdy:true,nick:getNick(),owned:onOwned(),heroes:onHeroes()}];
     NET.onpeer=function(pid){
       if(ON.on||ON.mem.length>=4){NET.send(pid,{t:'full'});setTimeout(function(){NET.drop(pid)},300);return}
       ON.seen[pid]=performance.now();
-      ON.mem.push({id:pid,cls:$('onCls').value,rdy:false,nick:''});onLobbyBroadcast();onList();NET.send(pid,{t:'you',i:ON.mem.length-1});
+      ON.mem.push({id:pid,cls:HERO_FREE[0],rdy:false,nick:''});onLobbyBroadcast();onList();NET.send(pid,{t:'you',i:ON.mem.length-1});
       onMsg(onName(ON.mem.length-1)+' se ha unido');
     };
     NET.onleave=function(pid){onLeft(pid)};
@@ -6722,7 +6732,7 @@ function onLeft(pid){
 function onHostMsg(pid,m){
   ON.seen[pid]=performance.now();
   var mem=ON.mem.find(function(x){return x.id===pid});
-  if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);onLobbyBroadcast();onList()}
+  if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);if(Array.isArray(m.heroes))mem.heroes=m.heroes.filter(function(k){return CLASSES[k]}).slice(0,16);onFixCls(mem);onLobbyBroadcast();onList()}
   else if(m.t==='in'){var p=PL.find(function(q){return q.net===pid});if(p){p.inp=m;if(m.vw)p.vw=m.vw}}
   else if(m.t==='pick'){var pp=PL.find(function(q){return q.net===pid});if(pp)onApply(pp,m.i,m.sp)}
 }
@@ -6760,6 +6770,7 @@ function ub64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length
 function onGo(){
   var bad=ON.mem.some(function(m,i){return i>0&&!m.rdy});
   if(bad){onMsg('Todos deben estar listos.');return}
+  ON.mem.forEach(function(m,i){if(i>0)onFixCls(m)});onLobbyBroadcast();
   var cls=ON.mem.map(function(m){return m.cls}),nm=ON.mem.map(function(q){return q.nick||''}),seed=Math.floor(Math.random()*2147483647)+1,mi=ON.map||0;
   onBegin(cls,0,true,{nm:nm,map:mi,seed:seed});
   ON.mem.forEach(function(m,i){if(i>0){NET.send(m.id,{t:'start',cls:cls,nm:nm,me:i,mi:mi,seed:seed,map:b64(map),vari:b64(vari)})}});
