@@ -6629,10 +6629,10 @@ function onUi(){
     '<div style="display:flex;gap:8px"><button id="onRdy" class="btn" type="button">Listo</button><button id="onGo" class="btn" type="button" hidden>Empezar</button></div></div>'+
   '<p id="onDiag" style="margin:0;font-size:11px;color:#6a7a7c;word-break:break-word"></p>'+
   '<p id="onMsg" style="min-height:1.3em;margin:0;color:#c8a05a"></p>'+
-  '<button id="onBack" class="btn" type="button">Volver</button></div>';
+  '<button id="onBack" class="btn" type="button">Salir de la sala</button></div>';
   document.body.appendChild(d);
   var b=document.createElement('button');b.id='onBtn';b.type='button';b.className='btn';b.textContent='Online (prueba)';
-  b.style.cssText='position:absolute;top:14px;right:14px;z-index:5';$('menu').appendChild(b);
+  b.style.cssText='display:none';$('menu').appendChild(b);
   b.addEventListener('click',function(){onOpen()});
   $('onBack').addEventListener('click',onStop);
   $('onCreate').addEventListener('click',onCreate);
@@ -6643,19 +6643,21 @@ function onUi(){
   $('onCls').addEventListener('change',function(){var m=ON.mem[ON.me];if(m){m.cls=this.value;m.rdy=ON.host;onSendMe()}});
   var sel=$('onCls');Object.keys(CLASSES).forEach(function(k){if(ownsHero(k)){var o=document.createElement('option');o.value=k;o.textContent=CLASSES[k].name;sel.appendChild(o)}});
 }
+(function(){var st=document.createElement('style');st.textContent='#modeBar{gap:18px 48px!important;margin:8px 0!important}#modeBar .mdcard:not(#onCoop){min-height:min(50vh,520px);padding:20px 24px}#modeBar .mdcard:not(#onCoop) img{width:min(100%,min(300px,30vh))}#onCoop .nm{font-size:clamp(26px,2.6vw,40px)}';document.head.appendChild(st)})();
 function onMapName(i){return i===CEN_MAP?'Torre de ceniza':(MAPS[i]?MAPS[i].n:'')}
 function onOwned(){var a=[];for(var i=0;i<MAPS.length;i++)a.push(i===0||(i===CEN_MAP?twUnlocked():!!(meta.owned&&meta.owned[i])));return a}
 function onCommon(){var r=[];for(var i=0;i<MAPS.length;i++){if(ON.mem.every(function(m){return !m.owned||m.owned[i]!==false&&(i===0||m.owned[i])}))r.push(i)}return r.length?r:[0]}
 function onMsg(t){$('onMsg').textContent=t||''}
-function onOpen(){ON.inLobby=true;$('onl').hidden=false;$('onHome').hidden=false;$('onRoom').hidden=true;onMsg('')}
+function onOpen(){ON.inLobby=true;$('onl').hidden=false;onMsg('');if(ON.room){onRoomUi()}else{$('onHome').hidden=false;$('onRoom').hidden=true}}
 function onStop(){
   try{NET.close()}catch(e){}
   NET.onmsg=NET.onpeer=NET.onleave=NET.onerror=null;NET.peers={};
-  var was=ON.on;ON.on=false;ON.host=false;ON.mem=[];ON.inLobby=false;$('onl').hidden=true;
+  var was=ON.on;ON.room=false;ON.on=false;ON.host=false;ON.mem=[];ON.inLobby=false;$('onl').hidden=true;
   clearInterval(ON.hb);clearInterval(ON.tx);
   if(was&&state!=='menu'){state='menu';showMenu('play')}
 }
 function onRoomUi(){
+  ON.room=true;
   $('onHome').hidden=true;$('onRoom').hidden=false;$('onCodeTxt').textContent=NET.code||NET.hostId.replace('cripta-','');
   $('onGo').hidden=!ON.host;onList();
 }
@@ -6992,7 +6994,32 @@ var endRun_on=endRun;endRun=function(why){
   }
   return endRun_on(why)};
 var postRank_on=postRank;postRank=function(l){if(ON.on)return;postRank_on(l)};
-var showMenu_on=showMenu;showMenu=function(tab){var ab=$('againBtn');if(ab)ab.style.display='';if(ON.on||ON.inLobby){offerStyle(false);var tm=$('onTeam');if(tm)tm.hidden=true;onStop()}showMenu_on(tab)};
+/* al salir de la partida se vuelve a la sala sin desconectar a nadie */
+function onToRoom(){
+  offerStyle(false);var tm=$('onTeam');if(tm)tm.hidden=true;
+  clearInterval(ON.tx);ON.on=false;ON.snd=[];
+  ON.mem.forEach(function(m,i){m.rdy=(i===0&&ON.host)});
+  var me=ON.mem[ON.me];if(me)me.rdy=ON.host;
+  if(ON.host)onLobbyBroadcast();else onSendMe();
+}
+var showMenu_on=showMenu;showMenu=function(tab){
+  var ab=$('againBtn');if(ab)ab.style.display='';
+  var wasOn=ON.on,room=ON.room;
+  if(wasOn&&room)onToRoom();else if(wasOn||ON.inLobby&&!room){offerStyle(false);var tm=$('onTeam');if(tm)tm.hidden=true;onStop()}
+  showMenu_on(tab);
+  if(room&&ON.room){ON.inLobby=true;$('onl').hidden=false;onRoomUi();onMsg(wasOn?'Partida terminada. Pulsa Listo para jugar otra.':'')}
+};
+/* botón «Cooperativo» en la pantalla de modos, del ancho de las dos tarjetas */
+var twBar_on=twBar;twBar=function(){
+  twBar_on();
+  var b=$('modeBar');if(!b||twStage!=='modes'||$('onCoop'))return;
+  var c=document.createElement('button');c.id='onCoop';c.type='button';c.className='mdcard';
+  c.style.cssText='width:min(100%,calc(min(560px,44%)*2 + 48px));min-height:0;padding:26px 24px;flex-direction:row;gap:18px';
+  c.innerHTML='<span class="nm">Cooperativo</span><p style="margin:0">Juega con hasta 3 amigos más: crea una sala o entra con un código.</p>';
+  c.addEventListener('click',function(){onOpen()});
+  b.appendChild(c);
+};
+try{twBar()}catch(e){}
 onUi();setInterval(onDiag,500);
 
 /* ---------- Efectos de sonido (sintetizados con Web Audio, volumen aparte de la música) ---------- */
