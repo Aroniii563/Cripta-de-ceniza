@@ -968,7 +968,9 @@ function saveRankTw(a){try{localStorage.setItem(RK_KEY+'_torre',JSON.stringify(a
 function getNick(){try{return localStorage.getItem('cripta_nick')||''}catch(e){return ''}}
 function setNick(v){try{localStorage.setItem('cripta_nick',v)}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function modeName(m){return m==='coop'?'Cooperativo':m==='torre'?'Torre de ceniza':CLASSES[m].name}
+var RK_EXTRA=[];
+function rkExtra(k){for(var i=0;i<RK_EXTRA.length;i++)if(RK_EXTRA[i].k===k)return RK_EXTRA[i];return null}
+function modeName(m){var x=rkExtra(m);return x?x.n:m==='coop'?'Cooperativo':m==='torre'?'Torre de ceniza':CLASSES[m].name}
 function clsLabel(c){return String(c).split('+').map(function(k){return CLASSES[k]?CLASSES[k].name:''}).filter(Boolean).join(' + ')}
 (function(){
   try{
@@ -1012,17 +1014,18 @@ function refreshRank(){
     return rankU&&rankU.profiles?rankU.profiles(rankRows.map(function(r){return r.id})).catch(function(){return {}}):{};
   }).then(function(ps){rankNames=ps||{};rankState='ok';buildRank()}).catch(function(){rankState='err';buildRank()});
 }
+function rankAsc(m){var x=rkExtra(m);return m==='torre'||!!(x&&x.asc)}
 function buildRank(){
   $('rankScope').innerHTML=[['global','Global'],['local','Este dispositivo']].map(function(a){return '<button class="tab" type="button" data-rs="'+a[0]+'" aria-pressed="'+(a[0]===rankScope)+'">'+a[1]+'</button>'}).join('')+
     '<button class="tab" type="button" data-rr="1">Actualizar</button>';
-  $('rankTabs').innerHTML=Object.keys(CLASSES).concat(['coop','torre']).map(function(k){
-    var col=k==='coop'?'#6ad2ff':k==='torre'?'#d3a94a':CLASSES[k].col;
+  $('rankTabs').innerHTML=Object.keys(CLASSES).concat(['coop','torre']).concat(RK_EXTRA.map(function(x){return x.k})).map(function(k){
+    var col=rkExtra(k)?rkExtra(k).col:k==='coop'?'#6ad2ff':k==='torre'?'#d3a94a':CLASSES[k].col;
     return '<button class="tab" type="button" data-rm="'+k+'" aria-pressed="'+(k===rankMode)+'"'+(k===rankMode?' style="color:'+col+'"':'')+'>'+modeName(k)+'</button>';
   }).join('');
   if(document.activeElement!==$('rankNick'))$('rankNick').value=getNick();
   var rows=[],msg='';
   if(rankScope==='local'){
-    rows=(rankMode==='torre'?loadRankTw():loadRankLocal().filter(function(e){return e.mode===rankMode}).sort(function(x,y){return y.time-x.time})).slice(0,20).map(function(e){return {name:getNick()||'Tú',cls:e.cls,time:e.time,level:e.level,kills:e.kills,map:e.map,me:true}});
+    rows=(rankMode==='torre'?loadRankTw():loadRankLocal().filter(function(e){return e.mode===rankMode}).sort(function(x,y){return rankAsc(rankMode)?x.time-y.time:y.time-x.time})).slice(0,20).map(function(e){return {name:getNick()||'Tú',cls:e.cls,time:e.time,level:e.level,kills:e.kills,map:e.map,me:true}});
   }else if(!rankDb||!rankUid){
     msg='El ranking global no está disponible en esta sesión (hace falta abrir el juego con tu cuenta y permiso de contribuidor). Tus marcas se guardan igualmente en «Este dispositivo».';
   }else if(rankState==='load')msg='Cargando…';
@@ -1031,13 +1034,13 @@ function buildRank(){
     rows=rankRows.filter(function(r){return r.modes&&r.modes[rankMode]}).map(function(r){
       var m=r.modes[rankMode],pn=rankNames&&rankNames[r.id]&&rankNames[r.id].name;
       return {name:r.nick||pn||'Jugador',cls:m.cls,time:+m.time||0,level:+m.level||0,kills:+m.kills||0,map:+m.map||0,me:r.id===rankUid};
-    }).sort(function(x,y){return rankMode==='torre'?x.time-y.time:y.time-x.time}).slice(0,20);
+    }).sort(function(x,y){return rankAsc(rankMode)?x.time-y.time:y.time-x.time}).slice(0,20);
   }
   if(!rows.length&&!msg)msg='Aún no hay marcas en esta categoría. ¡Sé el primero!';
   $('rankMsg').textContent=msg;
   var h=rows.length?'<tr><th>#</th><th>Jugador</th><th>Personaje</th><th>Tiempo</th><th>Nivel</th><th>Bajas</th><th>Mapa</th></tr>':'';
   rows.forEach(function(r,i){
-    h+='<tr'+(r.me?' class="me"':'')+'><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(clsLabel(r.cls))+'</td><td>'+fmt(r.time)+'</td><td>'+r.level+'</td><td>'+r.kills+'</td><td>'+(rankMode==='torre'?'—':r.map+1)+'</td></tr>';
+    h+='<tr'+(r.me?' class="me"':'')+'><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+esc(clsLabel(r.cls))+'</td><td>'+fmt(r.time)+'</td><td>'+r.level+'</td><td>'+r.kills+'</td><td>'+(rankMode==='torre'||rankMode==='onlinetorre'?'—':r.map+1)+'</td></tr>';
   });
   $('rankTable').innerHTML=h;
 }
@@ -6773,7 +6776,7 @@ function cap(arr,c,max,fx){var o=[];for(var i=0;i<arr.length;i++){var e=arr[i];i
 /* ---------- inicio de partida ---------- */
 function seeded(seed,fn){var o=Math.random,x=seed>>>0;Math.random=function(){x=(x+0x6D2B79F5)>>>0;var t=x;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};try{return fn()}finally{Math.random=o}}
 function onBegin(cls,me,host,msg,mapBytes){
-  ON.on=true;ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
+  ON.on=true;ON.rk=false;ON.cls=cls.slice();ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
   var mi=(msg&&msg.map)||0;ON.mi=mi;
   seeded((msg&&msg.seed)||1,function(){startRun(cls[0],mi)});
   PL=cls.map(function(k,i){var p=mkPlayer(k,i);p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
@@ -6984,7 +6987,7 @@ function onEndUi(){if(ON.on){var b=$('againBtn');if(b)b.style.display='none'}}
 function onGuestEnd(m){
   if(state==='dead')return;
   var own=ON.own;coop=false;PL=[own];P=own;kills=m.k||kills;bossKills=m.bk||0;state='play';offerStyle(false);$('lvlOv').hidden=true;
-  if(m.w)victory();else die();
+  if(m.w){won=true;victory()}else die();
 }
 var endRun_on=endRun;endRun=function(why){
   if(ON.on&&!ON.host){
@@ -6993,7 +6996,24 @@ var endRun_on=endRun;endRun=function(why){
     try{return endRun_on(why)}finally{PL=sPL;coop=sc}
   }
   return endRun_on(why)};
-var postRank_on=postRank;postRank=function(l){if(ON.on)return;postRank_on(l)};
+RK_EXTRA.push({k:'online',n:'Online',col:'#7ee08a',asc:false},{k:'onlinetorre',n:'Online · Torre',col:'#d3a94a',asc:true});
+/* ranking online: cada jugador guarda su marca (con todo el equipo) en las categorías Online y Online · Torre */
+var postRank_on=postRank;postRank=function(l){
+  if(!ON.on){return postRank_on(l)}
+  var own=ON.own;if(!own||!ON.cls||ON.rk)return;ON.rk=true;
+  var tw=!!TW.on,mode=tw?'onlinetorre':'online';
+  if(tw?!won:t<30)return;
+  var e={mode:mode,cls:ON.cls.join('+'),time:Math.floor(t),level:own.level,kills:kills,map:tw?5:curMap,ts:Date.now()};
+  var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,60));
+  if(!rankDb||!rankUid)return;
+  var ref=rankDb.collection('ranking').doc(rankUid);
+  ref.get().then(function(sn){
+    var d=sn.exists?sn.data():{},m=Object.assign({},d.modes||{}),o=m[mode];
+    if(o&&(tw?o.time<=e.time:o.time>=e.time))return;
+    m[mode]={cls:e.cls,time:e.time,level:e.level,kills:e.kills,map:e.map};
+    return ref.set({nick:getNick(),modes:m,ts:e.ts});
+  }).catch(function(){});
+};
 /* al salir de la partida se vuelve a la sala sin desconectar a nadie */
 function onToRoom(){
   offerStyle(false);var tm=$('onTeam');if(tm)tm.hidden=true;
