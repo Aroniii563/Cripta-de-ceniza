@@ -7901,6 +7901,8 @@ victory=function(){
   if(TW.on){$('deadTitle').textContent='¡Torre de ceniza superada!';$('deadSub').textContent='Has derrotado a los 24 jefes, hasta El Escritor.';$('deadPage').hidden=true}
 };
 
+var playerStep_god=playerStep;playerStep=function(dt){playerStep_god(dt);for(var gi=0;gi<PL.length;gi++){var gq=PL[gi];if(gq&&!gq.dead){gq.hp=gq.maxHp}}};
+
 /* ===== Misiones diarias: 3 al día (una fácil, una media y una difícil), recompensa en oro ===== */
 var DQ=[
   {id:1,k:'kills',g:5000,r:600,tx:'Derrota a 5000 enemigos'},
