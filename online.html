@@ -7874,7 +7874,7 @@ function twPreload(){
   urls.forEach(function(u,i){setTimeout(function(){try{var im=new Image();im.src=u;TW_PRE.push(im)}catch(e){}},300+i*90)});
 }
 function twBegin(){
-  TW.bi=0;TW.cur=-1;TW.te=300;TW.tn=30;TW.nextT=5;TW.bi=23;
+  TW.bi=0;TW.cur=-1;TW.te=300;TW.tn=30;TW.nextT=5;
   PL.forEach(function(q){q.pendS++});
   twSetMap(0,true);twPreload();
   dispatchLevel();
@@ -7901,7 +7901,7 @@ victory=function(){
   if(TW.on){$('deadTitle').textContent='¡Torre de ceniza superada!';$('deadSub').textContent='Has derrotado a los 24 jefes, hasta El Escritor.';$('deadPage').hidden=true}
 };
 
-var playerStep_god=playerStep;playerStep=function(dt){playerStep_god(dt);for(var gi=0;gi<PL.length;gi++){var gq=PL[gi];if(gq&&!gq.dead){gq.hp=gq.maxHp}}};
+
 
 /* ===== Misiones diarias: 3 al día (una fácil, una media y una difícil), recompensa en oro ===== */
 var DQ=[

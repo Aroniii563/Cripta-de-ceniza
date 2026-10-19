@@ -4580,7 +4580,10 @@ function finLm(e){if(e._lm===undefined)e._lm=Math.floor(Math.random()*5);return 
 function finAs(m,f){var c=curMap;curMap=m;try{return f()}finally{curMap=c}}
 function finEcho(e){return curMap===FIN_MAP&&e&&(e.boss?e._lm!==undefined:true)}
 var sprKey_fin_base=sprKey;
-sprKey=function(e){if(finEcho(e)){var m=e.boss?e._lm:finLm(e);return finAs(m,function(){return sprKey_fin_base(e)})}return sprKey_fin_base(e)};
+sprKey=function(e){if(curMap===FIN_MAP&&e.boss&&e.kind==='escritor'&&e.spr&&ESPR[e.spr])return e.spr;if(finEcho(e)){var m=e.boss?e._lm:finLm(e);return finAs(m,function(){return sprKey_fin_base(e)})}return sprKey_fin_base(e)};
+/* tamaño del Escritor (fase 1) y del Escritor Inmortal (fase 2) */
+var sprScale_fin_base=sprScale;
+sprScale=function(e){if(curMap===FIN_MAP&&e.boss&&e.kind==='escritor')return e.phase===2?1.3:1.4;return sprScale_fin_base(e)};
 var useSpr_fin_base=useSpr;
 useSpr=function(e){
   if(curMap===FIN_MAP&&e.boss&&(e.kind==='escritor'||FIN_SPIRITS.indexOf(e.kind)>=0))return !!ESPR[e.spr];
@@ -7912,6 +7915,8 @@ victory=function(){
   victory_tw();
   if(TW.on){$('deadTitle').textContent='¡Torre de ceniza superada!';$('deadSub').textContent='Has derrotado a los 24 jefes, hasta El Escritor.';$('deadPage').hidden=true}
 };
+
+
 
 /* ===== Misiones diarias: 3 al día (una fácil, una media y una difícil), recompensa en oro ===== */
 var DQ=[
