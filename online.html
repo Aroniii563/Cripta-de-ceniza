@@ -591,7 +591,7 @@ var UPS=[
   {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return P.c.kind==='melee'||P.c.kind==='rider'},f:function(){P.reach+=.18}},
   {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp*=1.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
-  {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 60%)',ok:function(){return P.armor<.6-1e-9},f:function(){P.armor=Math.min(.6,P.armor+.07)}},
+  {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 85%)',ok:function(){return P.armor<.85-1e-9},f:function(){P.armor=Math.min(.85,P.armor+.07)}},
   {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 0,5% del daño infligido',f:function(){P.steal+=.005}},
   {n:'Pies ligeros',ic:'icono_pies_ligeros',c:'u',d:'+8% de velocidad de movimiento',f:function(){P.speed*=1.08}},
   {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida',f:function(){P.pick*=1.15}},
@@ -659,7 +659,7 @@ function loadMeta(){
   return migrateMeta(m);
 }
 /* Cada mapa comprado sube 2 niveles el máximo de todas las mejoras permanentes. */
-function metaMax(){var n=0;meta.owned.forEach(function(o){if(o)n++});return 8+2*(Math.max(1,n)-1)}
+function metaMax(){var n=0;meta.owned.forEach(function(o){if(o)n++});return 10+2*(Math.max(1,n)-1)}
 var meta=loadMeta();
 function saveMeta(){try{localStorage.setItem('cripta_meta',JSON.stringify(meta))}catch(e){}}
 function lvOf(cls,k){return (meta.lv[cls]&&meta.lv[cls][k])||0}
@@ -1195,7 +1195,7 @@ function mkPlayer(key,idx){
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
   var L=function(k){return lvOf(key,k)};
   p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.rate=c.rate*(1+.03*L('rate'));
-  p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.6,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
+  p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.85,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
   p.regen=.1*L('reg');p.steal=.0015*L('ls');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
   p.skinId=skinFor(key);
   return p;
@@ -1815,10 +1815,10 @@ $('lvlCards').addEventListener('click',function(e){var b=e.target.closest('[data
 /* Mapas: cada uno tiene su color, más vida/daño/experiencia de enemigos y se compra al vencer al jefe del minuto 20 del anterior. */
 var MAPS=[
   {n:'Cripta gris',music:'musica/mapa1.mp3',hp:1,dmg:1,xp:1,bhp:1,floor:['#262626','#2a2a2a','#222222','#2e2e2e'],wt:'#525252',wl:'#343434',wr:'#202020',wo:'#0b0b0b',ws:'#6a6a6a',bg:'#0c0c0c',sw:'#4a4a4a'},
-  {n:'Abismo azul',music:'musica/mapa2.mp3',hp:1.5,dmg:1.7,xp:1,bhp:1.75,floor:['#111b33','#14213b','#0e172b','#182643'],wt:'#34507f',wl:'#223659',wr:'#142039',wo:'#060a14',ws:'#4b6ea5',bg:'#070c18',sw:'#1e3562'},
-  {n:'Pantano verde',music:'musica/mapa3.mp3',hp:2.1,dmg:2.3,xp:1,bhp:2.5,floor:['#14271a','#182d1f','#112016','#1c3424'],wt:'#35643f',wl:'#234429',wr:'#152c1b',wo:'#060e08',ws:'#4c8a5a',bg:'#08120b',sw:'#1f4a2b'},
-  {n:'Forja roja',music:'musica/mapa4.mp3',hp:2.9,dmg:3,xp:1,bhp:3.25,floor:['#2d1313','#341717','#260f0f','#3b1b1b'],wt:'#743030',wl:'#4c1e1e',wr:'#2e1111',wo:'#0e0505',ws:'#9a4545',bg:'#150808',sw:'#5a1c1c'},
-  {n:'Santuario púrpura',music:'musica/mapa5.mp3',hp:3.8,dmg:3.8,xp:1,bhp:4,floor:['#20152f','#261939','#1b1128','#2c1d43'],wt:'#563f82',wl:'#392a57',wr:'#231a36',wo:'#0b0713',ws:'#7a5fb0',bg:'#0d0816',sw:'#3a2860'}
+  {n:'Abismo azul',music:'musica/mapa2.mp3',hp:1.35,dmg:1.4,xp:1,bhp:1.6,floor:['#111b33','#14213b','#0e172b','#182643'],wt:'#34507f',wl:'#223659',wr:'#142039',wo:'#060a14',ws:'#4b6ea5',bg:'#070c18',sw:'#1e3562'},
+  {n:'Pantano verde',music:'musica/mapa3.mp3',hp:1.9,dmg:1.9,xp:1,bhp:2.3,floor:['#14271a','#182d1f','#112016','#1c3424'],wt:'#35643f',wl:'#234429',wr:'#152c1b',wo:'#060e08',ws:'#4c8a5a',bg:'#08120b',sw:'#1f4a2b'},
+  {n:'Forja roja',music:'musica/mapa4.mp3',hp:2.6,dmg:2.5,xp:1,bhp:2.95,floor:['#2d1313','#341717','#260f0f','#3b1b1b'],wt:'#743030',wl:'#4c1e1e',wr:'#2e1111',wo:'#0e0505',ws:'#9a4545',bg:'#150808',sw:'#5a1c1c'},
+  {n:'Santuario púrpura',music:'musica/mapa5.mp3',hp:3.4,dmg:3.2,xp:1,bhp:3.65,floor:['#20152f','#261939','#1b1128','#2c1d43'],wt:'#563f82',wl:'#392a57',wr:'#231a36',wo:'#0b0713',ws:'#7a5fb0',bg:'#0d0816',sw:'#3a2860'}
 ];
 var MAP_COST=1000;
 var FLOOR=MAPS[0].floor,WALL_T=MAPS[0].wt,WALL_L=MAPS[0].wl,WALL_R=MAPS[0].wr,WALL_O=MAPS[0].wo,WALL_S=MAPS[0].ws,BG=MAPS[0].bg;
@@ -2106,7 +2106,7 @@ function statRows(){
   a(k==='orbit'?'Proyectiles por segundo':k==='spheres'?'Esferas por segundo':k==='monks'?'Golpes por monje':'Vel. ataque',r1(k==='orbit'?P.rate*P.orbGen:k==='spheres'?Math.min(2.5,P.rate):P.rate)+(k==='orbit'?'':'/s'),k==='spheres'&&P.rate>=2.5-1e-9);
   a('Vel. movimiento',r1(P.speed));
   a('Crítico',pc(P.crit),P.crit>=1-1e-9);
-  a('Armadura',pc(P.armor),P.armor>=.6-1e-9);
+  a('Armadura',pc(P.armor),P.armor>=.85-1e-9);
   a('Regeneración',r1(P.regen)+'/s');
   if(P.steal)a('Robo de vida',pc2(P.steal));
   a('Radio de recogida',r1(P.pick));
@@ -4478,7 +4478,7 @@ var drawAbyssAtmos_lib_base=drawAbyssAtmos;
 drawAbyssAtmos=function(){if(libOn())return drawLibAtmos();return drawAbyssAtmos_lib_base()};
 
 /* ---------- Librería sepia: dificultad, enemigos mezclados y jefes provisionales ---------- */
-(function(){if(MAPS.length>5){MAPS[5].hp=4.8;MAPS[5].dmg=4.6;MAPS[5].music='musica/mapa6.mp3'}})();
+(function(){if(MAPS.length>5){MAPS[5].hp=4.3;MAPS[5].dmg=4;MAPS[5].bhp=4.3;MAPS[5].music='musica/mapa6.mp3'}})();
 var loadMapAssets_lib_base=loadMapAssets;
 var LIB_KEEP=['escritor','escritor_golpe','faraon','faraon_rayo','verguenza','rabia','miedo'];
 loadMapAssets=function(mi){
