@@ -7395,7 +7395,12 @@ if(window.CRIPTA_WEB){(function(){
     for(var i=0;i<BAD.length;i++)for(var j=0;j<2;j++)if(vs[j].indexOf(BAD[i])>=0)return 'Ese apodo no está permitido. Elige otro.';
     return '';
   }
-  function modeList(){return Object.keys(CLASSES).concat(['coop'])}
+  function modeList(){return Object.keys(CLASSES).concat(['coop','torre','online','onltorre'])}
+  /* colección de la nube de cada categoría (el nombre debe encajar en las reglas: rank_ + 3 a 10 letras) */
+  function cmode(m){return m==='onlinetorre'?'onltorre':m}
+  function casc(m){return m==='torre'||m==='onltorre'||m==='onlinetorre'}
+  /* las reglas limitan cls a 24 caracteres: se recortan equipos largos por clases completas */
+  function clsFit(c){var ks=String(c).split('+'),o='';for(var i=0;i<ks.length;i++){var n=o?o+'+'+ks[i]:ks[i];if(n.length>24)break;o=n}return o||ks[0].slice(0,24)}
 
   /* --- pantalla de acceso --- */
   var st=document.createElement('style');
@@ -7528,15 +7533,23 @@ if(window.CRIPTA_WEB){(function(){
 
   /* --- ranking global --- */
   postRank=function(lvl){
-    if(t<30||!PL.length)return;
-    var e={mode:coop?'coop':PL[0].key,cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:curMap,ts:Date.now()};
-    var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,40));
-    if(session)C.submitRank(e).catch(function(){});
+    if(!PL.length)return;
+    var tw=!!(typeof TW!=='undefined'&&TW.on),onl=!!(typeof ON!=='undefined'&&ON.on),mode,cls,lv=lvl,kl=kills,mp=curMap;
+    if(onl){
+      var own=ON.own;if(!own||!ON.cls||ON.rk)return;ON.rk=true;
+      mode=tw?'onlinetorre':'online';cls=ON.cls.join('+');lv=own.level;if(tw)mp=5;
+    }else if(tw){mode='torre';cls=coop?PL[0].key+'+'+PL[1].key:PL[0].key;mp=5}
+    else{mode=coop?'coop':PL[0].key;cls=coop?PL[0].key+'+'+PL[1].key:PL[0].key}
+    if(tw?!won:t<30)return;
+    var e={mode:mode,cls:cls,time:Math.floor(t),level:lv,kills:kl,map:mp,ts:Date.now()};
+    if(mode==='torre'){var ta=loadRankTw();ta.push(e);ta.sort(function(x,y){return x.time-y.time});saveRankTw(ta.slice(0,40))}
+    else{var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,60))}
+    if(session)C.submitRank({mode:cmode(mode),cls:clsFit(cls),time:e.time,level:e.level,kills:e.kills,map:e.map},casc(mode)).catch(function(){});
   };
   refreshRank=function(){
     if(!session){rankState='off';buildRank();return}
     var mode=rankMode;rankState='load';buildRank();
-    C.top(mode,50).then(function(rows){
+    C.top(cmode(mode),50,casc(mode)).then(function(rows){
       rankRows=rows.map(function(r){var o={id:r.id,nick:r.nick,modes:{}};o.modes[mode]={cls:r.cls,time:r.time,level:r.level,kills:r.kills,map:r.map};return o});
       rankNames={};rankState='ok';buildRank();
     }).catch(function(){rankState='err';buildRank()});
