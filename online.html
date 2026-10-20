@@ -9352,7 +9352,7 @@ function playTrack(a){
 var MUSIC_FALLBACK='musica/mapa1.mp3';
 /* La música de cada mapa se pide solo al jugarlo; los mapas sin pista propia usan la del mapa 1. */
 function setMapMusic(mi){
-  var f=(MAPS[mi]&&MAPS[mi].music)||MUSIC_FALLBACK;
+  var f=(typeof TW!=='undefined'&&TW.on)?'musica/torre.mp3':((MAPS[mi]&&MAPS[mi].music)||MUSIC_FALLBACK);
   if(bgm.getAttribute('data-src')!==f){
     bgm.setAttribute('data-src',f);try{bgm.pause()}catch(e){}
     fetchMusic(f,function(u){
