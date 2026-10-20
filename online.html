@@ -1115,7 +1115,7 @@ function fitTitle(){
   var narrow=window.innerWidth<=800,avail=narrow?hr.width:Math.min(hr.width,tb.left-hr.left-20);
   t.style.setProperty('font-size','100px','important');t.style.maxWidth='none';
   var w=t.scrollWidth||t.offsetWidth;
-  if(w>0&&avail>0)t.style.setProperty('font-size',Math.max(30,Math.min(130,100*avail/w))+'px','important');
+  if(w>0&&avail>0)t.style.setProperty('font-size',Math.max(30,Math.min(130,100*avail*(narrow?.84:.94)/w))+'px','important');
 }
 (function(){
   var t=document.querySelector('.mhead h1');
