@@ -7153,10 +7153,13 @@ var update_on=update;update=function(dt){
     var k=Math.min(1,dt*8);ON.cx+=(PL[0].x-ON.cx)*k;ON.cy+=(PL[0].y-ON.cy)*k;cam.x=ON.cx;cam.y=ON.cy;
   }
 };
+/* un jugador en pausa no ataca: ni dispara ni hace daño (sigue siendo invulnerable) */
+function onPausedP(p){return !!(ON.on&&ON.host&&p&&(p.net?(p.inp&&p.inp.ps):ON.paused))}
+var hitEnemy_pz=hitEnemy;hitEnemy=function(e,r,kx,ky,kb,quiet){if(onPausedP(P))return;return hitEnemy_pz.apply(this,arguments)};
 var playerStep_on=playerStep;playerStep=function(dt){
   if(ON.on&&ON.host){
     var ps=P.net?!!(P.inp&&P.inp.ps):!!ON.paused;
-    if(ps)P.inv=Math.max(P.inv||0,.5);
+    if(ps){P.inv=Math.max(P.inv||0,.5);P.atkCd=Math.max(P.atkCd||0,1)}
     if(P.net){var sk=keys,i=P.inp||{};keys={arrowup:!!i.u,arrowdown:!!i.d,arrowleft:!!i.l,arrowright:!!i.r};try{playerStep_on(dt)}finally{keys=sk}}
     else if(ps){var sk2=keys;keys={};try{playerStep_on(dt)}finally{keys=sk2}}
     else playerStep_on(dt);
