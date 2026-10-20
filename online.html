@@ -1304,7 +1304,7 @@ function startRun(key,mi){
   P=PL[0];refD=0;
   enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];
   t=0;kills=0;spawnT=1;cam.x=P.x;cam.y=P.y;
-  zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1,-1,-1];
+  zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;window.FBN=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1,-1,-1];
   statsOpen=W>=700;applyStatsOpen();
   $('toast').hidden=true;
   $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n;$('hudClass').style.color=c.col;
@@ -1387,7 +1387,7 @@ function explode(x,y){
 }
 function killEnemy(e){
   e.dead=true;kills++;
-  if(!(typeof ON!=='undefined'&&ON.on&&!ON.host)){dailyAdd('kills',1);if(e.elite||e.type==='brute'){dailyAdd('elite',1);dailyElite()}if(e.boss){dailyAdd('boss',1);if(e.born!==undefined&&t-e.born<60)dailySet('fastBoss',1)}}
+  if(!(typeof ON!=='undefined'&&ON.on&&!ON.host)){dailyAdd('kills',1);if(e.elite||e.type==='brute'){dailyAdd('elite',1);dailyElite()}if(e.boss){dailyAdd('boss',1);if(e.born!==undefined&&t-e.born<60)dailySet('fastBoss',1);window.FBN=(window.FBN||0)+1}}
   if(e.boss)S('bossDie',e.x,e.y,0,1.2);else S('eDie_'+(e.type==='archer'?'a':e.type==='brute'?'b':'z'),e.x,e.y);
   var bk=e.boss?'boss:'+(curMap>0?(curMap+1)+':':'')+((e.bossN-1)%4):curMap+':'+((e.zs&&(curMap<=4))?e.zs:e.type);meta.bestiary[bk]=(meta.bestiary[bk]||0)+1;burst(e.x,e.y,e.col,e.boss?30:9);
   if(useSpr(e)&&corpses.length<60)corpses.push({type:sprKey(e),boss:!!e.boss,x:e.x,y:e.y,flip:!!e.flip,k:sprScale(e),t:0});
@@ -6982,7 +6982,7 @@ function onSend(){
     if(gi===0||!g.net)return;
     var c=g,bossI=-1;
     var en=cap(enemies,c,110,true);
-    var A={t:'s',q:++ON.q,cm:curMap,tw:TW.on?[TW.cur,TW.te,TW.tn]:0,T:+t.toFixed(2),k:kills,bk:bossKills,nb:Math.round(nextBoss),
+    var A={t:'s',q:++ON.q,cm:curMap,tw:TW.on?[TW.cur,TW.te,TW.tn]:0,T:+t.toFixed(2),k:kills,bk:bossKills,fb:window.FBN|0,nb:Math.round(nextBoss),
       pl:PL.map(function(p){return [+p.x.toFixed(2),+p.y.toFixed(2),Math.round(p.hp),Math.round(p.maxHp),p.dead?1:0,+(p.fx||0).toFixed(2),+(p.fy||0).toFixed(2),p.flip?1:0,p.moving?1:0,p.level,Math.round(p.xp),p.need,+(p.ax||0).toFixed(2),+(p.ay||0).toFixed(2)]})};
     en.forEach(function(e,i){if(!e.nid)e.nid=++NID;if(bossAlive===e)bossI=i});
     if(ON.tk%2===0){
@@ -7024,7 +7024,7 @@ function onSend(){
 /* ---------- invitado: aplicar instantánea ---------- */
 function onApplySnap(s){
   if(s.q<=ON.last)return;ON.last=s.q;
-  t=s.T;kills=s.k;if(s.bk!==undefined)bossKills=s.bk;nextBoss=s.nb;
+  t=s.T;kills=s.k;if(s.bk!==undefined)bossKills=s.bk;if(s.fb!==undefined)window.FBN=s.fb;nextBoss=s.nb;
   if(s.tw){TW.cur=s.tw[0];TW.te=s.tw[1];TW.tn=s.tw[2]}
   if(s.cm!==undefined&&s.cm!==curMap){curMap=s.cm;try{loadMapAssets(curMap);setMapMusic(curMap)}catch(e){}}
   s.pl.forEach(function(a,i){var p=PL[i];if(!p)return;
@@ -8120,11 +8120,11 @@ function dailyElite(){
   dailySet('elite1m',dqEl.length);
 }
 function dailySet(k,v){var D=dailyEnsure();if(v>(D.p[k]||0)){D.p[k]=v;dqCheck(D)}}
-var dqRun={kills:0,bk:0,t:0,cb:0};
+var dqRun={kills:0,bk:0,t:0,cb:0,fb:0};
 function dailyTick(dt){
   var D=dailyEnsure(),onl=(typeof ON!=='undefined'&&ON.on),me=(onl&&ON.own)||P;
   if(!me||(onl&&ON.paused))return;
-  if(t<dqRun.t){dqRun.kills=kills;dqRun.bk=bossKills;dqRun.cb=0}  /* partida nueva */
+  if(t<dqRun.t){dqRun.kills=kills;dqRun.bk=bossKills;dqRun.cb=0;dqRun.fb=window.FBN|0}  /* partida nueva */
   dqRun.t=t;
   D.p.time=(D.p.time||0)+dt;
   if(me.key===D.cls)D.p.clsTime=(D.p.clsTime||0)+dt;
@@ -8138,6 +8138,7 @@ function dailyTick(dt){
     /* el invitado no calcula bajas ni jefes: se leen del marcador compartido */
     if(kills>dqRun.kills){D.p.kills=(D.p.kills||0)+kills-dqRun.kills}dqRun.kills=kills;
     if(bossKills>dqRun.bk){D.p.boss=(D.p.boss||0)+bossKills-dqRun.bk}
+    if((window.FBN|0)>dqRun.fb)dailySet('fastBoss',1);dqRun.fb=window.FBN|0;
   }
   /* jefes en cooperativo (local u online): cuentan para todos los jugadores de la sala, también si no dieron el golpe final (asistencia) */
   if(bossKills>dqRun.bk&&(onl?(ON.mem&&ON.mem.length>1):coop)){var nb=bossKills-dqRun.bk;D.p.coopBoss=(D.p.coopBoss||0)+nb;dqRun.cb+=nb;if(dqRun.cb>(D.p.coopBossRun||0))D.p.coopBossRun=dqRun.cb}
