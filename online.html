@@ -272,6 +272,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
   .mtabs{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
   .mt{font-size:19px;padding:10px 12px;white-space:nowrap;border-left-width:1px}
   .mt i{display:none}
+  .mtabs.more{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent)}
   .mgold{margin-top:0}
   .mmain{overflow:visible;padding:16px}
 }
@@ -390,7 +391,6 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
       <section id="pShop" hidden>
         <h2>Tienda de aspectos</h2>
         <p class="lead">Los aspectos cambian la apariencia de un personaje en partida. Se compran con oro y después se equipan en la pestaña Aspectos.</p>
-        <div class="tabs" id="shopTabs"></div>
         <div class="tabs" id="shopTabs"></div>
         <p class="mapmsg" id="shopMsg"></p>
         <div class="skgrid" id="shopList"></div>
@@ -1048,6 +1048,14 @@ function buildRank(){
   });
   $('rankTable').innerHTML=h;
 }
+/* barra de pestañas del menú en el móvil: se difumina por la derecha mientras haya más pestañas por deslizar */
+(function(){
+  var mt=$('menuTabs');if(!mt)return;
+  function chk(){mt.classList.toggle('more',mt.scrollWidth-mt.clientWidth>4&&mt.scrollLeft+mt.clientWidth<mt.scrollWidth-4)}
+  mt.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',chk);
+  mt.addEventListener('click',function(e){var b=e.target.closest('.mt');if(b&&b.scrollIntoView)try{b.scrollIntoView({inline:'nearest',block:'nearest',behavior:'smooth'})}catch(x){}setTimeout(chk,350)});
+  chk();setTimeout(chk,600);
+})();
 $('pRank').addEventListener('click',function(e){
   var a=e.target.closest('[data-rs]'),b=e.target.closest('[data-rm]'),c=e.target.closest('[data-rr]');
   if(a){rankScope=a.getAttribute('data-rs');buildRank();if(rankScope==='global')refreshRank()}
@@ -2382,8 +2390,22 @@ function loadMapAssets(mi){
   });
 }
 var ATK_DUR={zombie:.42,archer:.55,brute:.6,gota:.5,cristal:.45,diablo:.6,broza:.55,seta:.8,caiman:.6,diablillo:.5,brujo:.8,coloso:.65,poseido:.5,diacono:.8,chelista:.65},DIE_DUR=.75,CORPSE_T=3.2;
+/* Abismo azul: los enemigos se pierden contra el fondo oscuro; se les sube el brillo y se les da un contorno claro (una sola vez por hoja) */
+function abyssFx(s){
+  s.fx=1;
+  try{
+    var im=s.img,w=im.width,h=im.height;if(!w||!h)return;
+    var c=document.createElement('canvas');c.width=w;c.height=h;var q=c.getContext('2d');
+    var f=s.flash;
+    if(f){q.globalAlpha=.8;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(o){q.drawImage(f,o[0],o[1])});q.globalCompositeOperation='source-atop';q.fillStyle='#8cc8ff';q.fillRect(0,0,w,h);q.globalCompositeOperation='source-over';q.globalAlpha=1}
+    if('filter' in q)q.filter='brightness(1.35) saturate(1.1)';
+    q.drawImage(im,0,0);
+    s.img=c;
+  }catch(e){}
+}
 function drawSprEnemy(type,row,col,x,y,flip,k,flash,alpha){
   var s=ESPR[type];if(!s)return;
+  if(curMap===1&&!s.fx)abyssFx(s);
   var d=s.d,w=d.fw/2*k,h=d.fh/2*k;
   ctx.save();ctx.translate(Math.round(x),Math.round(y));if(flip)ctx.scale(-1,1);
   if(alpha!==undefined)ctx.globalAlpha=Math.max(0,alpha);
@@ -8503,6 +8525,37 @@ updateEnemies=function(dt){
   updateEnemies_cproj_base(dt);
   if(curMap!==0||!PROJS.hueso)return;
   for(var i=n0;i<shots.length;i++){var s=shots[i];if(!s.friendly&&!s.spr&&s.col==='#c79bff'){s.spr='hueso';s.col='#7ad4a0'}}
+};
+
+/* ===== Mapa 6 · Librería sepia: «un resumen de todo el libro» =====
+   Cada enemigo común imita a un mapa anterior (_lm, como ya hacía el bloque final) y, dentro de ese mapa,
+   sale de una de sus 4 familias a partes iguales (25 %): los originales o cada una de las familias nuevas. */
+var LIBMIX_FAM={
+  0:[ZOMBI_OF,MOMIA_OF,GHOUL_OF],
+  1:[AHOG_OF,CRUST_OF,ABIS_OF],
+  2:[BRUJ_OF,RANA_OF,INS_OF],
+  3:[COND_OF,AUT_OF,ELEM_OF],
+  4:[CORO_OF,RELI_OF,ORQM_OF]
+};
+var LIBMIX_ESPR=[ZOMBI_ESPR,MOMIA_ESPR,GHOUL_ESPR,AHOG_ESPR,CRUST_ESPR,ABIS_ESPR,BRUJ_ESPR,RANA_ESPR,INS_ESPR,COND_ESPR,AUT_ESPR,ELEM_ESPR,CORO_ESPR,RELI_ESPR,ORQM_ESPR];
+function libmixLoad(){LIBMIX_ESPR.forEach(function(S){Object.keys(S).forEach(function(k){if(!ESPR[k])ESPR[k]=S[k]})})}
+var _lmxLM=loadMapAssets;
+loadMapAssets=function(mi){var r=_lmxLM(mi);if(mi===LIB_MAP)libmixLoad();return r};
+var _lmxSE=spawnEnemy;
+spawnEnemy=function(){
+  var n0=enemies.length,r=_lmxSE.apply(this,arguments);
+  if(curMap===LIB_MAP)for(var i=n0;i<enemies.length;i++){
+    var e=enemies[i];if(e.boss||e.gob||e.zs||e.fake)continue;
+    if(e._lm===undefined)e._lm=Math.floor(Math.random()*5);
+    var fam=LIBMIX_FAM[e._lm],k=Math.floor(Math.random()*(fam.length+1));
+    if(k>0&&fam[k-1][e.type])e.zs=fam[k-1][e.type];
+  }
+  return r;
+};
+var _lmxSK=sprKey;
+sprKey=function(e){
+  if(curMap===LIB_MAP&&e&&!e.boss&&e.zs){libmixLoad();if(ESPR[e.zs])return e.zs}
+  return _lmxSK(e);
 };
 
 /* ==========================================================================
