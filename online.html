@@ -857,7 +857,7 @@ function showTab(tab){
 }
 $('menuTabs').addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b)showTab(b.getAttribute('data-m'))});
 var DIARY_PAGES=6;
-function diaryImg(n){var l=(typeof LANG!=='undefined')?LANG:'es';if(l==='ru'||l==='ja')l='en'; /* las páginas del diario solo existen en es/en/pt/fr */return 'diario/pagina_'+n+(l!=='es'?'_'+l:'')+'.png'}
+function diaryImg(n){var l=(typeof LANG!=='undefined')?LANG:'es';return 'diario/pagina_'+n+(l!=='es'?'_'+l:'')+'.png'}
 function diaryReSrc(){Array.prototype.forEach.call(document.querySelectorAll('img[src*="diario/pagina_"]'),function(im){var m=/pagina_(\d)/.exec(im.getAttribute('src'));if(m){var s=diaryImg(+m[1]);if(im.getAttribute('src')!==s)im.setAttribute('src',s)}})}
 function buildDiary(){
   var h='',i,n=0;
