@@ -7820,6 +7820,9 @@ if(window.CRIPTA_WEB){(function(){
   var ROLE={l:'Líder',o:'Oficial',m:'Miembro'};
   var NAME_OK=/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.-]{3,20}$/,TAG_OK=/^[A-Z0-9]{2,4}$/;
   var MODES=function(){return Object.keys(CLASSES).concat(['coop','torre','online','onltorre'])};
+  /* caché corta: evita volver a leer decenas de documentos cada vez que se abre la pestaña */
+  var CA={};
+  function cached(k,fn){var e=CA[k];if(e&&Date.now()-e.t<30000)return Promise.resolve(e.v);return fn().then(function(v){CA[k]={t:Date.now(),v:v};return v})}
   function ge(id){return document.getElementById(id)}
   function pts(n){return String(n|0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
   function nt(s){return '<span data-nt="1">'+esc(s)+'</span>'}
@@ -7876,8 +7879,8 @@ if(window.CRIPTA_WEB){(function(){
     C.myMember().then(function(m){
       if(my!==sk)return;
       D.me=m;
-      if(!m){tabs();return C.topClans(false,30).then(function(rows){if(my!==sk)return;D.list=rows;renderNo();syncTags()})}
-      return Promise.all([C.getClan(m.clan),C.clanMembers(m.clan),C.clanCode(m.clan)]).then(function(r){
+      if(!m){tabs();return cached('top:all',function(){return C.topClans(false,30)}).then(function(rows){if(my!==sk)return;D.list=rows;renderNo();syncTags()})}
+      return cached('mine:'+m.clan,function(){return Promise.all([C.getClan(m.clan),C.clanMembers(m.clan),C.clanCode(m.clan)])}).then(function(r){
         if(my!==sk)return;
         if(!r[0]){D.me=null;return loadMine()}
         D.clan=r[0];D.members=r[1];D.code=r[2];tabs();renderMine();
@@ -7893,7 +7896,7 @@ if(window.CRIPTA_WEB){(function(){
   }
   function loadRank(){
     var my=++sk;body('<p class="lead">Cargando…</p>');
-    C.topClans(rk==='week',30).then(function(rows){
+    cached('rank:'+rk,function(){return C.topClans(rk==='week',30)}).then(function(rows){
       if(my!==sk)return;
       D.rank=rows;renderRank();
     }).catch(function(e){if(my===sk){body('');say(err(e),true)}});
@@ -7944,7 +7947,7 @@ if(window.CRIPTA_WEB){(function(){
   function run(fn,ok){
     if(busy)return;busy=true;say('');
     fn().then(function(){
-      busy=false;say(ok);
+      busy=false;say(ok);CA={};
       view='mine';loadMine();
     }).catch(function(e){busy=false;say(err(e),true)});
   }
