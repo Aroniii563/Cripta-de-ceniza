@@ -8,6 +8,27 @@ service cloud.firestore {
         && n.matches('^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.-]+$');
     }
 
+
+    // ---- Clanes ----
+    function memRef(u) { return /databases/$(database)/documents/clan_members/$(u); }
+    function clanRef(c) { return /databases/$(database)/documents/clans/$(c); }
+    function isMember(c) {
+      return exists(memRef(request.auth.uid)) && get(memRef(request.auth.uid)).data.clan == c;
+    }
+    function isLeaderOf(c) { return isMember(c) && get(memRef(request.auth.uid)).data.role == 'l'; }
+    function isMemberAfter(c) {
+      return existsAfter(memRef(request.auth.uid)) && getAfter(memRef(request.auth.uid)).data.clan == c;
+    }
+    function isLeaderAfter(c) { return isMemberAfter(c) && getAfter(memRef(request.auth.uid)).data.role == 'l'; }
+    function clanTagOf(u) { return get(clanRef(get(memRef(u)).data.clan)).data.tag; }
+    function myNick() { return get(/databases/$(database)/documents/players/$(request.auth.uid)).data.nick; }
+    function validClanName(n) {
+      return n is string && n.size() >= 3 && n.size() <= 20
+        && n.matches('^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.-]+$');
+    }
+    function validTag(t) { return t is string && t.size() >= 2 && t.size() <= 4 && t.matches('^[A-Z0-9]+$'); }
+    function validCode(c) { return c is string && c.matches('^[A-Z0-9]{6}$'); }
+
     // Perfil público mínimo del jugador: solo su apodo. Lo lee y escribe solo su dueño.
     match /players/{uid} {
       allow read, delete: if signedIn() && request.auth.uid == uid;
@@ -41,7 +62,7 @@ service cloud.firestore {
       allow read: if col.matches('^rank_[a-z]{3,10}$') && signedIn();
       allow create, update: if col.matches('^rank_[a-z]{3,10}$') && signedIn()
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['nick', 'cls', 'time', 'level', 'kills', 'map', 'ts'])
+        && request.resource.data.keys().hasOnly(['nick', 'cls', 'time', 'level', 'kills', 'map', 'ts', 'tag'])
         && request.resource.data.keys().hasAll(['nick', 'cls', 'time', 'level', 'kills', 'map', 'ts'])
         && request.resource.data.nick == get(/databases/$(database)/documents/players/$(uid)).data.nick
         && request.resource.data.cls is string && request.resource.data.cls.size() <= 24
@@ -50,8 +71,155 @@ service cloud.firestore {
         && request.resource.data.kills is int && request.resource.data.kills >= 0
         && request.resource.data.kills <= request.resource.data.time * 60 + 300
         && request.resource.data.map is int && request.resource.data.map >= 0 && request.resource.data.map <= 9
-        && request.resource.data.ts == request.time;
+        && request.resource.data.ts == request.time
+        && (!('tag' in request.resource.data) || request.resource.data.tag == clanTagOf(uid));
       allow delete: if col.matches('^rank_[a-z]{3,10}$') && signedIn() && request.auth.uid == uid;
+    }
+
+    // Clanes: ficha pública del clan.
+    match /clans/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'tag', 'icon', 'open', 'count', 'pts', 'created'])
+        && request.resource.data.keys().hasAll(['name', 'tag', 'icon', 'open', 'count', 'pts', 'created'])
+        && validClanName(request.resource.data.name) && validTag(request.resource.data.tag)
+        && request.resource.data.icon is int && request.resource.data.icon >= 0 && request.resource.data.icon <= 15
+        && request.resource.data.open is bool
+        && request.resource.data.count == 1 && request.resource.data.pts == 0
+        && request.resource.data.created is int
+        && !exists(memRef(request.auth.uid))
+        && isLeaderAfter(id);
+      allow update: if signedIn() && (
+        // altas y bajas de miembros (+1 / -1, máximo 30)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count'])
+          && request.resource.data.count >= 1 && request.resource.data.count <= 30
+          && ((request.resource.data.count - resource.data.count == 1 && isMemberAfter(id))
+              || (resource.data.count - request.resource.data.count == 1 && isMember(id))))
+        // puntos de una partida de un miembro
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pts'])
+          && request.resource.data.pts - resource.data.pts >= 1
+          && request.resource.data.pts - resource.data.pts <= 2000
+          && isMember(id))
+        // ajustes del clan (solo el líder)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['open', 'icon'])
+          && request.resource.data.open is bool
+          && request.resource.data.icon is int && request.resource.data.icon >= 0 && request.resource.data.icon <= 15
+          && isLeaderOf(id))
+      );
+      allow delete: if signedIn() && isLeaderOf(id) && resource.data.count == 1;
+    }
+
+    // Clanes: pertenencia de cada jugador (un jugador, un clan).
+    match /clan_members/{u} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == u
+        && request.resource.data.keys().hasOnly(['clan', 'role', 'nick', 'pts', 'wk', 'wpts', 'ts'])
+        && request.resource.data.keys().hasAll(['clan', 'role', 'nick', 'pts', 'wk', 'wpts', 'ts'])
+        && request.resource.data.clan is string
+        && request.resource.data.nick == myNick()
+        && request.resource.data.pts == 0 && request.resource.data.wpts == 0 && request.resource.data.wk == 0
+        && request.resource.data.ts is int
+        && !exists(memRef(u))
+        && (
+          (request.resource.data.role == 'l' && !exists(clanRef(request.resource.data.clan)))
+          || (request.resource.data.role == 'm' && exists(clanRef(request.resource.data.clan))
+              && get(clanRef(request.resource.data.clan)).data.count < 30
+              && (get(clanRef(request.resource.data.clan)).data.open
+                  || (exists(/databases/$(database)/documents/clan_join/$(u))
+                      && get(/databases/$(database)/documents/clan_join/$(u)).data.clan == request.resource.data.clan)))
+        );
+      allow update: if signedIn() && (
+        // tu aportación
+        (request.auth.uid == u
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pts', 'wk', 'wpts'])
+          && request.resource.data.pts - resource.data.pts >= 0
+          && request.resource.data.pts - resource.data.pts <= 2000
+          && request.resource.data.wk is int && request.resource.data.wpts is int
+          && request.resource.data.wpts >= 0 && request.resource.data.wpts <= 10000000)
+        // tu apodo
+        || (request.auth.uid == u
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nick'])
+          && request.resource.data.nick == myNick())
+        // el líder deja el cargo (traspaso)
+        || (request.auth.uid == u
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && resource.data.role == 'l' && request.resource.data.role == 'o')
+        // el líder cambia el rango de otro miembro
+        || (request.auth.uid != u
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+          && request.resource.data.role in ['m', 'o', 'l']
+          && resource.data.role != 'l'
+          && isLeaderOf(resource.data.clan))
+      );
+      // salir tú, o expulsar: el líder a cualquiera salvo a sí mismo, un oficial solo a miembros
+      allow delete: if signedIn() && (
+        request.auth.uid == u
+        || (isMember(resource.data.clan)
+            && ((get(memRef(request.auth.uid)).data.role == 'l' && resource.data.role != 'l')
+                || (get(memRef(request.auth.uid)).data.role == 'o' && resource.data.role == 'm')))
+      );
+    }
+
+    // Clanes: nombre único del clan -> { clan }
+    match /clan_names/{key} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['clan'])
+        && request.resource.data.clan is string
+        && key == getAfter(clanRef(request.resource.data.clan)).data.name.lower()
+        && isLeaderAfter(request.resource.data.clan);
+      allow delete: if signedIn() && isLeaderOf(resource.data.clan);
+    }
+
+    // Clanes: código de invitación -> { clan } (se consulta solo con el código exacto)
+    match /clan_codes/{code} {
+      allow get: if signedIn();
+      allow create: if signedIn() && validCode(code)
+        && request.resource.data.keys().hasOnly(['clan'])
+        && request.resource.data.clan is string
+        && isLeaderAfter(request.resource.data.clan);
+      allow delete: if signedIn() && isLeaderOf(resource.data.clan);
+    }
+
+    // Clanes: datos privados del clan (el código lo ven solo sus miembros).
+    match /clan_priv/{id} {
+      allow read: if signedIn() && isMember(id);
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['code'])
+        && validCode(request.resource.data.code)
+        && isLeaderAfter(id);
+      allow delete: if signedIn() && isLeaderOf(id);
+    }
+
+    // Clanes: solicitud de entrada a un clan cerrado (privada de cada jugador).
+    match /clan_join/{u} {
+      allow read, delete: if signedIn() && request.auth.uid == u;
+      allow create, update: if signedIn() && request.auth.uid == u
+        && request.resource.data.keys().hasOnly(['clan', 'code'])
+        && validCode(request.resource.data.code)
+        && request.resource.data.clan is string
+        && get(/databases/$(database)/documents/clan_codes/$(request.resource.data.code)).data.clan == request.resource.data.clan;
+    }
+
+    // Clanes: ranking semanal. Una colección por semana (clanwk_<semana>), un documento por clan.
+    match /{wcol}/{cid} {
+      allow read: if wcol.matches('^clanwk_[0-9]{4,5}$') && signedIn();
+      allow create: if wcol.matches('^clanwk_[0-9]{4,5}$') && signedIn() && isMember(cid)
+        && request.resource.data.keys().hasOnly(['name', 'tag', 'icon', 'pts'])
+        && request.resource.data.keys().hasAll(['name', 'tag', 'icon', 'pts'])
+        && request.resource.data.name == get(clanRef(cid)).data.name
+        && request.resource.data.tag == get(clanRef(cid)).data.tag
+        && request.resource.data.icon == get(clanRef(cid)).data.icon
+        && request.resource.data.pts is int && request.resource.data.pts >= 1 && request.resource.data.pts <= 2000;
+      allow update: if wcol.matches('^clanwk_[0-9]{4,5}$') && signedIn() && isMember(cid)
+        && request.resource.data.keys().hasOnly(['name', 'tag', 'icon', 'pts'])
+        && request.resource.data.name == get(clanRef(cid)).data.name
+        && request.resource.data.tag == get(clanRef(cid)).data.tag
+        && request.resource.data.icon == get(clanRef(cid)).data.icon
+        && request.resource.data.pts is int
+        && request.resource.data.pts - resource.data.pts >= 1
+        && request.resource.data.pts - resource.data.pts <= 2000;
+      allow delete: if wcol.matches('^clanwk_[0-9]{4,5}$') && signedIn() && isLeaderOf(cid);
     }
   }
 }
