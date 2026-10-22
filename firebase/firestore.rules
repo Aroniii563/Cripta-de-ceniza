@@ -131,7 +131,8 @@ service cloud.firestore {
       allow update: if signedIn() && (
         // tu aportación
         (request.auth.uid == u
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pts', 'wk', 'wpts'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pts', 'wk', 'wpts', 'lwk', 'lw'])
+          && (!('lw' in request.resource.data) || (request.resource.data.lw is int && request.resource.data.lwk is int))
           && request.resource.data.pts - resource.data.pts >= 0
           && request.resource.data.pts - resource.data.pts <= 2000
           && request.resource.data.wk is int && request.resource.data.wpts is int
