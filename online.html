@@ -563,7 +563,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
   </div>
 </div>
 
-<script>window.TEST_BUILD=true;
+<script>window.TEST_BUILD=true;(function(){try{var P=Storage.prototype,g=P.getItem,s=P.setItem,r=P.removeItem,k=function(x){return /^cripta_/.test(x)?"tb_"+x:x};P.getItem=function(x){return g.call(this,k(x))};P.setItem=function(x,v){return s.call(this,k(x),v)};P.removeItem=function(x){return r.call(this,k(x))}}catch(e){}})();
 /* Las imágenes se descodifican al cargar (no al dibujarlas por primera vez): evita tirones de 1-2 s al aparecer un jefe o una hoja nueva */
 (function(){var I0=window.Image;window.Image=function(w,h){var im=new I0(w,h);im.addEventListener('load',function(){try{if(im.decode)im.decode().catch(function(){})}catch(e){}});return im};window.Image.prototype=I0.prototype})();
 
