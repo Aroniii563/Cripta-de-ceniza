@@ -2201,7 +2201,7 @@ function statRows(){
   function a(l,v,mx){r.push('<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>')}
   a('Vida',Math.ceil(P.hp)+' / '+Math.ceil(P.maxHp));
   a('Daño',r1(P.dmg));
-  a(k==='orbit'?'Proyectiles por segundo':k==='spheres'?'Esferas por segundo':k==='monks'?'Golpes por monje':'Vel. ataque',r1(k==='orbit'?P.rate*P.orbGen:k==='spheres'?Math.min(2.5,P.rate):P.rate)+(k==='orbit'?'':'/s'),k==='spheres'&&P.rate>=2.5-1e-9);
+  a(k==='orbit'?'Proyectiles por segundo':k==='spheres'?'Esferas por segundo':k==='monks'?'Golpes por monje':'Vel. ataque',r1(k==='orbit'?P.rate*P.orbGen:k==='spheres'?Math.min(7.5,P.rate):P.rate)+(k==='orbit'?'':'/s'),k==='spheres'&&P.rate>=7.5-1e-9);
   a('Vel. movimiento',r1(P.speed));
   a('Crítico',pc(P.crit),P.crit>=1-1e-9);
   a('Armadura',pc(P.armor),P.armor>=.85-1e-9);
@@ -5208,7 +5208,7 @@ function updateSpheres(dt){
   if(P.sph.length<P.sphMax&&P.sphT<=0&&nearestEnemy(14)){
     var a=Math.random()*6.283;
     P.sph.push({x:P.x+Math.cos(a)*.9,y:P.y+Math.sin(a)*.9,a:a,spawn:.3,life:2,tgt:null,tgtT:0,bt:-1,off:a,t:0,ex:0,hit:[],wall:false});
-    P.sphT=Math.max(.4,1/P.rate);
+    P.sphT=Math.max(1/7.5,1/P.rate);
     S('necro',P.x,P.y,0,.35);
   }
   for(i=P.sph.length-1;i>=0;i--){
