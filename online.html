@@ -6644,36 +6644,47 @@ var NET=(function(){
   var seenM={},seenN=0;
   /* Se conecta a TODOS los brokers a la vez y se envía por todos; así dos jugadores coinciden aunque cada uno tenga alguno caído. */
   function sigOpen(id,cb){
+    N.wss.forEach(function(w){w.stop=true;clearInterval(w.hb);try{w.ws.close()}catch(e){}});
     N.id=id;N.wss=[];var left=BROKERS.length,fired=false;
     function settle(){if(fired||left>0)return;fired=true;cb(N.wss.some(function(w){return w.open})?null:'conn')}
     BROKERS.forEach(function(url){
-      var w={ws:null,open:false,done:false,buf:new Uint8Array(0)};N.wss.push(w);
-      function fin(ok){if(w.done)return;w.done=true;left--;if(!ok){try{w.ws.close()}catch(e){}}settle();if(fired&&left>0&&!N._t){N._t=setTimeout(function(){},0)}}
-      var to=setTimeout(function(){fin(false)},6000);
-      try{w.ws=new WebSocket(url,'mqtt')}catch(e){clearTimeout(to);fin(false);return}
-      w.ws.binaryType='arraybuffer';
-      w.ws.onopen=function(){try{w.ws.send(mpkt(0x10,mcat(mstr('MQTT'),new Uint8Array([4,2,0,30]),mstr('cr'+rid(12)))))}catch(e){}};
-      w.ws.onerror=function(){clearTimeout(to);fin(false)};
-      w.ws.onclose=function(){clearTimeout(to);if(w.open){w.open=false;N.diag.push('señal:cerrada '+url.split('/')[2])}fin(false)};
-      w.ws.onmessage=function(ev){
-        w.buf=mcat(w.buf,new Uint8Array(ev.data));
-        while(w.buf.length>=2){
-          var buf=w.buf,i=1,l=0,m=1,b;do{if(i>=buf.length)return;b=buf[i++];l+=(b&127)*m;m*=128}while(b&128);
-          if(buf.length<i+l)return;
-          var type=buf[0]>>4,body=buf.slice(i,i+l);w.buf=buf.slice(i+l);
-          if(type===2){if(body[1]===0){clearTimeout(to);w.open=true;N.diag.push('señal:ok('+url.split('/')[2]+')');
-              w.ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr('cripta1/'+id),new Uint8Array([0]))));
-              (N._hb=N._hb||[]).push(setInterval(function(){try{w.ws.send(new Uint8Array([0xC0,0]))}catch(e){}},20000));
-              if(fired&&N.subs)N.subs.forEach(function(t){w.ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr(t),new Uint8Array([0]))))});
-              fin(true)}else fin(false)}
-          else if(type===3){
-            var tl=(body[0]<<8)|body[1],topic=new TextDecoder().decode(body.slice(2,2+tl)),pay=new TextDecoder().decode(body.slice(2+tl));
-            var d;try{d=JSON.parse(pay)}catch(e){continue}
-            if(d.m){if(seenM[d.m])continue;seenM[d.m]=1;if(++seenN>500){seenM={};seenN=0}}
-            onSig(topic,d);
+      var w={ws:null,open:false,done:false,buf:new Uint8Array(0),stop:false,hb:0,rt:0};N.wss.push(w);
+      /* re=true: reconexión tras una caída (las señales de los brokers públicos se cortan de vez en cuando) */
+      function connect(re){
+        w.buf=new Uint8Array(0);w.rt=0;
+        function fin(ok){
+          if(re){if(!ok){try{w.ws.close()}catch(e){}}return}
+          if(w.done)return;w.done=true;left--;if(!ok){try{w.ws.close()}catch(e){}}settle()}
+        var to=setTimeout(function(){fin(false)},6000);
+        function retry(){if(w.stop||N.wss.indexOf(w)<0||w.rt)return;w.rt=setTimeout(function(){if(!w.stop&&N.wss.indexOf(w)>=0)connect(true)},1500+Math.random()*1500)}
+        try{w.ws=new WebSocket(url,'mqtt')}catch(e){clearTimeout(to);fin(false);retry();return}
+        var ws=w.ws;ws.binaryType='arraybuffer';
+        ws.onopen=function(){try{ws.send(mpkt(0x10,mcat(mstr('MQTT'),new Uint8Array([4,2,0,30]),mstr('cr'+rid(12)))))}catch(e){}};
+        ws.onerror=function(){clearTimeout(to);fin(false)};
+        ws.onclose=function(){clearTimeout(to);clearInterval(w.hb);if(w.ws!==ws)return;if(w.open){w.open=false;N.diag.push('señal:cerrada '+url.split('/')[2])}fin(false);retry()};
+        ws.onmessage=function(ev){
+          if(w.ws!==ws)return;
+          w.buf=mcat(w.buf,new Uint8Array(ev.data));
+          while(w.buf.length>=2){
+            var buf=w.buf,i=1,l=0,m=1,b;do{if(i>=buf.length)return;b=buf[i++];l+=(b&127)*m;m*=128}while(b&128);
+            if(buf.length<i+l)return;
+            var type=buf[0]>>4,body=buf.slice(i,i+l);w.buf=buf.slice(i+l);
+            if(type===2){if(body[1]===0){clearTimeout(to);w.open=true;N.diag.push((re?'señal:reconectada(':'señal:ok(')+url.split('/')[2]+')');
+                ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr('cripta1/'+id),new Uint8Array([0]))));
+                clearInterval(w.hb);w.hb=setInterval(function(){try{ws.send(new Uint8Array([0xC0,0]))}catch(e){}},15000);
+                if((fired||re)&&N.subs)N.subs.forEach(function(t){ws.send(mpkt(0x82,mcat(new Uint8Array([0,1]),mstr(t),new Uint8Array([0]))))});
+                if(re&&N.isHost&&N.code)ws.send(mpkt(0x31,mcat(mstr('cripta1/room/'+N.code),new TextEncoder().encode(JSON.stringify({t:Date.now()})))));
+                fin(true)}else fin(false)}
+            else if(type===3){
+              var tl=(body[0]<<8)|body[1],topic=new TextDecoder().decode(body.slice(2,2+tl)),pay=new TextDecoder().decode(body.slice(2+tl));
+              var d;try{d=JSON.parse(pay)}catch(e){continue}
+              if(d.m){if(seenM[d.m])continue;seenM[d.m]=1;if(++seenN>500){seenM={};seenN=0}}
+              onSig(topic,d);
+            }
           }
-        }
-      };
+        };
+      }
+      connect(false);
     });
     setTimeout(function(){if(!fired&&N.wss.some(function(w){return w.open})){fired=true;cb(null)}},3500);
   }
@@ -6735,7 +6746,7 @@ var NET=(function(){
     if(ch&&ch.readyState==='open'){if(unrel&&ch.bufferedAmount>65536)return;try{ch.send(JSON.stringify(m))}catch(e){}}};
   N.bcast=function(m,unrel,except){for(var k in N.peers)if(k!==except)N.send(k,m,unrel)};
   N.drop=drop;
-  N.close=function(){(N._hb||[]).forEach(clearInterval);if(N.isHost&&N.code)mqPub('cripta1/room/'+N.code,'',true);for(var k in N.peers)drop(k);N.wss.forEach(function(w){try{w.ws.close()}catch(e){}});N.wss=[]};
+  N.close=function(){(N._hb||[]).forEach(clearInterval);if(N.isHost&&N.code)mqPub('cripta1/room/'+N.code,'',true);for(var k in N.peers)drop(k);N.wss.forEach(function(w){w.stop=true;clearInterval(w.hb);try{w.ws.close()}catch(e){}});N.wss=[]};
   return N;
 })();
 
