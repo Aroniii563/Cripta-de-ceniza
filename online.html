@@ -1239,7 +1239,7 @@ function livePlayer(){var l=PL.filter(function(q){return !q.dead});return l.leng
 function tooFar(a,b){var sa=sp(a.x,a.y),sb=sp(b.x,b.y);return Math.abs(sa.x-sb.x)>W/Z*.64||Math.abs(sa.y-sb.y)>H/Z*.58}
 function ownNew(n0,z0){var i;for(i=n0;i<shots.length;i++)if(!shots[i].own)shots[i].own=P;for(i=z0;i<zones.length;i++)if(!zones[i].own)zones[i].own=P}
 function nextPender(){for(var i=0;i<PL.length;i++)if(PL[i].pend>0||PL[i].pendS>0)return PL[i];return null}
-function coopHp(){return !coop?1:[1,1.7,2.3,2.9][Math.min(3,PL.length-1)]}
+function coopHp(){return !coop?1:[1,1.2,1.4,1.6][Math.min(3,PL.length-1)]}
 function pactoOn(){var l=(typeof coop!=='undefined'&&coop&&typeof PL!=='undefined'&&PL&&PL.length)?PL:[P];for(var i=0;i<l.length;i++)if(l[i]&&l[i].spec&&l[i].spec.pacto)return true;return false}
 function coopN(){return !coop?1:[1,1.6,2.1,2.5][Math.min(3,PL.length-1)]}
 function capMax(){return !coop?260:[260,420,520,600][Math.min(3,PL.length-1)]}
