@@ -6836,7 +6836,7 @@ function onList(){
 function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,m:ON.mem.map(function(m){return {cls:m.cls,rdy:m.rdy,nick:m.nick||''}})})}
 function onSendMe(){
   if(ON.host){onLobbyBroadcast();onList()}
-  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes()})}
+  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes(),lv:meta.lv,sk:meta.skinSel,sks:meta.skins})}
 }
 function onBeat(){
   ON.hb=setInterval(function(){NET.bcast({t:'pg'});var now=performance.now();
@@ -6867,7 +6867,12 @@ function onLeft(pid){
 function onHostMsg(pid,m){
   ON.seen[pid]=performance.now();
   var mem=ON.mem.find(function(x){return x.id===pid});
-  if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);if(Array.isArray(m.heroes))mem.heroes=m.heroes.filter(function(k){return CLASSES[k]}).slice(0,16);onFixCls(mem);onLobbyBroadcast();onList()}
+  if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);if(Array.isArray(m.heroes))mem.heroes=m.heroes.filter(function(k){return CLASSES[k]}).slice(0,16);onFixCls(mem);
+    /* mejoras permanentes y aspecto del invitado: la partida se calcula en el anfitrión, así que se usan las del invitado, no las del anfitrión */
+    if(m.lv&&typeof m.lv==='object'){var lv2={};Object.keys(m.lv).slice(0,40).forEach(function(c){if(!CLASSES[c]||!m.lv[c]||typeof m.lv[c]!=='object')return;var o={};Object.keys(m.lv[c]).slice(0,20).forEach(function(k){var v=+m.lv[c][k];if(isFinite(v))o[k]=Math.max(0,Math.min(40,Math.floor(v)))});lv2[c]=o});mem.lv=lv2}
+    if(m.sk&&typeof m.sk==='object'){var sk2={};Object.keys(m.sk).slice(0,40).forEach(function(c){if(typeof m.sk[c]==='string')sk2[c]=m.sk[c].slice(0,40)});mem.sk=sk2}
+    if(Array.isArray(m.sks))mem.sks=m.sks.filter(function(x){return typeof x==='string'}).slice(0,300).map(function(x){return x.slice(0,40)});
+    onLobbyBroadcast();onList()}
   else if(m.t==='in'){var p=PL.find(function(q){return q.net===pid});if(p){p.inp=m;if(m.vw)p.vw=m.vw}}
   else if(m.t==='pick'){var pp=PL.find(function(q){return q.net===pid});if(pp)onApply(pp,m.i,m.sp)}
   else if(m.t==='chop'){var pc=PL.find(function(q){return q.net===pid});if(pc&&window.COFOPEN)window.COFOPEN(pc,m.id)}
@@ -6942,7 +6947,10 @@ function onBegin(cls,me,host,msg,mapBytes){
   ON.on=true;ON.paused=false;$('pauseOv').hidden=true;ON.rk=false;ON.cls=cls.slice();ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;onPill();ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
   var mi=(msg&&msg.map)||0;ON.mi=mi;
   seeded((msg&&msg.seed)||1,function(){startRun(cls[0],mi)});
-  PL=cls.map(function(k,i){var p=mkPlayer(k,i);p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
+  PL=cls.map(function(k,i){var mm=host&&i>0?ON.mem[i]:null,sv0=null;
+    if(mm&&mm.lv){sv0={lv:meta.lv,sk:meta.skinSel,sks:meta.skins};meta.lv=mm.lv;if(mm.sk)meta.skinSel=mm.sk;if(mm.sks)meta.skins=mm.sks}
+    var p;try{p=mkPlayer(k,i)}finally{if(sv0){meta.lv=sv0.lv;meta.skinSel=sv0.sk;meta.skins=sv0.sks}}
+    p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
   coop=true;P=PL[me];ON.own=P;
   if(!host&&mapBytes){map=ub64(mapBytes);vari=ub64(msg.vari)}
   if(mi===5||mi===CEN_MAP)PL.forEach(function(q){q.pendS++});
