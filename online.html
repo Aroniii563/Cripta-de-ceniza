@@ -6935,7 +6935,7 @@ var SK=['x','y','vx','vy','col','r','spr','friendly','hm','bn','soul','ph'];
 var OK=['x','y','t','heal','v','mag'];
 var XK=['x','y','s','col','size','t'];
 var CK=['x','y','type','boss','t','flip','k'];
-var PVK=['an','inv','flash','reviveT','orbA','orbMax','orbList','spec','bar','bolts','crows','dgL','lzs','monks','sph','tomes','tors','rains','amSp','angRays','mtL','angA','angN','angRad','angSpin','angT','angW','angCd','angCh','mtFire','mtN','mtR','rn','tnT','barCd','sphMax','sphRad','sphSpd','dgMax','dgMul','monkHp','monkMax','monkReach','amCallInt','amMax','amRet','lt','auraR','walk'];
+var PVK=['an','inv','flash','reviveT','orbA','orbMax','orbList','spec','bar','bolts','crows','dgL','lzs','monks','sph','tomes','tors','rains','amSp','angRays','mtL','angA','angN','angRad','angSpin','angT','angW','angCd','angCh','mtFire','mtN','mtR','rn','tnT','barCd','sphMax','sphRad','sphSpd','dgMax','dgMul','skinId','monkHp','monkMax','monkReach','amCallInt','amMax','amRet','lt','auraR','walk'];
 var STK=['maxHp','dmg','rate','speed','crit','armor','regen','steal','pick','xpMul','projN','pierce','bounce','reach','zoneR','zoneDmg','zoneN','auraR','auraDmg','orbMax','orbSpd','level','pend','pendS'];
 var NID=0;
 function inView(c,x,y){var dx=x-c.x,dy=y-c.y,v=c.vw||[46,54];return Math.abs(dx-dy)<v[0]&&Math.abs(dx+dy)<v[1]}
@@ -6951,6 +6951,7 @@ function onBegin(cls,me,host,msg,mapBytes){
     if(mm&&mm.lv){sv0={lv:meta.lv,sk:meta.skinSel,sks:meta.skins};meta.lv=mm.lv;if(mm.sk)meta.skinSel=mm.sk;if(mm.sks)meta.skins=mm.sks}
     var p;try{p=mkPlayer(k,i)}finally{if(sv0){meta.lv=sv0.lv;meta.skinSel=sv0.sk;meta.skins=sv0.sks}}
     p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
+  try{PL.forEach(function(p){if(p.skinId)animEnsure(p.skinId)})}catch(e){}
   coop=true;P=PL[me];ON.own=P;
   if(!host&&mapBytes){map=ub64(mapBytes);vari=ub64(msg.vari)}
   if(mi===5||mi===CEN_MAP)PL.forEach(function(q){q.pendS++});
@@ -7087,6 +7088,7 @@ function onApplySnap2(s){
 function onApplyVis(m){
   if(m.q<ON.last)return;
   m.pv.forEach(function(v,i){var p=PL[i];if(!p||!v)return;for(var k in v){if(k==='walk')continue;p[k]=v[k]}});
+  try{PL.forEach(function(p){if(p.skinId)animEnsure(p.skinId)})}catch(e){}
 }
 function onApplyStats(m){var p=PL[m.me];if(!p)return;for(var k in m.s)if(m.s[k]!==null)p[k]=m.s[k]}
 function onGuestStep(dt){
