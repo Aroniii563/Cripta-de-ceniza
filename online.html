@@ -10268,6 +10268,16 @@ window.__RUN={RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv,ORDER:OR
 })();
 
 /* ==========================================================================
+   DRUIDA REMODELADO (PRUEBA: solo en /online). Aspecto nuevo "Druida remodelado" con el estilo de los enemigos.
+   Es un aspecto más: el druida de siempre sigue disponible y se elige en la pestaña Skins.
+   ========================================================================== */
+ANIMD.druid_v3={"src":"skins/druidv3_anim.png","fw":185,"fh":153,"pie_x":95.7,"pie_y":132.9,"filas":{"reposo":6,"andar":8,"ataque":6,"dano":3,"muerte":8},"fps":{"reposo":6,"andar":10,"ataque":12,"dano":10,"muerte":8},"bucle":{"reposo":true,"andar":true,"ataque":false,"dano":false,"muerte":false},"der":true};
+SKINCAT.push({id:'druid_v3',cls:'druid',name:'Druida remodelado (prueba)',cost:1});
+/* gratis en la versión de prueba */
+var ownsSkin_dv3=ownsSkin;ownsSkin=function(id){return id==='druid_v3'||ownsSkin_dv3(id)};
+SKIN_SRC.druid_v3={atlas:'skins/druidv3_retrato.png',ax:0,aw:210,ah:372,aT:210};
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
