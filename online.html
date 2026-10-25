@@ -10112,6 +10112,33 @@ setTimeout(function(){
     RUN.fx.forEach(function(f){list.push({d:f.x+f.y+(f.k==='dome'?-.5:0),xd:function(){drawFx(f)}})});
   };
 },0);
+/* Escarcha: capa de nieve (nieve.png, 64 fotogramas de 256x256) recortada al radio de la runa */
+var SNOW={pats:[],oc:null};
+(function(){var im=new Image();im.onload=function(){for(var i=0;i<64;i++){var c=document.createElement('canvas');c.width=256;c.height=256;c.getContext('2d').drawImage(im,(i%8)*256,Math.floor(i/8)*256,256,256,0,0,256,256);SNOW.pats.push(c)}};im.src='runas/nieve.png'})();
+var render_run=render;
+render=function(){
+  render_run();
+  var r=lv('isa');
+  if(r<0||!SNOW.pats.length||state!=='play'||!map||!RUN.pl||RUN.pl.dead)return;
+  var R=V.isa.rad[r],q=RUN.pl,cs=sp(cam.x,cam.y),pp=sp(q.x,q.y),Zk=(typeof Z!=='undefined'?Z:1);
+  var mx=(pp.x-cs.x)*Zk+W/2,my=(pp.y-cs.y)*Zk+H/2,rx=R*45.25*Zk,ry=R*22.63*Zk;
+  var ow=Math.ceil(rx*2),oh=Math.ceil(ry*2);
+  if(!SNOW.oc)SNOW.oc=document.createElement('canvas');
+  var oc=SNOW.oc;if(oc.width!==ow||oc.height!==oh){oc.width=ow;oc.height=oh}
+  var g=oc.getContext('2d'),k=2,fr=SNOW.pats[Math.floor(performance.now()/1000*15)%64],pat=g.createPattern(fr,'repeat');if(!pat)return;
+  g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.clearRect(0,0,ow,oh);
+  g.imageSmoothingEnabled=false;
+  g.setTransform(k,0,0,k,-(cs.x*.6)%(256*k)-(mx-rx),-(cs.y*.6)%(256*k)-(my-ry));
+  g.fillStyle='rgba(190,225,255,.10)';g.fillRect(-256,-256,ow/k+512+Math.abs(mx-rx)/k*2,oh/k+512+Math.abs(my-ry)/k*2);
+  g.fillStyle=pat;g.fillRect(-256,-256,ow/k+512+Math.abs(mx-rx)/k*2,oh/k+512+Math.abs(my-ry)/k*2);
+  g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='destination-in';
+  g.save();g.translate(rx,ry);g.scale(1,ry/rx);
+  var gr=g.createRadialGradient(0,0,rx*.55,0,0,rx);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=gr;g.fillRect(-rx,-rx,rx*2,rx*2);g.restore();g.globalCompositeOperation='source-over';
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.globalAlpha=.95;ctx.drawImage(oc,mx-rx,my-ry);
+  ctx.restore();ctx.globalAlpha=1;
+};
 var playerStep_run=playerStep;
 playerStep=function(dt){
   playerStep_run.apply(this,arguments);
@@ -10167,9 +10194,6 @@ playerStep=function(dt){
     for(i=0;i<enemies.length;i++){e=enemies[i];if(e.dead||Math.hypot(e.x-P.x,e.y-P.y)>rad)continue;
       if(r===0)e.lsw=Math.max(e.lsw||0,.25);else{e.slow=Math.max(e.slow||0,.25);if(r>=2)e.lsw=Math.max(e.lsw||0,.25)}}
     for(i=0;i<shots.length;i++){var s0=shots[i];if(s0.friendly||s0.sl||Math.hypot(s0.x-P.x,s0.y-P.y)>rad)continue;s0.sl=1;s0.vx*=V.isa.pj[r];s0.vy*=V.isa.pj[r];if(s0.sp)s0.sp*=V.isa.pj[r]}
-    RUN.snowT-=dt;
-    if(RUN.snowT<=0){RUN.snowT=.1;for(k=0;k<2;k++){var sa2=Math.random()*6.2832,sr=Math.sqrt(Math.random())*rad;burst(P.x+Math.cos(sa2)*sr,P.y+Math.sin(sa2)*sr,'#ffffff',1)}}
-    RUN.snowR-=dt;if(RUN.snowR<=0){RUN.snowR=1.4;ring(P.x,P.y,rad,.8,'#cfe8ff')}
   }
   /* Ahorcado */
   r=lv('perthro');
