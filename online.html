@@ -9365,7 +9365,7 @@ if(typeof onSend==='function'){
 }
 if(typeof onGuestMsg==='function'){
   var _evGM=onGuestMsg;
-  onGuestMsg=function(m){if(m&&m.t==='ev'){evtApplyMsg(m);return}return _evGM.apply(this,arguments)};
+  onGuestMsg=function(pid,m){if(m&&m.t==='ev'){evtApplyMsg(m);return}return _evGM.apply(this,arguments)};
 }
 
 /* ---------- dibujo en el suelo (bajo los personajes) ---------- */
