@@ -9956,12 +9956,12 @@ function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
 st.textContent='#pRunas .rwrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}#pRunas .rleft{flex:1 1 420px;min-width:280px}#pRunas .rright{flex:0 0 330px;max-width:100%;position:sticky;top:10px}'+
- '#pRunas .rtree{position:relative;width:310px;height:300px;margin:6px auto 12px}#pRunas .rbox{position:absolute;width:96px;height:96px;border:2px solid;background:#0c1415;padding:6px;cursor:pointer;text-align:center;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%}'+
- '#pRunas .rbox.o{border-color:#d9444e;box-shadow:0 0 14px #d9444e55}#pRunas .rbox.d{border-color:#4f8fe0;box-shadow:0 0 14px #4f8fe055}#pRunas .rbox small{display:block;color:var(--muted);font-size:11px;line-height:1.2}#pRunas .rbox b{font-size:12px}#pRunas .rbox .gl{font-size:24px;line-height:1}'+
+ '#pRunas .rmed{position:relative;width:330px;max-width:100%;margin:6px auto 10px}#pRunas .rmed>img{display:block;width:100%;image-rendering:pixelated}#pRunas .rsl2{position:absolute;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}#pRunas .rsl2:hover{outline:2px solid #ffffff55}#pRunas .rsl2 img{width:100%;height:100%;object-fit:contain}'+
+ '#pRunas .rimg{image-rendering:pixelated;vertical-align:middle}#pRunas .rcard .nm{margin-left:6px}'+
  '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}'+
  '#pRunas .rcard{border:1px solid var(--line);background:#0c1415;padding:10px;font-size:13px;line-height:1.35}#pRunas .rcard b{font-size:15px}#pRunas .rcard .gl{font-size:20px;margin-right:4px}#pRunas .rcard .rb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}#pRunas .rcard.lk{opacity:.45;text-align:center;padding:14px 10px}'+
  '#pRunas h3{margin:0 0 8px;font-weight:400;color:var(--gold)}#pRunas h3.ho{color:#d9444e}#pRunas h3.hd{color:#4f8fe0}#pRunas h3 small{color:var(--muted);font-size:13px}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
- '#hud>.statp{top:118px}#runHud{display:flex;gap:5px;margin-top:5px;pointer-events:none}#runHud div{width:26px;height:26px;border:2px solid;background:rgba(10,16,17,.8);display:flex;align-items:center;justify-content:center;font-size:14px;position:relative;overflow:hidden;border-radius:50%}'+
+ '#hud>.statp{top:118px}#runHud{display:flex;gap:5px;margin-top:5px;pointer-events:none}#runHud div{width:25px;height:30px;position:relative;overflow:hidden}#runHud img{display:block;width:100%;height:100%!important}'+
  '#runHud i{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.65)}';
 document.head.appendChild(st);
 var sec=document.createElement('section');sec.id='pRunas';sec.hidden=true;
@@ -9969,22 +9969,26 @@ document.getElementById('pStats').parentNode.insertBefore(sec,document.getElemen
 var mt=document.getElementById('menuTabs'),rb=mt.querySelector('[data-m="rank"]'),tb=document.createElement('button');
 tb.className='mt';tb.type='button';tb.setAttribute('data-m','runas');tb.setAttribute('aria-pressed','false');tb.innerHTML='<i></i>Runas';
 var ub=mt.querySelector('[data-m="upg"]');mt.insertBefore(tb,ub?ub.nextSibling:rb);
+function im(id,h,x){return '<img class="rimg" src="runas/'+id+'.png" alt="" style="height:'+h+'px'+(x||'')+'">'}
 function card(k,n,inInv){
   var p=parse(k),u=RUNES[p.id];
-  return '<div class="rcard" style="border-color:'+RCOL[p.r]+'"><b style="color:'+RCOL[p.r]+'"><span class="gl">'+u.g+'</span>'+u.n+'</b> <small>'+u.w+' · '+RAR[p.r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(p.r)+'</div>'+
+  return '<div class="rcard" style="border-color:'+RCOL[p.r]+'"><b style="color:'+RCOL[p.r]+'">'+im(p.id,34,';filter:drop-shadow(0 0 3px '+RCOL[p.r]+')')+'<span class="nm">'+u.n+'</span></b> <small>'+u.w+' · '+RAR[p.r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(p.r)+'</div>'+
    (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(n>=3&&p.r<3?'<button class="btn sm" data-fu="'+k+'">Fusionar 3 → '+RAR[p.r+1]+'</button>':'')+'</div>':'')+'</div>';
 }
 function build(){
   var m=R(),h='<h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Se consiguen al terminar una partida (más tiempo y jefes = mejor rareza). <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. Con 3 runas iguales puedes fusionarlas en una de rareza superior. De momento solo funcionan en solitario y cooperativo local.</p>';
   var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return parse(b).r-parse(a).r||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
-  function box(tp,i,x,y){var k=m.eq[tp][i];return '<div class="rbox '+tp+'" data-sl="'+tp+i+'" style="left:'+x+'px;top:'+y+'px;'+(k?'background:#141f21':'')+'">'+(k?(function(){var p=parse(k),u=RUNES[p.id];return '<span class="gl" style="color:'+RCOL[p.r]+'">'+u.g+'</span><b style="color:'+RCOL[p.r]+'">'+u.n+'</b><small>'+RAR[p.r]+' · quitar</small>'})():'<small>'+(tp==='o'?'Ofensiva':'Defensiva')+'<br>vacío</small>')+'</div>'}
+  var SP={o0:[73.8,38.5,40],d0:[32.3,88.3,27],d1:[74,105,27],d2:[115.7,87.3,27]};
+  function slot(tp,i){var k=m.eq[tp][i],c=SP[tp+i],p=k&&parse(k),u=k&&RUNES[p.id];
+    return '<div class="rsl2" data-sl="'+tp+i+'" title="'+(k?u.n+' · '+u.w+' · '+RAR[p.r]+' (clic para quitar)':(tp==='o'?'Hueco de runa ofensiva':'Hueco de runa defensiva'))+'" style="left:'+(c[0]/144*100)+'%;top:'+(c[1]/143*100)+'%;width:'+(c[2]/144*100)+'%;height:'+(c[2]*1.2/143*100)+'%">'+(k?'<img class="rimg" src="runas/'+p.id+'.png" alt="" style="filter:drop-shadow(0 0 4px '+RCOL[p.r]+')">':'')+'</div>'}
+  function eqList(){var o=[];['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k){var p=parse(k),u=RUNES[p.id];o.push('<span style="color:'+RCOL[p.r]+'">'+u.n+'</span>')}})});return o.length?o.join(' · '):'<span style="color:var(--muted)">Nada equipado</span>'}
   function sect(list,cls,title){
     var mine=ks.filter(function(k){return list.indexOf(parse(k).id)>=0}),seen=list.filter(function(i){return m.seen[i]||mine.some(function(k){return parse(k).id===i})}).length;
     var lock=list.filter(function(i){return !(m.seen[i]||mine.some(function(k){return parse(k).id===i}))});
-    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b><span class="gl">'+RUNES[i].g+'</span>???</b><div><small>'+RUNES[i].w+'</small></div></div>'}).join('')+'</div>';
+    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+'</small></div></div>'}).join('')+'</div>';
   }
   h+='<div class="rwrap"><div class="rleft">'+sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
-  h+='<div class="rright"><h3>Equipadas en partida</h3><div class="rtree">'+box('o',0,107,0)+box('d',0,8,150)+box('d',1,107,180)+box('d',2,206,150)+'</div>'+
+  h+='<div class="rright"><h3>Equipadas en partida</h3><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><p style="text-align:center;margin:0 0 12px;font-size:13px">'+eqList()+'</p>'+
    '<div><button class="btn sm" data-dev="1">+ Runa aleatoria (prueba)</button> <button class="btn sm" data-dev="2">+ 3 runas (prueba)</button><br><small style="color:var(--muted)">Runas conseguidas: '+(m.n||0)+' · garantizada tras '+Math.max(0,2-(m.pity||0))+' partida(s) sin runa</small></div></div></div>';
   sec.innerHTML=h;
 }
@@ -10033,7 +10037,7 @@ startRun=function(){
 };
 function hud(){
   if(!RUN.hud){RUN.hud=document.createElement('div');RUN.hud.id='runHud';var tl=document.querySelector('#hud .tl');(tl||document.body).appendChild(RUN.hud)}
-  RUN.hud.innerHTML=RUN.a.map(function(a){var u=RUNES[a.id];return '<div style="border-color:'+RCOL[a.r]+';color:'+RCOL[a.r]+'" title="'+u.n+' · '+u.w+'" data-id="'+a.id+'">'+u.g+'<i style="height:0"></i></div>'}).join('');
+  RUN.hud.innerHTML=RUN.a.map(function(a){var u=RUNES[a.id];return '<div style="filter:drop-shadow(0 0 3px '+RCOL[a.r]+')" title="'+u.n+' · '+u.w+'" data-id="'+a.id+'">'+im(a.id,30)+'<i style="height:0"></i></div>'}).join('');
   RUN.hud.style.display=RUN.a.length?'flex':'none';
 }
 function strike(z,m,col){var zx=z.x,zy=z.y;S('crit',zx,zy,0,1);ring(zx,zy,1.1,.3,col);burst(zx,zy,col,12);dmg(z,m,0,0,0)}
@@ -10172,7 +10176,7 @@ endRun=function(why){
 function coop0(){return typeof PL!=='undefined'&&PL.length>1}
 function note(){
   if(!RUN.drop)return;var p=parse(RUN.drop),u=RUNES[p.id],el=$('deadSub');
-  if(el)el.textContent+=' · Runa obtenida: '+u.g+' '+u.n+' ('+RAR[p.r]+')';RUN.drop=null;
+  if(el)el.textContent+=' · Runa obtenida: '+u.n+' ('+RAR[p.r]+')';RUN.drop=null;
 }
 var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return r};
 var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
