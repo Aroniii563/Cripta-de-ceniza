@@ -7003,10 +7003,13 @@ function onPingUi(){
   var d=$('onPing');
   if(!d){d=document.createElement('div');d.id='onPing';d.style.cssText='position:fixed;left:10px;bottom:10px;z-index:60;background:rgba(10,16,17,.7);border:1px solid #2a3a3d;border-radius:6px;padding:3px 8px;font:12px system-ui,sans-serif;color:#9aa8a6;pointer-events:none';document.body.appendChild(d)}
   var c=ON.pgA<80?'#6cc08a':ON.pgA<160?'#d3a94a':'#e0605a';
-  d.innerHTML='Ping <b style="color:'+c+'">'+(ON.pgA===undefined?'…':ON.pgA)+' ms</b> · '+(ON.rt||'?');d.hidden=!(ON.on&&!ON.host);
+  var fc=ON.fps>=50?'#6cc08a':ON.fps>=30?'#d3a94a':'#e0605a';
+  d.innerHTML=(ON.host?'':'Ping <b style="color:'+c+'">'+(ON.pgA===undefined?'…':ON.pgA)+' ms</b> · '+(ON.rt||'?')+' · ')+'<b style="color:'+fc+'">'+(ON.fps||'…')+'</b> fps'+(ON.fpsMin?' (mín. '+ON.fpsMin+')':'');d.hidden=!ON.on;
 }
+/* FPS del propio dispositivo: sirve para distinguir un problema de red de uno de rendimiento */
+(function(){var n=0,t0=performance.now(),mn=999;function f(){n++;var t1=performance.now();if(t1-t0>=1000){ON.fps=Math.round(n*1000/(t1-t0));if(ON.on&&ON.fps<mn)mn=ON.fps;if(!ON.on)mn=999;ON.fpsMin=mn<999?mn:0;n=0;t0=t1;if(ON.on)onPingUi()}requestAnimationFrame(f)}requestAnimationFrame(f)})();
 function onPingTick(){
-  if(!ON.on||ON.host){var d=$('onPing');if(d)d.hidden=true;return}
+  if(!ON.on||ON.host){var d=$('onPing');if(d)d.hidden=!ON.on;return}
   try{NET.send(NET.hostId,{t:'pq',ts:performance.now()})}catch(e){}
   ON.pgT=(ON.pgT||0)+1;
   if(ON.pgT%5===1){
@@ -7060,14 +7063,14 @@ function onSend(){
       g.nl=nl2;g.nf=nf2;A.ba=bossI;
     }
     var B3={t:'s3',q:ON.q};
-    if(ON.tk%2===1){B3.S=cap(shots,c,150,true).map(function(e){return recOf(e,SK)});B3.O=cap(orbs,c,70,true).map(function(e){return recOf(e,OK)})}
+    /* los ataques de los personajes (disparos, zonas y efectos) van en cada ciclo para que el invitado los vea sin retraso; los orbes, uno de cada dos */
+    B3.S=cap(shots,c,150,true).map(function(e){return recOf(e,SK)});B3.Z=zones.map(function(z){return gen(z,1)});B3.F=cap(fxs,c,50,true).map(function(z){return gen(z,1)});
+    if(ON.tk%2===1)B3.O=cap(orbs,c,70,true).map(function(e){return recOf(e,OK)});
     var sa=[],seen={};ON.snd.forEach(function(a){if(sa.length>=12||Math.hypot(a[1]-c.x,a[2]-c.y)>20)return;var kk=a[0]+Math.round(a[1])+Math.round(a[2]);if(seen[kk])return;seen[kk]=1;sa.push(a)});if(sa.length)B3.A=sa;
     var B={t:'s2',q:ON.q};
     B.X=cap(texts,c,40,true).map(function(e){return recOf(e,XK)});
     B.C=cap(corpses,c,30,true).map(function(e){return recOf(e,CK)});
     if(window.COFNET)B.CH=window.COFNET();
-    B.Z=zones.map(function(z){return gen(z,1)});
-    B.F=cap(fxs,c,50,true).map(function(z){return gen(z,1)});
     B.H=haz.slice(0,60).map(function(z){return gen(z,1)});
     B.Y=sfx.slice(0,30).map(function(z){return gen(z,1)});
     var G={};
@@ -7077,7 +7080,7 @@ function onSend(){
     if(typeof s5Light!=='undefined'){G.sl=s5Light.slice(0,40).map(function(z){return gen(z,1)});G.sn=s5Notes.slice(0,100).map(function(z){return gen(z,1)})}
     B.G=G;
     var msgs=[A,B3];var prb=NET.peers[g.net];var busy=prb&&prb.u&&prb.u.bufferedAmount>20000;if(ON.tk%2===0&&!busy)msgs.push(B);
-    if(ON.tk%4===0){msgs.push({t:'v',q:ON.q,pv:PL.map(function(p,j){if(j!==gi&&!inView(c,p.x,p.y))return null;var o={};PVK.forEach(function(k){if(p[k]!==undefined)o[k]=gen(p[k],0)});return o})})}
+    if(ON.tk%2===0){msgs.push({t:'v',q:ON.q,pv:PL.map(function(p,j){if(j!==gi&&!inView(c,p.x,p.y))return null;var o={};PVK.forEach(function(k){if(p[k]!==undefined)o[k]=gen(p[k],0)});return o})})}
     if(ON.tk%10===0){var st={t:'st',me:gi,s:{}};STK.forEach(function(k){st.s[k]=gen(g[k],0)});NET.send(g.net,st)}
     var pr=NET.peers[g.net];
     msgs.forEach(function(m){var txt=JSON.stringify(m);if(m.t==='s')ON.bytes=txt.length;if(ON.dbg){ON.brk=ON.brk||{};ON.brk[m.t]=(ON.brk[m.t]||0)+txt.length}
@@ -7111,14 +7114,15 @@ function onApplySnap3(s){
   if(s.A)s.A.forEach(function(a){S_base(a[0],a[1],a[2],a[4]||undefined,a[3])});
   if(!s.S)return;
   shots=s.S.map(function(a){return fromRec(a,SK)});
-  orbs=s.O.map(function(a){return fromRec(a,OK)});
+  if(s.Z){zones=s.Z;fxs=s.F||[]}
+  if(s.O)orbs=s.O.map(function(a){return fromRec(a,OK)});
 }
 function onApplySnap2(s){
   if(s.q<ON.last)return;
   texts=s.X.map(function(a){return fromRec(a,XK)});
   corpses=s.C.map(function(a){return fromRec(a,CK)});
   if(window.COFAPPLY)window.COFAPPLY(s.CH);
-  zones=s.Z;fxs=s.F;haz=s.H;sfx=s.Y||[];
+  haz=s.H;sfx=s.Y||[];
   var G=s.G||{};
   if(typeof sbHaz!=='undefined')sbHaz=G.sb||[];
   if(typeof fbHaz!=='undefined'){fbHaz=G.fh||[];fbShots=G.fs||[]}
