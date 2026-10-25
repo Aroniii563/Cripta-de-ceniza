@@ -10272,10 +10272,13 @@ window.__RUN={RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv,ORDER:OR
    Es un aspecto más: el druida de siempre sigue disponible y se elige en la pestaña Skins.
    ========================================================================== */
 ANIMD.druid_v3={"src":"skins/druidv3_anim.png","fw":185,"fh":153,"pie_x":95.7,"pie_y":132.9,"filas":{"reposo":6,"andar":8,"ataque":6,"dano":3,"muerte":8},"fps":{"reposo":6,"andar":10,"ataque":12,"dano":10,"muerte":8},"bucle":{"reposo":true,"andar":true,"ataque":false,"dano":false,"muerte":false},"der":true};
-SKINCAT.push({id:'druid_v3',cls:'druid',name:'Druida remodelado (prueba)',cost:1});
-/* gratis en la versión de prueba */
-var ownsSkin_dv3=ownsSkin;ownsSkin=function(id){return id==='druid_v3'||ownsSkin_dv3(id)};
-SKIN_SRC.druid_v3={atlas:'skins/druidv3_retrato.png',ax:0,aw:210,ah:372,aT:210};
+var _DV3=[["druid_v3", "Druida remodelado (prueba)", [0, 210]], ["druid_v3_02", "Otoño remodelado (prueba)", [210, 210]], ["druid_v3_03", "Escarcha remodelado (prueba)", [420, 210]], ["druid_v3_04", "Marisma remodelado (prueba)", [630, 210]], ["druid_v3_05", "Luna remodelado (prueba)", [840, 210]], ["druid_v3_06", "Flor de cerezo remodelado (prueba)", [1050, 210]], ["druid_v3_07", "Sol remodelado (prueba)", [1260, 210]], ["druid_v3_08", "Espinas remodelado (prueba)", [1470, 210]]];
+_DV3.forEach(function(d,i){
+  var a=JSON.parse(JSON.stringify(ANIMD.druid_v3));a.src=i?'skins/druidv3_0'+(i+1)+'_anim.png':'skins/druidv3_anim.png';ANIMD[d[0]]=a;
+  SKINCAT.push({id:d[0],cls:'druid',name:d[1],cost:1});
+  SKIN_SRC[d[0]]={atlas:'skins/druidv3_retratos.png',ax:d[2][0],aw:d[2][1],ah:372,aT:1680};
+});
+var ownsSkin_dv3=ownsSkin;ownsSkin=function(id){return /^druid_v3/.test(id)||ownsSkin_dv3(id)};
 
 /* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
