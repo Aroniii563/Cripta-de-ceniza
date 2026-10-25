@@ -9869,6 +9869,218 @@ try{
 }catch(e){}
 
 /* ==========================================================================
+   RUNAS (VERSIÓN DE PRUEBA: solo en /online)
+   Ofensivas (activas, 2 huecos) y defensivas (pasivas, 2 huecos). 4 rarezas. Se consiguen al terminar una partida.
+   Solo afectan al J1 en partidas en solitario / cooperativo local (todavía no en el cooperativo online).
+   ========================================================================== */
+(function(){
+var RAR=['Común','Rara','Épica','Legendaria'],RCOL=['#b8b2a0','#5aa9ff','#b36bff','#ffb038'];
+var RUNES={
+  rayo:{o:1,n:'Rayo',ic:'⚡',d:function(r){return 'Cada '+[8,7,6,5][r]+' s cae un rayo sobre '+[1,2,2,3][r]+' enemigo'+([1,2,2,3][r]>1?'s':'')+' cercano'+([1,2,2,3][r]>1?'s':'')+' ('+[200,250,300,350][r]+'% de daño).'+(r>=2?' El rayo salta a otro enemigo.':'')}},
+  brasas:{o:1,n:'Brasas',ic:'🔥',d:function(r){return [10,14,18,22][r]+'% de prender al golpear: '+[40,50,60,80][r]+'% de daño por segundo durante '+(r>=3?5:3)+' s.'+(r>=2?' Los enemigos en llamas reciben un 15% más de daño.':'')}},
+  ejecutor:{o:1,n:'Detonación',ic:'💥',d:function(r){return [12,16,20,28][r]+'% de que un enemigo abatido explote ('+[80,100,130,180][r]+'% de daño, radio '+[1.8,2,2.3,2.8][r]+').'}},
+  chispa:{o:1,n:'Última chispa',ic:'✦',d:function(r){return 'Con menos del 40% de vida: +'+[12,18,25,40][r]+'% de daño'+(r>=2?' y +'+[0,0,10,20][r]+'% de velocidad de ataque':'')+'.'}},
+  barrera:{o:0,n:'Barrera',ic:'🛡',d:function(r){return 'Anula un golpe cada '+[20,16,13,10][r]+' s.'+(r>=2?' Al romperse empuja y daña a los enemigos cercanos.':'')}},
+  espinas:{o:0,n:'Espinas',ic:'✸',d:function(r){return 'Al recibir daño, devuelves '+[100,160,240,350][r]+'% de daño a los enemigos cercanos'+(r>=2?' y los empujas':'')+'.'}},
+  aliento:{o:0,n:'Segundo aliento',ic:'♥',d:function(r){return 'Una vez por partida, un golpe mortal te deja con el '+[30,40,50,70][r]+'% de vida'+(r>=2?' y 2 s de invulnerabilidad':'')+'.'}},
+  piel:{o:0,n:'Piel de piedra',ic:'◆',d:function(r){return '+'+[4,6,8,12][r]+'% de armadura y +'+(r>=2?[0,0,0.4,0.8][r]:0)+' % de regeneración de vida por segundo.'}}
+};
+RUNES.chispa.o=1;
+var ORDER=['rayo','brasas','ejecutor','chispa','barrera','espinas','aliento','piel'];
+var SLOTS={o:2,d:2};
+function R(){var m=meta.runes;if(!m)m=meta.runes={inv:{},eq:{o:[null,null],d:[null,null]},pity:0,n:0};if(!m.inv)m.inv={};if(!m.eq)m.eq={o:[null,null],d:[null,null]};return m}
+function key(id,r){return id+':'+r}
+function parse(k){var a=k.split(':');return {id:a[0],r:+a[1]}}
+function give(id,r){var m=R(),k=key(id,r);m.inv[k]=(m.inv[k]||0)+1;m.n=(m.n||0)+1;saveMeta();return k}
+function rollRarity(mins,boss){
+  var w=[70,22,7,1],sh=Math.min(40,mins*.7+boss*3),i;
+  w[0]-=sh;w[1]+=sh*.6;w[2]+=sh*.32;w[3]+=sh*.08;
+  var s=w[0]+w[1]+w[2]+w[3],x=Math.random()*s;
+  for(i=0;i<4;i++){if(x<w[i])return i;x-=w[i]}return 0;
+}
+function rollRune(mins,boss){var id=ORDER[Math.floor(Math.random()*ORDER.length)];return give(id,rollRarity(mins,boss))}
+function on(){return !(typeof ON!=='undefined'&&ON.on)}
+/* ---------- pestaña ---------- */
+var st=document.createElement('style');
+st.textContent='#pRunas .rsl{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}#pRunas .rbox{width:150px;min-height:92px;border:1px dashed var(--line);background:#0c1415;padding:8px;cursor:pointer;text-align:center;font-size:13px}'+
+ '#pRunas .rbox small{display:block;color:var(--muted)}#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}'+
+ '#pRunas .rcard{border:1px solid var(--line);background:#0c1415;padding:10px;font-size:13px;line-height:1.35}#pRunas .rcard b{font-size:15px}#pRunas .rcard .rb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}'+
+ '#pRunas h3{margin:14px 0 8px;font-weight:400;color:var(--gold)}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
+ '#runHud{position:fixed;left:10px;bottom:10px;display:flex;gap:6px;z-index:30;pointer-events:none}#runHud div{width:34px;height:34px;border:2px solid;background:rgba(10,16,17,.8);display:flex;align-items:center;justify-content:center;font-size:17px;position:relative;overflow:hidden}'+
+ '#runHud i{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.65)}';
+document.head.appendChild(st);
+var sec=document.createElement('section');sec.id='pRunas';sec.hidden=true;
+document.getElementById('pStats').parentNode.insertBefore(sec,document.getElementById('pStats'));
+var mt=document.getElementById('menuTabs'),rb=mt.querySelector('[data-m="rank"]'),tb=document.createElement('button');
+tb.className='mt';tb.type='button';tb.setAttribute('data-m','runas');tb.setAttribute('aria-pressed','false');tb.innerHTML='<i></i>Runas';
+mt.insertBefore(tb,rb);
+function card(k,n,inInv){
+  var p=parse(k),u=RUNES[p.id];
+  return '<div class="rcard" style="border-color:'+RCOL[p.r]+'"><b style="color:'+RCOL[p.r]+'">'+u.ic+' '+u.n+'</b> <small>'+RAR[p.r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(p.r)+'</div>'+
+   (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(n>=3&&p.r<3?'<button class="btn sm" data-fu="'+k+'">Fusionar 3 → '+RAR[p.r+1]+'</button>':'')+'</div>':'')+'</div>';
+}
+function build(){
+  var m=R(),h='<h2>Runas</h2><p class="lead">Versión de prueba. Las runas se consiguen al terminar una partida (más tiempo y jefes = mejor rareza). <b>Ofensivas</b>: se activan solas por tiempo o al golpear. <b>Defensivas</b>: te protegen. Tienes 2 huecos de cada tipo. Con 3 runas iguales puedes fusionarlas en una de rareza superior. De momento solo funcionan en solitario y cooperativo local.</p>';
+  h+='<div class="rsl">';
+  ['o','d'].forEach(function(tp){for(var i=0;i<SLOTS[tp];i++){var k=m.eq[tp][i];h+='<div class="rbox" data-sl="'+tp+i+'" style="'+(k?'border:1px solid '+RCOL[parse(k).r]:'')+'">'+(k?(function(){var p=parse(k),u=RUNES[p.id];return '<b style="color:'+RCOL[p.r]+'">'+u.ic+' '+u.n+'</b><small>'+RAR[p.r]+' · toca para quitar</small>'})():'<small>'+(tp==='o'?'Ofensiva':'Defensiva')+' · vacío</small>')+'</div>'}});
+  h+='</div><div class="rcrow"><button class="btn sm" data-dev="1">+ Runa aleatoria (prueba)</button> <button class="btn sm" data-dev="2">+ 3 runas (prueba)</button> <small style="color:var(--muted)">Runas conseguidas: '+(m.n||0)+' · próxima garantizada en '+Math.max(0,2-(m.pity||0))+' partida(s) sin runa</small></div>';
+  var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return parse(b).r-parse(a).r||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
+  h+='<h3>Colección</h3>'+(ks.length?'<div class="rgrid">'+ks.map(function(k){return card(k,m.inv[k],true)}).join('')+'</div>':'<p style="color:var(--muted)">Aún no tienes runas. Juega una partida de más de 1:30.</p>');
+  sec.innerHTML=h;
+}
+sec.addEventListener('click',function(e){
+  var b=e.target.closest('[data-eq],[data-fu],[data-sl],[data-dev]');if(!b)return;var m=R();
+  if(b.dataset.dev){var c=b.dataset.dev==='2'?3:1;for(var i=0;i<c;i++)rollRune(Math.random()*15,Math.random()<.2?1:0);build();return}
+  if(b.dataset.sl){var tp=b.dataset.sl[0],ix=+b.dataset.sl[1],k=m.eq[tp][ix];if(k){m.inv[k]=(m.inv[k]||0)+1;m.eq[tp][ix]=null}saveMeta();build();return}
+  if(b.dataset.fu){var k2=b.dataset.fu,p=parse(k2);if((m.inv[k2]||0)<3)return;m.inv[k2]-=3;give(p.id,p.r+1);m.n-=1;saveMeta();toast('Fusión: '+RUNES[p.id].n+' '+RAR[p.r+1]);build();return}
+  if(b.dataset.eq){var k3=b.dataset.eq,p3=parse(k3),tp3=RUNES[p3.id].o?'o':'d',sl=m.eq[tp3];if(!(m.inv[k3]>0))return;
+    /* una misma runa no puede equiparse dos veces */
+    var other=sl.map(function(x){return x&&parse(x).id});
+    var ix3=sl.indexOf(null);if(ix3<0)ix3=0;
+    if(other.indexOf(p3.id)>=0&&other.indexOf(p3.id)!==ix3){toast('Ya llevas esa runa');return}
+    if(sl[ix3])m.inv[sl[ix3]]=(m.inv[sl[ix3]]||0)+1;
+    m.inv[k3]--;sl[ix3]=k3;saveMeta();build()}
+});
+var showTab_run=showTab;
+showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runas')build()};
+
+/* ---------- partida ---------- */
+var RUN={a:[],cd:{},rev:false,low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null};
+function lv(id){for(var i=0;i<RUN.a.length;i++)if(RUN.a[i].id===id)return RUN.a[i].r;return -1}
+function inner(f){RUN.inner++;try{f()}finally{RUN.inner--}}
+function dmg(e,m,kx,ky,kb){if(e.dead)return;var r=lv('brasas'),mm=(e.burn&&r>=2)?1.15:1;inner(function(){hitEnemy(e,{d:P.dmg*m*mm,crit:false},kx||0,ky||0,kb||0,true)})}
+var startRun_run=startRun;
+startRun=function(){
+  var r=startRun_run.apply(this,arguments);
+  RUN.a=[];RUN.cd={};RUN.rev=false;RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;
+  if(on()&&PL&&PL[0]){
+    var m=R();RUN.pl=PL[0];
+    ['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k&&RUNES[parse(k).id])RUN.a.push(parse(k))})});
+    var q=PL[0],pk=lv('piel');
+    if(pk>=0){q.armor=Math.min(.8,q.armor+[.04,.06,.08,.12][pk]);if(pk>=2)q.regen=(q.regen||0)+q.maxHp*[0,0,.004,.008][pk]}
+    RUN.cd.rayo=3;RUN.cd.barrera=0;
+  }
+  hud();
+  return r;
+};
+function hud(){
+  if(!RUN.hud){RUN.hud=document.createElement('div');RUN.hud.id='runHud';document.body.appendChild(RUN.hud)}
+  RUN.hud.innerHTML=RUN.a.map(function(a){var u=RUNES[a.id];return '<div style="border-color:'+RCOL[a.r]+';color:'+RCOL[a.r]+'" title="'+u.n+'" data-id="'+a.id+'">'+u.ic+'<i style="height:0"></i></div>'}).join('');
+  RUN.hud.style.display=RUN.a.length?'flex':'none';
+}
+var playerStep_run=playerStep;
+playerStep=function(dt){
+  playerStep_run.apply(this,arguments);
+  if(!RUN.a.length||P!==RUN.pl||state!=='play'||P.dead)return;
+  var i,e,r;
+  for(var k in RUN.cd)if(RUN.cd[k]>0)RUN.cd[k]-=dt;
+  /* Rayo */
+  r=lv('rayo');
+  if(r>=0&&RUN.cd.rayo<=0){
+    var n=[1,2,2,3][r],cand=enemies.filter(function(z){return !z.dead&&Math.hypot(z.x-P.x,z.y-P.y)<9}).sort(function(a,b){return Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y)}).slice(0,n);
+    if(cand.length){
+      RUN.cd.rayo=[8,7,6,5][r];
+      cand.forEach(function(z){
+        var zx=z.x,zy=z.y;S('crit',zx,zy,0,1);ring(zx,zy,1.1,.3,'#bfe6ff');burst(zx,zy,'#bfe6ff',12);dmg(z,[2,2.5,3,3.5][r],0,0,0);
+        if(r>=2){var o=null,bd=4;enemies.forEach(function(q){if(q!==z&&!q.dead){var d=Math.hypot(q.x-zx,q.y-zy);if(d<bd){bd=d;o=q}}});if(o){ring(o.x,o.y,.8,.25,'#bfe6ff');dmg(o,[2,2.5,3,3.5][r]*.6)}}
+      });
+    }else RUN.cd.rayo=.5;
+  }
+  /* Brasas: daño en el tiempo */
+  RUN.burnT+=dt;
+  if(RUN.burnT>=.5){
+    var step=RUN.burnT;RUN.burnT=0;
+    for(i=0;i<enemies.length;i++){e=enemies[i];if(e.burn&&!e.dead){e.burn.t-=step;if(e.burn.t<=0){e.burn=null;continue}
+      var d0=e.burn.dps*step;burst(e.x,e.y,'#ff8a3d',2);inner(function(){hitEnemy(e,{d:d0,crit:false},0,0,0,true)})}}
+  }
+  /* Última chispa */
+  r=lv('chispa');
+  if(r>=0){
+    var low=P.hp<P.maxHp*.4;
+    if(low&&!RUN.low){RUN.low=true;P.dmg*=1+[.12,.18,.25,.4][r];if(r>=2)P.rate*=1+[0,0,.1,.2][r];toast('Última chispa')}
+    else if(!low&&RUN.low){RUN.low=false;P.dmg/=1+[.12,.18,.25,.4][r];if(r>=2)P.rate/=1+[0,0,.1,.2][r]}
+  }
+  /* HUD */
+  RUN.hudT-=dt;
+  if(RUN.hudT<=0&&RUN.hud){
+    RUN.hudT=.2;
+    var tot={rayo:[8,7,6,5],barrera:[20,16,13,10]};
+    Array.prototype.forEach.call(RUN.hud.children,function(c){var id=c.dataset.id,a=tot[id],rr=lv(id);if(a&&rr>=0){var f=Math.max(0,Math.min(1,(RUN.cd[id]||0)/a[rr]));c.firstChild.nextSibling.style.height=(f*100)+'%'}})
+  }
+};
+var hitEnemy_run=hitEnemy;
+hitEnemy=function(e,r,kx,ky,kb,quiet){
+  hitEnemy_run.apply(this,arguments);
+  if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
+  var b=lv('brasas');
+  if(b>=0&&!e.dead&&Math.random()<[.10,.14,.18,.22][b]){
+    if(!e.burn)burst(e.x,e.y,'#ff8a3d',6);
+    e.burn={t:b>=3?5:3,dps:P.dmg*[.4,.5,.6,.8][b]};
+  }
+};
+var killEnemy_run=killEnemy;
+killEnemy=function(e){
+  killEnemy_run.apply(this,arguments);
+  if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
+  var x=lv('ejecutor');
+  if(x>=0&&Math.random()<[.12,.16,.20,.28][x]){
+    var rad=[1.8,2,2.3,2.8][x],ex=e.x,ey=e.y;
+    ring(ex,ey,rad,.35,'#ffb36b');burst(ex,ey,'#ffb36b',14);S('hit',ex,ey,0,.8);
+    for(var i=0;i<enemies.length;i++){var q=enemies[i];if(q.dead||q===e)continue;var dx=q.x-ex,dy=q.y-ey,d=Math.hypot(dx,dy);
+      if(d<rad+q.r){dmg(q,[.8,1,1.3,1.8][x],dx/(d||1),dy/(d||1),3)}}
+  }
+};
+var hurtPlayer_run=hurtPlayer;
+hurtPlayer=function(d,who){
+  var q=who||P;
+  if(!RUN.a.length||q!==RUN.pl||q.dead||q.inv>0||state!=='play')return hurtPlayer_run.apply(this,arguments);
+  var b=lv('barrera');
+  if(b>=0&&RUN.cd.barrera<=0){
+    RUN.cd.barrera=[20,16,13,10][b];q.inv=.5;
+    ring(q.x,q.y,1.6,.4,'#7fd0ff');burst(q.x,q.y,'#7fd0ff',12);addText(q.x,q.y,'Bloqueado','#7fd0ff',15);S('hit',q.x,q.y,0,1);
+    if(b>=2){var sv=P;P=q;enemies.forEach(function(z){if(z.dead)return;var dx=z.x-q.x,dy=z.y-q.y,dd=Math.hypot(dx,dy);if(dd<3){dmg(z,[0,0,1.5,2.5][b],dx/(dd||1),dy/(dd||1),6)}});P=sv}
+    return;
+  }
+  var a=lv('aliento');
+  if(a>=0&&!RUN.rev){
+    var dd2=d*(1-q.armor);
+    if(q.hp-dd2<=0){RUN.rev=true;q.hp=q.maxHp*[.3,.4,.5,.7][a];q.inv=a>=2?2:.8;ring(q.x,q.y,2.4,.6,'#ff9ab0');burst(q.x,q.y,'#ff9ab0',20);toast('Segundo aliento');return}
+  }
+  var h0=q.hp;
+  hurtPlayer_run.apply(this,arguments);
+  var s=lv('espinas');
+  if(s>=0&&q.hp<h0){
+    var sv2=P;P=q;ring(q.x,q.y,2.8,.3,'#d97b5a');
+    enemies.forEach(function(z){if(z.dead)return;var dx=z.x-q.x,dy=z.y-q.y,dd=Math.hypot(dx,dy);if(dd<2.8+z.r)dmg(z,[1,1.6,2.4,3.5][s],dx/(dd||1),dy/(dd||1),s>=2?4:0)});
+    P=sv2;
+  }
+};
+/* ---------- botín al terminar ---------- */
+var endRun_run=endRun;
+endRun=function(why){
+  var awarded=P&&P.awarded,r=endRun_run.apply(this,arguments);
+  if(!awarded&&on()&&!coop0()){
+    var m=R(),mins=t/60;
+    if(t>=90){
+      var ch=Math.min(.9,.3+mins*.04);
+      if(m.pity>=2||Math.random()<ch){m.pity=0;var k=rollRune(mins,bossKills||0);RUN.drop=k}
+      else m.pity=(m.pity||0)+1;
+      saveMeta();
+    }
+  }
+  return r;
+};
+function coop0(){return typeof PL!=='undefined'&&PL.length>1}
+function note(){
+  if(!RUN.drop)return;var p=parse(RUN.drop),u=RUNES[p.id],el=$('deadSub');
+  if(el)el.textContent+=' · Runa obtenida: '+u.ic+' '+u.n+' ('+RAR[p.r]+')';RUN.drop=null;
+}
+var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return r};
+var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
+window.__RUN={RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv};
+})();
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
