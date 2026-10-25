@@ -10280,6 +10280,15 @@ _DV3.forEach(function(d,i){
 });
 var ownsSkin_dv3=ownsSkin;ownsSkin=function(id){return /^druid_v3/.test(id)||ownsSkin_dv3(id)};
 
+/* MONJA REMODELADA + recolores (aspectos de prueba; los de siempre se mantienen) */
+var _MV3=[["monja_v3", "Monja remodelada (prueba)", [0, 186]], ["monja_v3_02", "Penitente carmesí remodelada (prueba)", [186, 186]], ["monja_v3_03", "Abadesa del mar remodelada (prueba)", [372, 186]], ["monja_v3_04", "Hermana del alba remodelada (prueba)", [558, 186]], ["monja_v3_05", "Monja de ceniza remodelada (prueba)", [744, 186]], ["monja_v3_06", "Orden esmeralda remodelada (prueba)", [930, 186]], ["monja_v3_07", "Sor sombría remodelada (prueba)", [1116, 186]], ["monja_v3_08", "Hermana de hielo remodelada (prueba)", [1302, 186]]];
+_MV3.forEach(function(d,i){
+  var a={"src":i?'skins/monjav3_0'+(i+1)+'_anim.png':'skins/monjav3_anim.png',"fw":290,"fh":185,"pie_x":102.1,"pie_y":148.2,"filas":{"reposo":6,"andar":8,"ataque":6,"dano":3,"muerte":8},"fps":{"reposo":6,"andar":10,"ataque":12,"dano":10,"muerte":8},"bucle":{"reposo":true,"andar":true,"ataque":false,"dano":false,"muerte":false},"der":true};
+  ANIMD[d[0]]=a;SKINCAT.push({id:d[0],cls:'monja',name:d[1],cost:1});
+  SKIN_SRC[d[0]]={atlas:'skins/monjav3_retratos.png',ax:d[2][0],aw:d[2][1],ah:378,aT:1488};
+});
+var ownsSkin_mv3=ownsSkin;ownsSkin=function(id){return /^monja_v3/.test(id)||ownsSkin_mv3(id)};
+
 /* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
