@@ -9878,8 +9878,8 @@ var RAR=['Común','Rara','Épica','Legendaria'],RCOL=['#b8b2a0','#5aa9ff','#b36b
 function pc(a){return a.map(function(x){return Math.round(x*100)})}
 var V={ /* valores por rareza [común, rara, épica, legendaria] */
  sowilo:{cd:[8,7,6,5],n:[1,2,2,3],m:[2,2.5,3,3.5]},
- thurisaz:{cd:[3,3,2.7,2.4],n:[3,3,4,5],m:[1.5,1.8,2.1,2.6]},
- inguz:{k:[15,13,11,9],m:[2,2.4,2.8,3.5],rad:[4,4.5,5,6]},
+ thurisaz:{cd:[3,3,2.7,2.4],n:[3,3,4,4],m:[1.5,1.8,2.1,2.6]},
+ inguz:{k:[15,13,11,9],m:[2,2.4,2.8,3.5],rad:[9,9,9,9]},
  jera:{cd:[10,9,8,7],rad:[3,3.5,4,5],dps:[.5,.6,.75,1],dur:[4,4,5,6]},
  teiwaz:{ch:[.12,.16,.20,.28],m:[.8,1,1.3,1.8],rad:[1.8,2,2.3,2.8]},
  uruz:{dmg:[.06,.09,.12,.18],crit:[0,0,.05,.10]},
@@ -10012,7 +10012,7 @@ showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runa
 
 /* ---------- partida ---------- */
 var CD={sowilo:V.sowilo.cd,hagalaz:V.hagalaz.cd,thurisaz:V.thurisaz.cd,jera:V.jera.cd,laguz:V.laguz.cd};
-var RUN={a:[],cd:{},rev:false,low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,pool:0,kc:0,kc2:0,hits:0,paths:[],q:[],echo:false,snowT:0,snowR:0};
+var RUN={a:[],cd:{},rev:false,low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,pool:0,kc:0,kc2:0,hits:0,paths:[],fx:[],q:[],echo:false,snowT:0,snowR:0};
 function lv(id){for(var i=0;i<RUN.a.length;i++)if(RUN.a[i].id===id)return RUN.a[i].r;return -1}
 function inner(f){RUN.inner++;try{f()}finally{RUN.inner--}}
 function dmg(e,m,kx,ky,kb){if(e.dead)return;inner(function(){hitEnemy(e,{d:P.dmg*m,crit:false},kx||0,ky||0,kb||0,true)})}
@@ -10025,7 +10025,7 @@ function mimo(f){var r=lv('ansuz');if(r>=0&&!RUN.echo&&Math.random()<V.ansuz.ch[
 var startRun_run=startRun;
 startRun=function(){
   var r=startRun_run.apply(this,arguments);
-  RUN.a=[];RUN.cd={};RUN.rev=false;RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.pool=0;RUN.kc=0;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;
+  RUN.a=[];RUN.cd={};RUN.rev=false;RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.pool=0;RUN.kc=0;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;
   if(on()&&PL&&PL[0]){
     var m=R();RUN.pl=PL[0];
     ['o','d'].forEach(function(tp){m.eq[tp].slice(0,SLOTS[tp]).forEach(function(k){if(k&&RUNES[parse(k).id])RUN.a.push(parse(k))})});
@@ -10061,13 +10061,18 @@ function doGranizo(r){
   for(var i=0;i<v.n[r]&&pool.length;i++){var z=pool.splice(Math.floor(Math.random()*pool.length),1)[0];strike(z,v.m[r],'#d6f2ff')}
   return true;
 }
+/* animaciones (sprites en runas/) */
+var AIMG={};['cupula','espinas_abajo_derecha','espinas_arriba_derecha','serpiente_fuego'].forEach(function(n){var i=new Image();i.src='runas/'+n+'.png';AIMG[n]=i});
+var TH_REACH=[.48,1.61,2.27,3.02,4.02,4.27,4.33,4.33,4.33,4.3,4.17,4.02];
+var TH_DIRS=[[1,0,'espinas_abajo_derecha',0],[0,-1,'espinas_arriba_derecha',0],[0,1,'espinas_abajo_derecha',1],[-1,0,'espinas_arriba_derecha',1]];
 function doEspinas(r){
-  var v=V.thurisaz,base=Math.random()*6.2832;
-  for(var k=0;k<v.n[r];k++)RUN.paths.push({x:P.x,y:P.y,a:base+k*6.2832/v.n[r]+(Math.random()-.5)*.5,i:0,t:0,hit:[],m:v.m[r]});
+  var v=V.thurisaz,d=TH_DIRS.slice().sort(function(){return Math.random()-.5}).slice(0,Math.min(4,v.n[r]));
+  d.forEach(function(q){RUN.fx.push({k:'th',x:P.x,y:P.y,age:0,vx:q[0],vy:q[1],spr:q[2],flip:q[3],hit:[],m:v.m[r]})});
+  S('hit',P.x,P.y,0,.7);
   return true;
 }
 function doNucleo(r,q){
-  var v=V.inguz,sv=P;P=q;ring(q.x,q.y,v.rad[r],.5,'#ffe08a');ring(q.x,q.y,v.rad[r]*.6,.35,'#fff3c0');burst(q.x,q.y,'#ffe08a',16);S('hit',q.x,q.y,0,1);
+  var v=V.inguz,sv=P;P=q;RUN.fx.push({k:'dome',x:q.x,y:q.y,age:0,R:v.rad[r]});S('hit',q.x,q.y,0,1);
   near(q,v.rad[r]).forEach(function(z){var dx=z.x-q.x,dy=z.y-q.y,dd=Math.hypot(dx,dy);dmg(z,v.m[r],dx/(dd||1),dy/(dd||1),5)});
   P=sv;
 }
@@ -10075,12 +10080,38 @@ function doConstrictor(r){
   var v=V.jera,c=near(P,9);if(!c.length)return false;
   var ce=c[Math.floor(Math.random()*c.length)],g=enemies.filter(function(z){return !z.dead&&Math.hypot(z.x-ce.x,z.y-ce.y)<v.rad[r]+z.r}),cx=0,cy=0;
   g.forEach(function(z){cx+=z.x;cy+=z.y});cx/=g.length;cy/=g.length;
-  var R0=v.rad[r];
-  for(var i=0;i<14;i++)(function(i){RUN.q.push({t:i*.04,f:function(){var a=i/14*6.2832*1.5;burst(cx+Math.cos(a)*R0*.8,cy+Math.sin(a)*R0*.8,'#ff8a3d',5);ring(cx+Math.cos(a)*R0*.8,cy+Math.sin(a)*R0*.8,.4,.25,'#ffd25a')},raw:1})})(i);
-  ring(cx,cy,R0,.7,'#ff8a3d');S('hit',cx,cy,0,1);
-  g.forEach(function(z){ignite(z,P.dmg*v.dps[r],v.dur[r])});
+  RUN.fx.push({k:'ser',x:cx,y:cy,age:0,R:v.rad[r]});
+  var dps=P.dmg*v.dps[r],dur=v.dur[r];
+  RUN.q.push({t:.5,raw:1,f:function(){S('hit',cx,cy,0,1);g.forEach(function(z){ignite(z,dps,dur)})}});
   return true;
 }
+function drawFx(f){
+  var p=sp(f.x,f.y),im,k,fr;
+  if(f.k==='dome'){
+    im=AIMG.cupula;if(!im.complete||!im.naturalWidth)return;
+    k=f.R*45.25/62;var a=f.age,row,col;
+    if(a<8/14){row=0;col=Math.floor(a*14)}else if(a<8/14+8/12){row=1;col=Math.floor((a-8/14)*12)%8}else{row=2;col=Math.min(4,Math.floor((a-8/14-8/12)*12))}
+    ctx.globalAlpha=.6;ctx.drawImage(im,col*320,row*256,320,256,Math.round(p.x-160*k/2),Math.round(p.y-184*k/2),320*k/2,256*k/2);ctx.globalAlpha=1;
+  }else if(f.k==='th'){
+    im=AIMG[f.spr];if(!im.complete||!im.naturalWidth)return;
+    fr=Math.min(11,Math.floor(f.age*14));
+    ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));if(f.flip)ctx.scale(-1,1);
+    ctx.drawImage(im,fr*360,0,360,240,-(f.spr==='espinas_abajo_derecha'?32:32)/2,-(f.spr==='espinas_abajo_derecha'?72:196)/2,180,120);
+    ctx.restore();
+  }else if(f.k==='ser'){
+    im=AIMG.serpiente_fuego;if(!im.complete||!im.naturalWidth)return;
+    k=f.R*45.25/38.7;var a2=f.age,row2,c2;
+    if(a2<.5){row2=0;c2=Math.floor(a2*8)%8}else if(a2<1.1){row2=1;c2=Math.min(5,Math.floor((a2-.5)*10))}else{row2=2;c2=Math.min(7,Math.floor((a2-1.1)*10))}
+    ctx.drawImage(im,c2*300,row2*230,300,230,Math.round(p.x-148.1*k/2),Math.round(p.y-133.2*k/2),300*k/2,230*k/2);
+  }
+}
+setTimeout(function(){
+  var prev=window.EXTRADRAW;
+  window.EXTRADRAW=function(list,seen){
+    if(prev)prev(list,seen);
+    RUN.fx.forEach(function(f){list.push({d:f.x+f.y+(f.k==='dome'?-.5:0),xd:function(){drawFx(f)}})});
+  };
+},0);
 var playerStep_run=playerStep;
 playerStep=function(dt){
   playerStep_run.apply(this,arguments);
@@ -10097,17 +10128,20 @@ playerStep=function(dt){
   if(r>=0&&RUN.cd.thurisaz<=0){RUN.cd.thurisaz=V.thurisaz.cd[r];doEspinas(r);mimo(bind(doEspinas,r))}
   r=lv('jera');
   if(r>=0&&RUN.cd.jera<=0){if(doConstrictor(r)){RUN.cd.jera=V.jera.cd[r];mimo(bind(doConstrictor,r))}else RUN.cd.jera=.5}
-  /* caminos de espinas */
-  for(i=RUN.paths.length-1;i>=0;i--){
-    var p=RUN.paths[i],ca=Math.cos(p.a),sa=Math.sin(p.a);p.t+=dt;
-    while(p.t>=.05&&p.i<10){
-      p.t-=.05;p.i++;var px=p.x+ca*p.i*.7,py=p.y+sa*p.i*.7;
-      if(solid(px,py)){p.i=99;break}
-      burst(px,py,'#8fbf4a',3);ring(px,py,.45,.3,'#6f9a3a');
-      for(k=0;k<enemies.length;k++){var z=enemies[k];if(z.dead||p.hit.indexOf(z)>=0)continue;
-        if(Math.hypot(z.x-px,z.y-py)<.9+z.r){p.hit.push(z);dmg(z,p.m,ca,sa,2)}}
-    }
-    if(p.i>=10)RUN.paths.splice(i,1);
+  /* animaciones y daño de las espinas */
+  for(i=RUN.fx.length-1;i>=0;i--){
+    var f=RUN.fx[i];f.age+=dt;
+    if(f.k==='th'){
+      var fr0=Math.floor(f.age*14);
+      if(fr0>=12){RUN.fx.splice(i,1);continue}
+      if(fr0<=9){
+        var reach=TH_REACH[fr0];
+        for(k=0;k<enemies.length;k++){var z=enemies[k];if(z.dead||f.hit.indexOf(z)>=0)continue;
+          var ddx=z.x-f.x,ddy=z.y-f.y,tt=ddx*f.vx+ddy*f.vy,pp=Math.abs(ddx*f.vy-ddy*f.vx);
+          if(tt>-.3&&tt<reach+z.r&&pp<.9+z.r){f.hit.push(z);dmg(z,f.m,f.vx,f.vy,2)}}
+      }
+    }else if(f.k==='dome'){if(f.age>=8/14+8/12+5/12)RUN.fx.splice(i,1)}
+    else if(f.k==='ser'){if(f.age>=1.1+.8)RUN.fx.splice(i,1)}
   }
   /* quemaduras */
   RUN.burnT+=dt;
