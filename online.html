@@ -6875,6 +6875,7 @@ function onHostMsg(pid,m){
     onLobbyBroadcast();onList()}
   else if(m.t==='in'){var p=PL.find(function(q){return q.net===pid});if(p){p.inp=m;if(m.vw)p.vw=m.vw}}
   else if(m.t==='pick'){var pp=PL.find(function(q){return q.net===pid});if(pp)onApply(pp,m.i,m.sp)}
+  else if(m.t==='pq'){NET.send(pid,{t:'pr',ts:m.ts})}
   else if(m.t==='chop'){var pc=PL.find(function(q){return q.net===pid});if(pc&&window.COFOPEN)window.COFOPEN(pc,m.id)}
 }
 function onJoin(){
@@ -6895,6 +6896,7 @@ function onGuestMsg(pid,m){
   if(m.t==='you'){ON.me=m.i}
   else if(m.t==='full'){onMsg('La sala está llena o ya empezó.');onStop()}
   else if(m.t==='lob'){ON.map=m.map||0;ON.mem=m.m.map(function(x,i){return {id:i,cls:CLASSES[x.cls]?x.cls:'barb',rdy:x.rdy,nick:x.nick||''}});onList()}
+  else if(m.t==='pr'){onPingIn(m.ts)}
   else if(m.t==='map'){ON.mapA=m}
   else if(m.t==='start'){m.map2=m.map;m.map=m.mi;onBegin(m.cls,m.me,false,m,m.map2)}
   else if(!ON.on&&/^(s|s2|s3|v|lv|st)$/.test(m.t)){}
@@ -6976,6 +6978,30 @@ function onTeamUi(){
   var d=$('onTeam');if(!d){d=document.createElement('div');d.id='onTeam';d.style.cssText='position:absolute;top:120px;right:16px;width:190px;display:flex;flex-direction:column;gap:5px;z-index:4;pointer-events:none;font:12px Spectral,Georgia,serif;color:#e8e1d0';$('hud').appendChild(d)}
   d.hidden=false;
 }
+/* indicador de conexión del invitado: ping (ida y vuelta al anfitrión) y tipo de ruta (directa o a través de un servidor de relevo) */
+function onPingIn(ts){
+  var rtt=Math.round(performance.now()-ts);
+  ON.pgA=ON.pgA===undefined?rtt:Math.round(ON.pgA*.7+rtt*.3);ON.pgMax=Math.max(ON.pgMax||0,rtt);ON.pgN=(ON.pgN||0)+1;
+  onPingUi();
+}
+function onPingUi(){
+  var d=$('onPing');
+  if(!d){d=document.createElement('div');d.id='onPing';d.style.cssText='position:fixed;left:10px;bottom:10px;z-index:60;background:rgba(10,16,17,.7);border:1px solid #2a3a3d;border-radius:6px;padding:3px 8px;font:12px system-ui,sans-serif;color:#9aa8a6;pointer-events:none';document.body.appendChild(d)}
+  var c=ON.pgA<80?'#6cc08a':ON.pgA<160?'#d3a94a':'#e0605a';
+  d.innerHTML='Ping <b style="color:'+c+'">'+(ON.pgA===undefined?'…':ON.pgA)+' ms</b> · '+(ON.rt||'?');d.hidden=!(ON.on&&!ON.host);
+}
+function onPingTick(){
+  if(!ON.on||ON.host){var d=$('onPing');if(d)d.hidden=true;return}
+  try{NET.send(NET.hostId,{t:'pq',ts:performance.now()})}catch(e){}
+  ON.pgT=(ON.pgT||0)+1;
+  if(ON.pgT%5===1){
+    try{var p=NET.peers[NET.hostId];p.pc.getStats().then(function(st){var sel=null;st.forEach(function(r){if(r.type==='transport'&&r.selectedCandidatePairId)sel=st.get(r.selectedCandidatePairId)});
+      if(!sel)st.forEach(function(r){if(r.type==='candidate-pair'&&r.nominated&&r.state==='succeeded')sel=r});
+      if(sel){var lc=st.get(sel.localCandidateId),rc=st.get(sel.remoteCandidateId),ty=[lc&&lc.candidateType,rc&&rc.candidateType];
+        ON.rt=(ty.indexOf('relay')>=0)?'relevo':'directa';ON.rtD=ty.join('/')}}).catch(function(){})}catch(e){}
+  }
+}
+setInterval(onPingTick,2000);
 function onTeamHud(){
   var d=$('onTeam');if(!d||!ON.on)return;
   var h='';PL.forEach(function(p,i){if(i===ON.me)return;
