@@ -6988,10 +6988,13 @@ function onPingUi(){
   var d=$('onPing');
   if(!d){d=document.createElement('div');d.id='onPing';d.style.cssText='position:fixed;left:10px;bottom:10px;z-index:60;background:rgba(10,16,17,.7);border:1px solid #2a3a3d;border-radius:6px;padding:3px 8px;font:12px system-ui,sans-serif;color:#9aa8a6;pointer-events:none';document.body.appendChild(d)}
   var c=ON.pgA<80?'#6cc08a':ON.pgA<160?'#d3a94a':'#e0605a';
-  d.innerHTML='Ping <b style="color:'+c+'">'+(ON.pgA===undefined?'…':ON.pgA)+' ms</b> · '+(ON.rt||'?');d.hidden=!(ON.on&&!ON.host);
+  var fc=ON.fps>=50?'#6cc08a':ON.fps>=30?'#d3a94a':'#e0605a';
+  d.innerHTML=(ON.host?'':'Ping <b style="color:'+c+'">'+(ON.pgA===undefined?'…':ON.pgA)+' ms</b> · '+(ON.rt||'?')+' · ')+'<b style="color:'+fc+'">'+(ON.fps||'…')+'</b> fps'+(ON.fpsMin?' (mín. '+ON.fpsMin+')':'');d.hidden=!ON.on;
 }
+/* FPS del propio dispositivo: sirve para distinguir un problema de red de uno de rendimiento */
+(function(){var n=0,t0=performance.now(),mn=999;function f(){n++;var t1=performance.now();if(t1-t0>=1000){ON.fps=Math.round(n*1000/(t1-t0));if(ON.on&&ON.fps<mn)mn=ON.fps;if(!ON.on)mn=999;ON.fpsMin=mn<999?mn:0;n=0;t0=t1;if(ON.on)onPingUi()}requestAnimationFrame(f)}requestAnimationFrame(f)})();
 function onPingTick(){
-  if(!ON.on||ON.host){var d=$('onPing');if(d)d.hidden=true;return}
+  if(!ON.on||ON.host){var d=$('onPing');if(d)d.hidden=!ON.on;return}
   try{NET.send(NET.hostId,{t:'pq',ts:performance.now()})}catch(e){}
   ON.pgT=(ON.pgT||0)+1;
   if(ON.pgT%5===1){
