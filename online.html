@@ -10038,7 +10038,7 @@ showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runa
 
 /* ---------- partida ---------- */
 var CD={hagalaz:V.hagalaz.cd,gebo:V.gebo.cd,uruz:V.uruz.cd,thurisaz:V.thurisaz.cd,jera:V.jera.cd,teiwaz:V.teiwaz.cd,laguz:V.laguz.cd,eihwaz:V.eihwaz.cd,berkano:V.berkano.cd};
-var RUN={a:[],cd:{},low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,kc2:0,hits:0,paths:[],fx:[],q:[],echo:false,snowT:0,snowR:0,ac:0,ovl:false,vg:false,sacB:0,scB:0,scT:0,cp:false,trail:[],trT:0,act:{id:null,t:-9}};
+var RUN={a:[],cd:{},low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,kc2:0,hits:0,paths:[],fx:[],q:[],echo:false,snowT:0,snowR:0,ac:0,ovl:false,vg:false,sacB:0,scB:0,scT:0,cp:false,trail:[],trT:0,pet:null,act:{id:null,t:-9}};
 function lv(id){for(var i=0;i<RUN.a.length;i++)if(RUN.a[i].id===id)return RUN.a[i].r;return -1}
 function inner(f){RUN.inner++;try{f()}finally{RUN.inner--}}
 function bon(){return P===RUN.pl?(RUN.sacB||0)+(RUN.scB||0):0}
@@ -10062,7 +10062,7 @@ function mimo(f){var r=lv('ansuz');if(r>=0&&!RUN.echo&&Math.random()<V.ansuz.ch[
 var startRun_run=startRun;
 startRun=function(){
   var r=startRun_run.apply(this,arguments);
-  RUN.a=[];RUN.cd={};RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;RUN.ac=0;RUN.ovl=false;RUN.vg=false;RUN.sacB=0;RUN.scB=0;RUN.scT=0;RUN.cp=false;RUN.trail=[];RUN.trT=0;RUN.act={id:null,t:-9};
+  RUN.a=[];RUN.cd={};RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;RUN.ac=0;RUN.ovl=false;RUN.vg=false;RUN.sacB=0;RUN.scB=0;RUN.scT=0;RUN.cp=false;RUN.trail=[];RUN.trT=0;RUN.pet=null;RUN.act={id:null,t:-9};
   if(on()&&PL&&PL[0]){
     var m=R();RUN.pl=PL[0];
     ['o','d'].forEach(function(tp){m.eq[tp].slice(0,SLOTS[tp]).forEach(function(k){if(k&&RUNES[parse(k).id])RUN.a.push(parse(k))})});
@@ -10175,9 +10175,9 @@ function doConstrictor(r){
   var em=mkem('jera');
   var ce=c[Math.floor(Math.random()*c.length)],g=enemies.filter(function(z){return !z.dead&&Math.hypot(z.x-ce.x,z.y-ce.y)<v.rad[r]+z.r}),cx=0,cy=0;
   g.forEach(function(z){cx+=z.x;cy+=z.y});cx/=g.length;cy/=g.length;
-  RUN.fx.push({k:'ser',x:cx,y:cy,age:0,R:v.rad[r]});
+  if(!RUN.pet)RUN.pet={x:P.x,y:P.y,mode:'idle',t:0,al:1,R:0};RUN.pet.mode='atk';RUN.pet.t=0;RUN.pet.x=cx;RUN.pet.y=cy;RUN.pet.R=v.rad[r];RUN.pet.al=1;
   var dps=P.dmg*v.dps[r]*em,dur=v.dur[r];
-  RUN.q.push({t:.5,raw:1,f:function(){S('hit',cx,cy,0,1);g.forEach(function(z){ignite(z,dps,dur)})}});
+  RUN.q.push({t:.3,raw:1,f:function(){S('hit',cx,cy,0,1);g.forEach(function(z){ignite(z,dps,dur)})}});
   return true;
 }
 function drawFx(f){
@@ -10211,6 +10211,14 @@ function drawFx(f){
     im=AIMG.onda;if(!im.complete||!im.naturalWidth)return;
     var sc2=f.R*45.25/150;
     ctx.drawImage(im,Math.min(13,Math.floor(f.age*16))*320,0,320,176,Math.round(p.x-160*sc2),Math.round(p.y-88*sc2),320*sc2,176*sc2);
+  }else if(f.k==='pet'){
+    im=AIMG.serpiente_fuego;if(!im.complete||!im.naturalWidth)return;
+    var pt=f.pt,sc3,rw3,cw3,a4=pt.t;
+    if(pt.mode==='gone')return;
+    if(pt.mode==='atk'){sc3=pt.R*.32;if(a4<.6){rw3=1;cw3=Math.min(5,Math.floor(a4*10))}else{rw3=2;cw3=Math.min(7,Math.floor((a4-.6)*10))}}
+    else{sc3=.5;rw3=0;cw3=Math.floor(a4*14)%8}
+    ctx.globalAlpha=pt.mode==='idle'?pt.al:1;
+    ctx.drawImage(im,cw3*300,rw3*230,300,230,Math.round(p.x-148.1*sc3),Math.round(p.y-133.2*sc3),300*sc3,230*sc3);ctx.globalAlpha=1;
   }else if(f.k==='ser'){
     im=AIMG.serpiente_fuego;if(!im.complete||!im.naturalWidth)return;
     k=f.R*45.25/38.7;var a2=f.age,row2,c2;
@@ -10222,6 +10230,7 @@ setTimeout(function(){
   var prev=window.EXTRADRAW;
   window.EXTRADRAW=function(list,seen){
     if(prev)prev(list,seen);
+    if(RUN.pet&&RUN.pl&&state==='play'&&lv('jera')>=0)list.push({d:RUN.pet.x+RUN.pet.y+(RUN.pet.mode==='atk'?-.3:0),xd:function(){drawFx({k:'pet',x:RUN.pet.x,y:RUN.pet.y,pt:RUN.pet})}});
     RUN.fx.forEach(function(f){var fx0=f.k==='zap'?f.pts[0]:f;list.push({d:(f.k==='vx'||f.k==='on')?-1e3:fx0.x+fx0.y+(f.k==='dome'?-.5:0)+(f.k==='zap'?9:0),xd:function(){drawFx(f)}})});
     RUN.trail.forEach(function(tp){list.push({d:tp.x+tp.y-.4,xd:function(){var pp=sp(tp.x,tp.y),al=Math.max(0,1-tp.t/tp.life);ctx.save();ctx.globalAlpha=.55*al;ctx.fillStyle='#7fe0ff';ctx.beginPath();ctx.ellipse(pp.x,pp.y,15*(.5+.5*al),7*(.5+.5*al),0,0,6.2832);ctx.fill();ctx.globalAlpha=.8*al;ctx.fillStyle='#e6fbff';ctx.beginPath();ctx.ellipse(pp.x,pp.y,6,3,0,0,6.2832);ctx.fill();ctx.restore()}})});
     if(RUN.a.length)for(var fi=0;fi<enemies.length;fi++){var fe=enemies[fi];if(fe.frz>0&&!fe.dead)(function(fe){list.push({d:fe.x+fe.y+.05,xd:function(){var pp=sp(fe.x,fe.y);ctx.save();ctx.globalAlpha=.42;ctx.fillStyle='#bfeaff';ctx.beginPath();ctx.ellipse(pp.x,pp.y-fe.r*30,fe.r*34,fe.r*52,0,0,6.2832);ctx.fill();ctx.globalAlpha=.7;ctx.strokeStyle='#eefaff';ctx.lineWidth=1.5;ctx.stroke();ctx.restore()}})})(fe)}
@@ -10278,6 +10287,18 @@ playerStep=function(dt){
   if(r>=0&&RUN.cd.berkano<=0){if(doRepulsion(r))RUN.cd.berkano=V.berkano.cd[r];else RUN.cd.berkano=.5}
   /* Sobrecoste: se pierde al pasar el tiempo sin activar */
   if(RUN.scB>0){RUN.scT-=dt;if(RUN.scT<=0)RUN.scB=0}
+  /* serpiente compañera (Constrictor) */
+  r=lv('jera');
+  if(r>=0&&RUN.pl&&!RUN.pl.dead){
+    if(!RUN.pet)RUN.pet={x:RUN.pl.x-.9,y:RUN.pl.y+.9,mode:'idle',t:0,al:0,R:0};
+    var pt=RUN.pet;pt.t+=dt;
+    if(pt.mode==='idle'){
+      pt.al=Math.min(1,pt.al+dt*3);
+      var px=RUN.pl.x-.9,py=RUN.pl.y+.9,pdx=px-pt.x,pdy=py-pt.y,pd=Math.hypot(pdx,pdy);
+      if(pd>9){pt.x=px;pt.y=py}else if(pd>.04){var st=Math.min(pd,(pd*5+2.5)*dt);pt.x+=pdx/pd*st;pt.y+=pdy/pd*st}
+    }else if(pt.mode==='atk'){if(pt.t>=1.4){pt.mode='gone';pt.t=0}}
+    else if(pt.mode==='gone'){if(pt.t>=.6){pt.mode='idle';pt.t=0;pt.al=0;pt.x=RUN.pl.x-.9;pt.y=RUN.pl.y+.9}}
+  }
   /* Estela */
   r=lv('ehwaz');
   if(r>=0){
