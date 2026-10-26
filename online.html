@@ -11011,6 +11011,225 @@ var mv_drawHazGround=drawHazGround;drawHazGround=function(){mv_drawHazGround();t
 var mv_startRun=startRun;startRun=function(key,mi){MV.fxl=[];return mv_startRun(key,mi)};
 
 /* ==========================================================================
+   JEFE DE EL ARCHIVO 2 · NOXARION
+   Bloque autónomo: pégalo DESPUÉS del bloque «El Archivo» (y del de Morvayne, si está):
+   se apunta en ZV_BOSSES y solo aparece dentro de El Archivo, por turnos con los demás.
+   Masa de tierra y rocas sin piernas que se arrastra con los brazos; en el pecho, un humano
+   conectado por cables a los brazos; engranajes en la espalda y en los codos.
+   Ataques (todos avisan en el suelo antes de golpear):
+   - Zarpazo: de cerca, barre con un brazo.
+   - Golpe al suelo: alza los brazos y golpea; daña en una zona enorme a su alrededor.
+   - Columnas: clava los brazos, levanta la cabeza y brotan filas horizontales de columnas
+     de roca alrededor del jugador (dos oleadas).
+   - Rayo de tierra: escupe un rayo por la boca durante 5 s que gira despacio hacia el jugador.
+   - Caída: se deja caer de bruces y brotan hasta 10 pinchos gordos de arena cerca del jugador.
+   Archivos: jefes/noxarion.png, efectos/fx_columna.png, fx_pincho.png, fx_golpe.png.
+   ========================================================================== */
+var NX_SRC={"src": "jefes/noxarion.png", "fw": 460, "fh": 400, "fx": 236.4, "fy": 271.3, "filas": {"andar": 8, "golpe": 6, "muerte": 8, "suelo": 6, "columnas": 6, "rayo": 4, "caida": 6}};
+var NX_FX={"columna": {"fw": 56, "fh": 104, "fx": 28, "fy": 90, "sale": 5, "rompe": 6}, "pincho": {"fw": 72, "fh": 112, "fx": 36, "fy": 96, "sale": 5, "hunde": 5}, "golpe": {"fw": 480, "fh": 270, "cx": 240, "cy": 135, "rx": 226, "n": 10}};
+var NX_CFG={k:1.3,hp:6.5,dmg:1.45,speed:1.5,zarpa:.6,suelo:.95,sueloR:5.5,columna:.7,rayo:.18,pincho:.75,pinchos:10};
+var NX={spr:null,fx:{},fxl:[]};
+(function(){
+  var im=new Image();
+  im.onload=function(){
+    var fc=document.createElement('canvas');fc.width=im.width;fc.height=im.height;
+    var g=fc.getContext('2d');g.drawImage(im,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#ffffff';g.fillRect(0,0,fc.width,fc.height);
+    var F=NX_SRC.filas;NX.spr={img:im,flash:fc,d:{fw:NX_SRC.fw,fh:NX_SRC.fh,fx:NX_SRC.fx,fy:NX_SRC.fy,top:NX_SRC.fy*.8,walk:F.andar,attack:F.golpe,death:F.muerte}};
+  };
+  im.src=NX_SRC.src;
+  ['columna','pincho','golpe'].forEach(function(k){var i2=new Image();i2.onload=function(){NX.fx[k]=i2};i2.src='efectos/fx_'+k+'.png'});
+})();
+function nxEnsure(){if(NX.spr&&!ESPR.noxarion)ESPR.noxarion=NX.spr}
+function nxSpawn(x,y){
+  nxEnsure();
+  var cyc=bossCycle(bossN+1),R=mvRef(),hp=BOSS_BASE*R.hp*(1+.6*cyc)*MAPS[curMap].hp*HM*ZV_CFG.hp*(1+tB()/1200)*tK()*coopHp();
+  var b={type:'boss',boss:true,zvBoss:true,bossN:bossN,kind:'noxarion',name:'Noxarion',x:x+.5,y:y+.5,r:.95,hf:NX_CFG.hp,hp:hp,maxHp:hp,
+    speed:NX_CFG.speed,dmg:28*R.dmg*(1+.15*cyc)*MAPS[curMap].dmg*HM*ZV_CFG.dmg,xp:0,h:150,col:'#7c5428',armor:.5,elite:false,kx:0,ky:0,flash:0,cd:1,slow:0,
+    shoot:99,side:1,dead:false,ai:1.2,wind:-1,sc:0,born:t,zst:'walk',zt:0,nx:1.5,last:''};
+  enemies.push(b);bossAlive=b;S('bossRoar');toast('¡Noxarion se alza entre los libros!');burst(b.x,b.y,'#7c5428',36);
+  return b;
+}
+ZV_BOSSES.push({id:'noxarion',name:'Noxarion',spawn:nxSpawn});
+
+/* ---------- utilidades ---------- */
+function nxSt(e,st){e.zst=st;e.zt=0;e.step=0;if(st!=='walk')e.last=st}
+function nxHurt(q,mul){var b=bossAlive;hurtPlayer((b&&b.kind==='noxarion'?b.dmg:40)*mul,q)}
+function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2));return Math.hypot(px-ax-dx*t,py-ay-dy*t)}
+function nxChoose(e,d){
+  if(d<3&&Math.random()<.7){nxSt(e,'golpe');return}
+  var opts=['suelo','columnas','rayo','caida'].filter(function(o){return o!==e.last});
+  if(d>7)opts=opts.filter(function(o){return o!=='suelo'}).concat(['rayo']);
+  nxSt(e,opts[Math.floor(Math.random()*opts.length)]);
+}
+/* ---------- IA ---------- */
+function nxAI(e,dt,d){
+  nxEnsure();
+  var T=e.tg||P,res={s:0,rev:false},low=e.hp<e.maxHp*.5,cool=low?.7:1.2;
+  e.cd=1;e.zt+=dt;
+  if(e.zst==='walk'){res.s=d>2.2?1:0;e.nx-=dt;if(e.nx<=0)nxChoose(e,d);return res}
+  if(e.zst==='golpe'){                 /* zarpazo: aviso en abanico .45 s */
+    if(e.step===0){e.aimA=Math.atan2(T.y-e.y,T.x-e.x);NX.fxl.push({k:'warnArc',x:e.x,y:e.y,a:e.aimA,arc:2.4,r:3,t:0,dur:.45});e.step=1}
+    if(e.step===1&&e.zt>=.45){
+      if(sfx.length<160)sfx.push({k:'swing',x:e.x,y:e.y,ang:e.aimA,arc:2.4,range:2.9,t:0,dur:.25});S('smash',e.x,e.y);
+      PL.forEach(function(q){if(q.dead)return;var dx=q.x-e.x,dy=q.y-e.y,dd=Math.hypot(dx,dy),da=Math.atan2(dy,dx)-e.aimA;da=Math.atan2(Math.sin(da),Math.cos(da));if(dd<3&&Math.abs(da)<1.25)nxHurt(q,NX_CFG.zarpa)});
+      e.step=2;
+    }
+    if(e.zt>.85){nxSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='suelo'){                 /* golpe al suelo: zona enorme avisada 1,3 s */
+    if(e.step===0){NX.fxl.push({k:'warnCirc',x:e.x,y:e.y,r:NX_CFG.sueloR,t:0,dur:1.3});e.step=1}
+    if(e.step===1&&e.zt>=1.3){
+      NX.fxl.push({k:'golpe',x:e.x,y:e.y,t:0});S('bossDie',e.x,e.y,0,.6);
+      PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<NX_CFG.sueloR)nxHurt(q,NX_CFG.suelo)});
+      e.step=2;
+    }
+    if(e.zt>2.0){nxSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='columnas'){              /* filas horizontales de columnas alrededor del jugador, en dos oleadas */
+    function wave(offs,delay){
+      var c0=T.x+T.y,mx=(T.x-T.y)/2;
+      offs.forEach(function(o){
+        var c=c0+o,pts=[];
+        for(var s=-7;s<=7;s+=.75){var x=(c)/2+mx+s*.7071,y=(c)/2-mx-s*.7071;if(!solid(x,y))pts.push({x:x,y:y})}
+        NX.fxl.push({k:'warnLine',pts:pts,t:-delay,dur:1.0});
+        pts.forEach(function(p,i){NX.fxl.push({k:'col',x:p.x,y:p.y,t:-delay-1.0-i*.012,hit:false,line:c})});
+      });
+    }
+    if(e.step===0&&e.zt>=.35){wave([-2.4,0,2.4],0);S('bossRoar',e.x,e.y,0,.6);e.step=1}
+    if(e.step===1&&e.zt>=1.5){wave([-1.2,1.2],0);e.step=2}
+    if(e.zt>3.4){nxSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='rayo'){                  /* rayo de tierra 5 s, gira despacio hacia el jugador */
+    var want=Math.atan2(T.y-e.y,T.x-e.x);
+    if(e.step===0){e.ba=want;e.step=1;e.tick=0}
+    if(e.zt<.8){/* aviso: línea fina */}
+    else{
+      var df=Math.atan2(Math.sin(want-e.ba),Math.cos(want-e.ba)),mt=(low?.75:.55)*dt;e.ba+=Math.max(-mt,Math.min(mt,df));
+      e.tick-=dt;
+      var L=nxBeamLen(e);
+      if(e.tick<=0){e.tick=.22;var bx=e.x+Math.cos(e.ba)*L,by=e.y+Math.sin(e.ba)*L;
+        PL.forEach(function(q){if(!q.dead&&segDist(q.x,q.y,e.x,e.y,bx,by)<.6)nxHurt(q,NX_CFG.rayo)})}
+    }
+    if(e.zt>5.8){nxSt(e,'walk');e.nx=cool+.4}
+    return res;
+  }
+  if(e.zst==='caida'){                 /* se deja caer y brotan pinchos de arena cerca del jugador */
+    if(e.step===0&&e.zt>=.5){
+      S('bossDie',e.x,e.y,0,.5);burst(e.x,e.y,'#9e7840',24);
+      for(var i=0;i<NX_CFG.pinchos;i++){
+        var a=Math.random()*6.283,r=i===0?0:.8+Math.random()*3,px=T.x+Math.cos(a)*r,py=T.y+Math.sin(a)*r;
+        if(solid(px,py))continue;
+        NX.fxl.push({k:'spike',x:px,y:py,t:-i*.1,warn:.9,hit:false});
+      }
+      e.step=1;
+    }
+    if(e.zt>3.0){nxSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  nxSt(e,'walk');return res;
+}
+function nxBeamLen(e){
+  var L=0;for(;L<12;L+=.25){if(solid(e.x+Math.cos(e.ba)*L,e.y+Math.sin(e.ba)*L))break}return L;
+}
+/* ---------- efectos ---------- */
+function nxFxUpdate(dt){
+  for(var i=NX.fxl.length-1;i>=0;i--){
+    var f=NX.fxl[i];f.t+=dt;
+    if(f.k==='col'){
+      if(!f.hit&&f.t>=0){f.hit=true;PL.forEach(function(q){if(!q.dead&&Math.abs(q.x+q.y-f.line)<.75&&Math.hypot(q.x-f.x,q.y-f.y)<.6)nxHurt(q,NX_CFG.columna)})}
+      if(f.t>1.4)NX.fxl.splice(i,1);
+    }else if(f.k==='spike'){
+      if(!f.hit&&f.t>=f.warn){f.hit=true;PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.65)nxHurt(q,NX_CFG.pincho)});S('smash',f.x,f.y,0,.3)}
+      if(f.t>f.warn+1.5)NX.fxl.splice(i,1);
+    }else if(f.k==='golpe'){if(f.t>.7)NX.fxl.splice(i,1)}
+    else if(f.t>f.dur)NX.fxl.splice(i,1);
+  }
+}
+function nxWarnStyle(k){var ph=.5+.5*Math.sin(t*22);ctx.fillStyle='rgba(255,110,40,'+(.12+.1*k)+')';ctx.strokeStyle='rgba(255,'+(140+60*ph|0)+',60,'+(.55+.4*ph)+')';ctx.lineWidth=2}
+function nxDrawGround(){
+  NX.fxl.forEach(function(f){
+    if(f.t<0&&f.k!=='col'&&f.k!=='spike')return;
+    if(f.k==='warnCirc'){var p=sp(f.x,f.y);nxWarnStyle(f.t/f.dur);ctx.beginPath();ctx.ellipse(p.x,p.y,f.r*45.25,f.r*22.6,0,0,6.283);ctx.fill();ctx.stroke();
+      ctx.beginPath();ctx.ellipse(p.x,p.y,f.r*45.25*(f.t/f.dur),f.r*22.6*(f.t/f.dur),0,0,6.283);ctx.stroke();ctx.lineWidth=1}
+    else if(f.k==='warnArc'){var pts=[sp(f.x,f.y)];for(var k=0;k<=12;k++){var an=f.a-f.arc/2+f.arc*k/12;pts.push(sp(f.x+Math.cos(an)*f.r,f.y+Math.sin(an)*f.r))}nxWarnStyle(f.t/f.dur);poly(pts,ctx.fillStyle,ctx.strokeStyle);ctx.lineWidth=1}
+    else if(f.k==='warnLine'){if(f.t<0||!f.pts.length)return;nxWarnStyle(f.t/f.dur);
+      var a=f.pts[0],b=f.pts[f.pts.length-1],nx=.45*.7071,ny=.45*.7071;
+      poly([sp(a.x-nx,a.y-ny),sp(b.x-nx,b.y-ny),sp(b.x+nx,b.y+ny),sp(a.x+nx,a.y+ny)],ctx.fillStyle,ctx.strokeStyle);ctx.lineWidth=1}
+    else if(f.k==='spike'&&f.t>=0&&f.t<f.warn){var p2=sp(f.x,f.y),kk=f.t/f.warn;nxWarnStyle(kk);ctx.beginPath();ctx.ellipse(p2.x,p2.y,30,15,0,0,6.283);ctx.fill();ctx.stroke();
+      ctx.fillStyle='rgba(220,180,110,'+(.35*kk)+')';for(var j=0;j<6;j++){var aa=j+t*3;ctx.fillRect(Math.round(p2.x+Math.cos(aa)*14*(1-kk)),Math.round(p2.y+Math.sin(aa)*7*(1-kk)),2,2)}ctx.lineWidth=1}
+    else if(f.k==='golpe'){var im=NX.fx.golpe,G=NX_FX.golpe;if(!im)return;var p3=sp(f.x,f.y),sc=NX_CFG.sueloR/5,c=Math.min(G.n-1,Math.floor(f.t/.7*G.n));
+      ctx.drawImage(im,c*G.fw,0,G.fw,G.fh,Math.round(p3.x-G.cx*sc),Math.round(p3.y-G.cy*sc),G.fw*sc,G.fh*sc)}
+  });
+  /* aviso del rayo: línea fina antes de disparar */
+  if(bossAlive&&bossAlive.kind==='noxarion'&&bossAlive.zst==='rayo'&&bossAlive.zt<.8){
+    var e=bossAlive,L=nxBeamLen(e),A1=sp(e.x,e.y),B1=sp(e.x+Math.cos(e.ba)*L,e.y+Math.sin(e.ba)*L);
+    nxWarnStyle(e.zt/.8);ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.lineWidth=3+6*(e.zt/.8);ctx.stroke();ctx.lineWidth=1;
+  }
+}
+function nxItems(list){
+  NX.fxl.forEach(function(f){
+    if((f.k==='col'&&f.t>=0)||(f.k==='spike'&&f.t>=f.warn))list.push({d:f.x+f.y+.02,fx:{nx:f,x:f.x,y:f.y}});
+  });
+  var e=bossAlive;
+  if(e&&e.kind==='noxarion'&&e.zst==='rayo'&&e.zt>=.8)list.push({d:e.x+e.y+.5,fx:{nx:{k:'beam',e:e},x:e.x,y:e.y}});
+}
+function nxDrawItem(f){
+  if(f.k==='col'){
+    var im=NX.fx.columna,C=NX_FX.columna;if(!im)return;var p=sp(f.x,f.y),row,c;
+    if(f.t<.25){row=0;c=Math.min(C.sale-1,Math.floor(f.t/.25*C.sale))}else if(f.t<1.0){row=0;c=C.sale-1}else{row=1;c=Math.min(C.rompe-1,Math.floor((f.t-1.0)/.4*C.rompe))}
+    ctx.drawImage(im,c*C.fw,row*C.fh,C.fw,C.fh,Math.round(p.x-C.fx),Math.round(p.y-C.fy),C.fw,C.fh);
+  }else if(f.k==='spike'){
+    var im2=NX.fx.pincho,S2=NX_FX.pincho;if(!im2)return;var p2=sp(f.x,f.y),tt=f.t-f.warn,r2,c2;
+    if(tt<.2){r2=0;c2=Math.min(S2.sale-1,Math.floor(tt/.2*S2.sale))}else if(tt<1.1){r2=0;c2=S2.sale-1}else{r2=1;c2=Math.min(S2.hunde-1,Math.floor((tt-1.1)/.4*S2.hunde))}
+    ctx.drawImage(im2,c2*S2.fw,r2*S2.fh,S2.fw,S2.fh,Math.round(p2.x-S2.fx),Math.round(p2.y-S2.fy),S2.fw,S2.fh);
+  }else if(f.k==='beam'){
+    var e=f.e,L=nxBeamLen(e),lift=92*NX_CFG.k/1.3,A1=sp(e.x+Math.cos(e.ba)*.6,e.y+Math.sin(e.ba)*.6),B1=sp(e.x+Math.cos(e.ba)*L,e.y+Math.sin(e.ba)*L);
+    A1.y-=lift;B1.y-=10;
+    var dx=B1.x-A1.x,dy=B1.y-A1.y,len=Math.hypot(dx,dy)||1,ang=Math.atan2(dy,dx),w=14+3*Math.sin(t*30);
+    ctx.save();ctx.translate(A1.x,A1.y);ctx.rotate(ang);
+    var g=ctx.createLinearGradient(0,-w,0,w);g.addColorStop(0,'rgba(90,60,30,0)');g.addColorStop(.3,'#7c5428');g.addColorStop(.5,'#dcb472');g.addColorStop(.7,'#7c5428');g.addColorStop(1,'rgba(90,60,30,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,-w,len,w*2);
+    ctx.fillStyle='#4a3826';for(var k=0;k<26;k++){var s=((k*37+t*420)%len),o=Math.sin(k*2.3+t*9)*w*.7;ctx.fillRect(Math.round(s),Math.round(o),3,2)}
+    ctx.fillStyle='#f2d494';for(k=0;k<14;k++){var s2=((k*53+t*600)%len),o2=Math.sin(k*1.7+t*13)*w*.4;ctx.fillRect(Math.round(s2),Math.round(o2),2,1)}
+    ctx.restore();
+    /* polvo en el punto de impacto */
+    ctx.fillStyle='rgba(200,160,100,.55)';for(k=0;k<10;k++){var aa=k*.63+t*5,rr=8+6*Math.sin(t*11+k);ctx.fillRect(Math.round(B1.x+Math.cos(aa)*rr),Math.round(B1.y+Math.sin(aa)*rr*.5-4),3,3)}
+  }
+}
+function nxFrame(e){
+  var F=NX_SRC.filas,z=e.zt||0;
+  if(e.zst==='golpe')return [1,Math.min(F.golpe-1,Math.floor(z/.75*F.golpe))];
+  if(e.zst==='suelo'){if(z<1.1)return [3,Math.min(3,Math.floor(z/.5*3))];return [3,Math.min(F.suelo-1,4+Math.floor((z-1.3)/.3*2))]}
+  if(e.zst==='columnas')return [4,Math.min(F.columnas-1,Math.floor(Math.min(z,2.6)/.6*4))%F.columnas];
+  if(e.zst==='rayo')return z<.8?[4,2]:[5,Math.floor(z*10)%F.rayo];
+  if(e.zst==='caida'){var c=z<.5?Math.floor(z/.5*4):z<2.4?4+(Math.floor(z*4)%2):Math.max(0,3-Math.floor((z-2.4)/.15));return [6,Math.min(F.caida-1,c)]}
+  if((e.mv||0)<.15)return [0,0];
+  return [0,Math.floor((e.wt||0)*7)%F.andar];
+}
+/* ---------- enganches ---------- */
+var nx_bossAI=bossAI;bossAI=function(e,dt,d){if(e.zvBoss&&e.kind==='noxarion')return nxAI(e,dt,d);return nx_bossAI(e,dt,d)};
+var nx_sprScale=sprScale;sprScale=function(e){if(e.zvBoss&&e.kind==='noxarion')return NX_CFG.k;return nx_sprScale(e)};
+var nx_enemyFrame=enemyFrame;enemyFrame=function(e){if(e.zvBoss&&e.kind==='noxarion')return nxFrame(e);return nx_enemyFrame(e)};
+var nx_killEnemy=killEnemy;killEnemy=function(e){
+  if(!(e.zvBoss&&e.kind==='noxarion'))return nx_killEnemy(e);
+  e.dead=true;kills++;S('bossDie',e.x,e.y,0,1.2);burst(e.x,e.y,'#7c5428',44);
+  meta.bestiary['archivo:noxarion']=(meta.bestiary['archivo:noxarion']||0)+1;
+  if(corpses.length<60)corpses.push({type:'noxarion',boss:true,x:e.x,y:e.y,flip:!!e.flip,k:NX_CFG.k,t:0});
+  PL.forEach(function(q){q.level+=ZV_CFG.niveles;q.pend+=ZV_CFG.niveles;q.need=xpNeed(q.level)});
+  orbs.push({x:e.x,y:e.y,v:0,heal:true,t:0});
+  bossKills++;bossAlive=null;toast('Noxarion derrotado: +'+ZV_CFG.niveles+' niveles');
+  NX.fxl=[];ZV.bossDone=true;
+};
+var nx_update=update;update=function(dt){nx_update(dt);try{nxEnsure();nxFxUpdate(dt)}catch(e){softErr('noxarion',e)}};
+var nx_sfxItems=sfxItems;sfxItems=function(list){nx_sfxItems(list);try{nxItems(list)}catch(e){}};
+var nx_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.nx)return nxDrawItem(it.fx.nx);return nx_drawFxItem(it)};
+var nx_drawHazGround=drawHazGround;drawHazGround=function(){nx_drawHazGround();try{nxDrawGround()}catch(e){}};
+var nx_startRun=startRun;startRun=function(key,mi){NX.fxl=[];return nx_startRun(key,mi)};
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
