@@ -10462,6 +10462,7 @@ window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv
    Archivos: archivo/ (suelo, laberinto, pilares, estanterías, atril, muros, calcos) y efectos/portal.png.
    ========================================================================== */
 var ZV_CFG={min:600,max:1200,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5,dur:60,rango:2.2,dmin:4,dmax:7};   /* portal cada 10-20 min; jefe con el doble de vida y el triple de daño; +5 niveles */
+var ZV_PRUEBA=true;   /* SOLO PARA /online: el primer portal sale a los 8 s y sin exigir jefes previos; poner false para el ritmo real */
 function zvRand(){return ZV_CFG.min+Math.random()*(ZV_CFG.max-ZV_CFG.min)}
 var ZV_BOSSES=[];   /* {id,name,spawn(x,y)->enemigo} · los añaden los bloques de cada jefe */
 var ZV_SRC={"tw":128,"th":64,"floors":4,
@@ -10620,13 +10621,13 @@ function zvInfinite(){
   if(typeof RUNINF==='undefined'||!RUNINF||curMap>=5||won)return false;     /* solo si el jugador ha elegido jugar en modo infinito */
   if(typeof TW!=='undefined'&&TW.on)return false;
   if(typeof ON!=='undefined'&&ON.on)return false;
-  return bossKills>=4;
+  return ZV_PRUEBA||bossKills>=4;
 }
 function zvCanSpawn(){
   if(ZV.on||ZV.portal||!ZV.ready||!ZV_BOSSES.length)return false;
   if(bossAlive)return false;
   if(typeof EVT!=='undefined'&&EVT&&EVT.cur)return false;      /* no se abre con un evento en marcha */
-  if(nextBoss-t<25)return false;
+  if(!ZV_PRUEBA&&nextBoss-t<25)return false;
   return true;
 }
 function zvEnter(){
@@ -10708,7 +10709,7 @@ function zvUpdate(dt){
     if(o&&o.st==='cierra'){o.tc+=dt;if(!zvPortalFrame(o))ZV.portal=null}
     else if(o){o.t+=dt;if(zvOpen(o)&&o.t>ZV_CFG.dur){o.st='cierra';o.tc=0;toast('El portal a El Archivo se ha cerrado')}}
     if(!zvInfinite()){ZV.next=0;return}
-    if(!ZV.next)ZV.next=t+zvRand();
+    if(!ZV.next)ZV.next=t+(ZV_PRUEBA&&!ZV.vistoP?(ZV.vistoP=1,8):zvRand());
     if(t>=ZV.next&&zvCanSpawn()){
       var s=zvSpot();ZV.portal={x:s.x,y:s.y,t:0,st:'abre',tc:0};
       toast('¡Se ha abierto un portal a El Archivo! Acércate y pulsa E para entrar (o ignóralo)');ZV.next=t+zvRand();
@@ -10732,7 +10733,7 @@ function zvUpdate(dt){
 function zvReset(){
   if(ZV.saved){N=ZV.saved.N;map=ZV.saved.map;vari=ZV.saved.vari}
   if(N!==ZV.N0)N=ZV.N0;
-  ZV.on=false;ZV.saved=null;ZV.portal=null;ZV.exit=null;ZV.next=0;ZV.flash=0;ZV.t=0;ZV.bi=0;ZV.boss=null;ZV.bossDone=false;
+  ZV.vistoP=0;ZV.on=false;ZV.saved=null;ZV.portal=null;ZV.exit=null;ZV.next=0;ZV.flash=0;ZV.t=0;ZV.bi=0;ZV.boss=null;ZV.bossDone=false;
 }
 
 /* ---------- enganches ---------- */
