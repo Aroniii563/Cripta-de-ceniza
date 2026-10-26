@@ -9877,14 +9877,14 @@ try{
 var RAR=['Común','Rara','Épica','Legendaria'],RCOL=['#b8b2a0','#5aa9ff','#b36bff','#ffb038'];
 function pc(a){return a.map(function(x){return Math.round(x*100)})}
 var V={ /* valores por rareza [común, rara, épica, legendaria] */
- sowilo:{cd:[8,7,6,5],n:[1,2,2,3],m:[2,2.5,3,3.5]},
+ sowilo:{k:[6,6,5,4],n:[3,3,4,5],m:[.5,.7,.9,1.2]},
  thurisaz:{cd:[3,3,2.7,2.4],n:[3,3,4,4],m:[1.5,1.8,2.1,2.6]},
  inguz:{k:[15,13,11,9],m:[2,2.4,2.8,3.5],rad:[9,9,9,9]},
  jera:{cd:[10,9,8,7],rad:[3,3.5,4,5],dps:[.5,.6,.75,1],dur:[4,4,5,6]},
- teiwaz:{ch:[.12,.16,.20,.28],m:[.8,1,1.3,1.8],rad:[1.8,2,2.3,2.8]},
- uruz:{dmg:[.06,.09,.12,.18],crit:[0,0,.05,.10]},
- hagalaz:{cd:[10,9,8,7],n:[3,4,5,7],m:[1.2,1.5,1.8,2.2]},
- gebo:{ch:[.06,.09,.12,.18],m:[.6,.8,1,1.3]},
+ teiwaz:{cd:[3,3,3,3],loss:[.25,.22,.20,.18],per:[1,1.2,1.4,1.7],cap:[.55,.65,.8,1]},
+ hagalaz:{cd:[5,5,4.5,4],m:[3.5,4.2,5,6.5],rad:[6,6.5,7,8]},
+ uruz:{cd:[8,7.5,7,6],m:[5,6,7.5,10],rad:[3.5,4,4.5,5.5],dist:[6,6,7,8]},
+ gebo:{cd:[4,4,3.5,3],n:[2,2,3,4]},
  isa:{rad:[6,6.5,7,8],sl:['30%','50%','65%','65%'],pj:[.7,.5,.4,.4]},
  ansuz:{ch:[.25,.35,.45,.6]},
  fehu:{k:[200,180,160,140],dmg:[.02,.025,.03,.04]},
@@ -9893,14 +9893,14 @@ var V={ /* valores por rareza [común, rara, épica, legendaria] */
  perthro:{fl:[.10,.15,.20,.30]},
  kenaz:{ch:[.25,.30,.35,.45],dps:[.4,.5,.6,.8],dur:[3,3,4,5]},
  raido:{ch:[.5,.6,.7,.85],m:[.8,1,1.3,1.8],rad:[2,2.2,2.5,3]},
- dagaz:{hp:[.3,.4,.5,.7]},
- eihwaz:{arm:[.04,.06,.08,.12],reg:[0,0,.004,.008]},
- berkano:{hp:[.08,.12,.16,.25],reg:[0,0,.002,.004]},
- laguz:{cd:[18,15,12,9],hp:[.06,.08,.10,.14]},
- ehwaz:{spd:[.06,.09,.12,.18]},
- mannaz:{xp:[.06,.09,.12,.2],pick:[.1,.15,.2,.3]},
- wunjo:{k:[10,10,8,8],hp:[.02,.03,.04,.06]},
- othala:{pool:[.15,.2,.3,.45],cd:[0,0,60,40]}
+ laguz:{cd:[8,7.5,7,6.5],dur:[2,2.3,2.6,3],rad:[12,12,12,12]},
+ dagaz:{b:[.5,.65,.8,1.1]},
+ eihwaz:{cd:[3,3,2.7,2.4],rad:[9,9,9,9]},
+ mannaz:{ch:[.5,.55,.65,.8],s:[1,1,1.25,1.5]},
+ wunjo:{b:[.10,.12,.15,.20],cap:[.5,.6,.75,1],dur:[5,5,6,7]},
+ ehwaz:{m:[1.5,1.8,2.2,3],life:[2.5,3,3.5,4]},
+ berkano:{cd:[5,5,4.5,4],rad:[5,5.5,6,7]},
+ othala:{b:[.2,.25,.32,.45]}
 };
 function ep(x){return x?' (épica+)':''}
 var RUNES={
@@ -9908,11 +9908,11 @@ var RUNES={
  thurisaz:{o:1,n:'Espinas',w:'Thurisaz',g:'ᚦ',d:function(r){var v=V.thurisaz;return 'Cada '+v.cd[r]+' s brotan '+v.n[r]+' caminos de espinas en distintas direcciones ('+pc(v.m)[r]+'% de daño).'}},
  inguz:{o:1,n:'Núcleo',w:'Inguz',g:'ᛜ',d:function(r){var v=V.inguz;return 'Cada '+v.k[r]+' ataques recibidos generas una onda de '+pc(v.m)[r]+'% de daño (radio '+v.rad[r]+').'}},
  jera:{o:1,n:'Constrictor',w:'Jera',g:'ᛃ',d:function(r){var v=V.jera;return 'Cada '+v.cd[r]+' s una serpiente de fuego rodea a un grupo de enemigos (radio '+v.rad[r]+') y los quema: '+pc(v.dps)[r]+'% de tu daño por segundo durante '+v.dur[r]+' s.'}},
- sowilo:{o:1,n:'Rayo',w:'Sowilo',g:'ᛊ',d:function(r){var v=V.sowilo;return 'Cada '+v.cd[r]+' s cae un rayo sobre '+v.n[r]+' enemigo'+(v.n[r]>1?'s':'')+' cercano'+(v.n[r]>1?'s':'')+' ('+pc(v.m)[r]+'% de daño).'+(r>=2?' El rayo salta a otro enemigo.':'')}},
- teiwaz:{o:1,n:'Detonación',w:'Teiwaz',g:'ᛏ',d:function(r){var v=V.teiwaz;return pc(v.ch)[r]+'% de que un enemigo abatido explote ('+pc(v.m)[r]+'% de daño, radio '+v.rad[r]+').'}},
- hagalaz:{o:1,n:'Granizo',w:'Hagalaz',g:'ᚺ',d:function(r){var v=V.hagalaz;return 'Cada '+v.cd[r]+' s cae granizo sobre '+v.n[r]+' enemigos al azar cerca de ti ('+pc(v.m)[r]+'% de daño).'}},
- uruz:{o:1,n:'Fuerza',w:'Uruz',g:'ᚢ',d:function(r){var v=V.uruz;return '+'+pc(v.dmg)[r]+'% de daño permanente'+(r>=2?' y +'+pc(v.crit)[r]+'% de probabilidad de crítico':'')+'.'}},
- gebo:{o:1,n:'Regalo',w:'Gebo',g:'ᚷ',d:function(r){var v=V.gebo;return pc(v.ch)[r]+'% de que un golpe regale un segundo impacto ('+pc(v.m)[r]+'% de daño).'}},
+ sowilo:{o:1,n:'Sobrecarga',w:'Sowilo',g:'ᛊ',d:function(r){var v=V.sowilo;return 'Cada '+v.k[r]+' ataques, el siguiente aplica una descarga que encadena entre '+v.n[r]+' enemigos ('+pc(v.m)[r]+'% de daño).'}},
+ teiwaz:{o:1,n:'Sacrificio',w:'Teiwaz',g:'ᛏ',d:function(r){var v=V.teiwaz;return 'Cada '+v.cd[r]+' s pierdes un '+pc(v.loss)[r]+'% de tu vida actual (nunca te mata) y ganas +'+v.per[r]+'% de daño por cada 1% de vida perdida (máx. +'+pc(v.cap)[r]+'%).'}},
+ hagalaz:{o:1,n:'Terremoto',w:'Hagalaz',g:'ᚺ',d:function(r){var v=V.hagalaz;return 'Cada '+v.cd[r]+' s provoca un terremoto a tu alrededor (radio '+v.rad[r]+') que inflige un '+pc(v.m)[r]+'% de daño.'}},
+ uruz:{o:1,n:'Desplazamiento',w:'Uruz',g:'ᚢ',d:function(r){var v=V.uruz;return 'Cada '+v.cd[r]+' s te teletransportas una corta distancia hacia una zona con enemigos y liberas una onda de '+pc(v.m)[r]+'% de daño (radio '+v.rad[r]+').'}},
+ gebo:{o:1,n:'Réplicas',w:'Gebo',g:'ᚷ',d:function(r){var v=V.gebo;return 'Cada '+v.cd[r]+' s se crean '+v.n[r]+' copias de tu personaje que realizan un ataque.'}},
  /* defensivas */
  isa:{o:0,n:'Escarcha',w:'Isa',g:'ᛁ',d:function(r){var v=V.isa;return 'Nieve sobre ti en un radio de '+v.rad[r]+' casillas: los enemigos dentro van un '+v.sl[r]+' más lentos y los proyectiles enemigos se frenan.'}},
  ansuz:{o:0,n:'Mimo',w:'Ansuz',g:'ᚨ',d:function(r){return pc(V.ansuz.ch)[r]+'% de que el efecto de tu runa ofensiva se repita al instante.'}},
@@ -9922,14 +9922,14 @@ var RUNES={
  perthro:{o:0,n:'Ahorcado',w:'Perthro',g:'ᛈ',d:function(r){return 'Al estar al 100% de vida, esta baja hasta el '+pc(V.perthro.fl)[r]+'%.'}},
  kenaz:{o:0,n:'Quemadura',w:'Kenaz',g:'ᚲ',d:function(r){var v=V.kenaz;return pc(v.ch)[r]+'% de provocar quemadura al atacar: '+pc(v.dps)[r]+'% de daño por segundo durante '+v.dur[r]+' s.'}},
  raido:{o:0,n:'Calcinado',w:'Raido',g:'ᚱ',d:function(r){var v=V.raido;return 'Un enemigo con quemadura tiene un '+pc(v.ch)[r]+'% de probabilidad de explotar al morir ('+pc(v.m)[r]+'% de daño, radio '+v.rad[r]+').'}},
- dagaz:{o:0,n:'Segundo aliento',w:'Dagaz',g:'ᛞ',d:function(r){return 'Una vez por partida, un golpe mortal te deja con el '+pc(V.dagaz.hp)[r]+'% de vida'+(r>=2?' y 2 s de invulnerabilidad':'')+'.'}},
- eihwaz:{o:0,n:'Piel de piedra',w:'Eihwaz',g:'ᛇ',d:function(r){var v=V.eihwaz;return '+'+pc(v.arm)[r]+'% de armadura'+(r>=2?' y regeneras un '+(v.reg[r]*100).toFixed(1)+'% de vida por segundo':'')+'.'}},
- berkano:{o:0,n:'Crecimiento',w:'Berkano',g:'ᛒ',d:function(r){var v=V.berkano;return '+'+pc(v.hp)[r]+'% de vida máxima'+(r>=2?' y regeneras un '+(v.reg[r]*100).toFixed(1)+'% de vida por segundo':'')+'.'}},
- laguz:{o:0,n:'Fuente',w:'Laguz',g:'ᛚ',d:function(r){var v=V.laguz;return 'Cada '+v.cd[r]+' s una fuente te cura el '+pc(v.hp)[r]+'% de tu vida máxima.'}},
- ehwaz:{o:0,n:'Movimiento',w:'Ehwaz',g:'ᛖ',d:function(r){return '+'+pc(V.ehwaz.spd)[r]+'% de velocidad de movimiento.'}},
- mannaz:{o:0,n:'Humanidad',w:'Mannaz',g:'ᛗ',d:function(r){var v=V.mannaz;return '+'+pc(v.xp)[r]+'% de experiencia y +'+pc(v.pick)[r]+'% de radio de recogida.'}},
- wunjo:{o:0,n:'Alegría',w:'Wunjo',g:'ᚹ',d:function(r){var v=V.wunjo;return 'Cada '+v.k[r]+' bajas te curas el '+pc(v.hp)[r]+'% de tu vida máxima.'}},
- othala:{o:0,n:'Herencia',w:'Othala',g:'ᛟ',d:function(r){var v=V.othala;return 'Empiezas con un escudo del '+pc(v.pool)[r]+'% de tu vida máxima.'+(r>=2?' Se recupera cada '+v.cd[r]+' s.':'')}}
+ dagaz:{o:0,n:'Venganza',w:'Dagaz',g:'ᛞ',d:function(r){return 'Cada vez que recibes daño, tu siguiente ataque inflige un '+pc(V.dagaz.b)[r]+'% más de daño.'}},
+ eihwaz:{o:0,n:'Vórtice',w:'Eihwaz',g:'ᛇ',d:function(r){var v=V.eihwaz;return 'Cada '+v.cd[r]+' s los enemigos en un radio de '+v.rad[r]+' son atraídos hacia ti.'}},
+ berkano:{o:0,n:'Repulsión',w:'Berkano',g:'ᛒ',d:function(r){var v=V.berkano;return 'Cada '+v.cd[r]+' s libera una onda (radio '+v.rad[r]+') que empuja a los enemigos cercanos hacia atrás. No hace daño.'}},
+ laguz:{o:0,n:'Congelación',w:'Laguz',g:'ᛚ',d:function(r){var v=V.laguz;return 'Cada '+v.cd[r]+' s los enemigos cercanos quedan congelados durante '+v.dur[r]+' s. Los jefes solo quedan ralentizados.'}},
+ ehwaz:{o:0,n:'Estela',w:'Ehwaz',g:'ᛖ',d:function(r){var v=V.ehwaz;return 'Dejas una estela de energía al desplazarte. Los enemigos que la pisan reciben un '+pc(v.m)[r]+'% de daño.'}},
+ mannaz:{o:0,n:'Resonancia',w:'Mannaz',g:'ᛗ',d:function(r){var v=V.mannaz;return 'Cuando se activa una runa, '+pc(v.ch)[r]+'% de probabilidad de reducir '+v.s[r]+' s la recarga de tus otras runas.'}},
+ wunjo:{o:0,n:'Sobrecoste',w:'Wunjo',g:'ᚹ',d:function(r){var v=V.wunjo;return 'Al activarse una runa ofensiva ganas +'+pc(v.b)[r]+'% de daño durante '+v.dur[r]+' s (acumulable hasta +'+pc(v.cap)[r]+'%). Se pierde si pasan '+v.dur[r]+' s sin activar ninguna.'}},
+ othala:{o:0,n:'Convergencia',w:'Othala',g:'ᛟ',d:function(r){return 'Cuando se activan dos runas seguidas, la segunda obtiene un '+pc(V.othala.b)[r]+'% más de efecto.'}}
 };
 var ORDER=['thurisaz','inguz','jera','sowilo','teiwaz','hagalaz','uruz','gebo','isa','ansuz','fehu','algiz','nauthiz','perthro','kenaz','raido','dagaz','eihwaz','berkano','laguz','ehwaz','mannaz','wunjo','othala'];
 var OFF=ORDER.filter(function(i){return RUNES[i].o}),DEF=ORDER.filter(function(i){return !RUNES[i].o});
@@ -10011,32 +10011,37 @@ var showTab_run=showTab;
 showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runas')build()};
 
 /* ---------- partida ---------- */
-var CD={sowilo:V.sowilo.cd,hagalaz:V.hagalaz.cd,thurisaz:V.thurisaz.cd,jera:V.jera.cd,laguz:V.laguz.cd};
-var RUN={a:[],cd:{},rev:false,low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,pool:0,kc:0,kc2:0,hits:0,paths:[],fx:[],q:[],echo:false,snowT:0,snowR:0};
+var CD={hagalaz:V.hagalaz.cd,gebo:V.gebo.cd,uruz:V.uruz.cd,thurisaz:V.thurisaz.cd,jera:V.jera.cd,teiwaz:V.teiwaz.cd,laguz:V.laguz.cd,eihwaz:V.eihwaz.cd,berkano:V.berkano.cd};
+var RUN={a:[],cd:{},low:false,burnT:0,hud:null,hudT:0,inner:0,drop:null,pl:null,kc2:0,hits:0,paths:[],fx:[],q:[],echo:false,snowT:0,snowR:0,ac:0,ovl:false,vg:false,sacB:0,scB:0,scT:0,cp:false,trail:[],trT:0,act:{id:null,t:-9}};
 function lv(id){for(var i=0;i<RUN.a.length;i++)if(RUN.a[i].id===id)return RUN.a[i].r;return -1}
 function inner(f){RUN.inner++;try{f()}finally{RUN.inner--}}
-function dmg(e,m,kx,ky,kb){if(e.dead)return;inner(function(){hitEnemy(e,{d:P.dmg*m,crit:false},kx||0,ky||0,kb||0,true)})}
+function bon(){return P===RUN.pl?(RUN.sacB||0)+(RUN.scB||0):0}
+function dmg(e,m,kx,ky,kb){if(e.dead)return;inner(function(){hitEnemy(e,{d:P.dmg*m*(1+bon()),crit:false},kx||0,ky||0,kb||0,true)})}
 function heal(q,f){if(q.dead)return;var a=q.maxHp*f;q.hp=Math.min(q.maxHp,q.hp+a);addText(q.x,q.y,'+'+Math.round(a),'#8cf09a',14)}
 function near(q,rad){return enemies.filter(function(z){return !z.dead&&Math.hypot(z.x-q.x,z.y-q.y)<rad+z.r})}
 function ignite(e,dps,dur){if(e.dead)return;if(!e.burn)burst(e.x,e.y,'#ff8a3d',6);e.burn={t:Math.max(dur,e.burn?e.burn.t:0),dps:Math.max(dps,e.burn?e.burn.dps:0)}}
+/* activación de una runa: devuelve el multiplicador de efecto (Convergencia) y aplica Resonancia y Sobrecoste */
+function act(id){
+  var em=1,k,x,A=RUN.act;
+  if((x=lv('othala'))>=0&&A.id&&A.id!==id&&t-A.t<=1.5){em=1+V.othala.b[x];addText(P.x,P.y,'Convergencia','#ffe08a',13)}
+  A.id=id;A.t=t;
+  if((x=lv('mannaz'))>=0&&Math.random()<V.mannaz.ch[x]){for(k in RUN.cd)if(k!==id)RUN.cd[k]-=V.mannaz.s[x];ring(P.x,P.y,1,.25,'#9fe0ff')}
+  if(RUNES[id].o&&(x=lv('wunjo'))>=0){RUN.scB=Math.min(V.wunjo.cap[x],RUN.scB+V.wunjo.b[x]);RUN.scT=V.wunjo.dur[x]}
+  return em;
+}
+function mkem(id){return RUN.echo?1:act(id)}
 /* Mimo: repite el efecto de la runa ofensiva */
 function bind(f,r){return function(){f(r)}}
 function mimo(f){var r=lv('ansuz');if(r>=0&&!RUN.echo&&Math.random()<V.ansuz.ch[r])RUN.q.push({t:.45,f:f})}
 var startRun_run=startRun;
 startRun=function(){
   var r=startRun_run.apply(this,arguments);
-  RUN.a=[];RUN.cd={};RUN.rev=false;RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.pool=0;RUN.kc=0;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;
+  RUN.a=[];RUN.cd={};RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;RUN.ac=0;RUN.ovl=false;RUN.vg=false;RUN.sacB=0;RUN.scB=0;RUN.scT=0;RUN.cp=false;RUN.trail=[];RUN.trT=0;RUN.act={id:null,t:-9};
   if(on()&&PL&&PL[0]){
     var m=R();RUN.pl=PL[0];
     ['o','d'].forEach(function(tp){m.eq[tp].slice(0,SLOTS[tp]).forEach(function(k){if(k&&RUNES[parse(k).id])RUN.a.push(parse(k))})});
     var q=PL[0],x;
-    if((x=lv('uruz'))>=0){q.dmg*=1+V.uruz.dmg[x];q.crit=Math.min(1,q.crit+V.uruz.crit[x])}
-    if((x=lv('eihwaz'))>=0){q.armor=Math.min(.8,q.armor+V.eihwaz.arm[x]);q.regen+=q.maxHp*V.eihwaz.reg[x]}
-    if((x=lv('berkano'))>=0){q.maxHp*=1+V.berkano.hp[x];q.hp=q.maxHp;q.regen+=q.maxHp*V.berkano.reg[x]}
-    if((x=lv('ehwaz'))>=0)q.speed*=1+V.ehwaz.spd[x];
-    if((x=lv('mannaz'))>=0){q.xpMul*=1+V.mannaz.xp[x];q.pick*=1+V.mannaz.pick[x]}
-    if((x=lv('othala'))>=0)RUN.pool=q.maxHp*V.othala.pool[x];
-    RUN.cd.sowilo=3;RUN.cd.hagalaz=4;RUN.cd.thurisaz=2;RUN.cd.jera=5;RUN.cd.laguz=CD.laguz[Math.max(0,lv('laguz'))]*.5;RUN.cd.othala=0;
+    for(x in CD)RUN.cd[x]=Math.min(3,CD[x][0]);
   }
   hud();
   return r;
@@ -10047,18 +10052,81 @@ function hud(){
   RUN.hud.style.display=RUN.a.length?'flex':'none';
 }
 function strike(z,m,col){var zx=z.x,zy=z.y;S('crit',zx,zy,0,1);ring(zx,zy,1.1,.3,col);burst(zx,zy,col,12);dmg(z,m,0,0,0)}
-function doRayo(r){
-  var v=V.sowilo,cand=near(P,9).sort(function(a,b){return Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y)}).slice(0,v.n[r]);
-  if(!cand.length)return false;
-  cand.forEach(function(z){
-    var zx=z.x,zy=z.y;strike(z,v.m[r],'#bfe6ff');
-    if(r>=2){var o=null,bd=4;enemies.forEach(function(q){if(q!==z&&!q.dead){var d=Math.hypot(q.x-zx,q.y-zy);if(d<bd){bd=d;o=q}}});if(o){ring(o.x,o.y,.8,.25,'#bfe6ff');dmg(o,v.m[r]*.6)}}
-  });
+function doDescarga(r){
+  var v=V.sowilo,c=near(P,9).sort(function(a,b){return Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y)});
+  if(!c.length)return false;
+  var em=mkem('sowilo'),chain=[c[0]],i,z;
+  for(i=1;i<v.n[r];i++){var nx=null,bd=5,cur=chain[chain.length-1];enemies.forEach(function(q){if(!q.dead&&chain.indexOf(q)<0){var d=Math.hypot(q.x-cur.x,q.y-cur.y);if(d<bd){bd=d;nx=q}}});if(!nx)break;chain.push(nx)}
+  RUN.fx.push({k:'zap',age:0,pts:[{x:P.x,y:P.y}].concat(chain.map(function(q){return {x:q.x,y:q.y}}))});
+  chain.forEach(function(q){ring(q.x,q.y,.9,.25,'#bfe6ff');burst(q.x,q.y,'#bfe6ff',8);S('crit',q.x,q.y,0,.8);dmg(q,v.m[r]*em,0,0,0)});
   return true;
 }
-function doGranizo(r){
-  var v=V.hagalaz,pool=near(P,10);if(!pool.length)return false;
-  for(var i=0;i<v.n[r]&&pool.length;i++){var z=pool.splice(Math.floor(Math.random()*pool.length),1)[0];strike(z,v.m[r],'#d6f2ff')}
+function doTerremoto(r){
+  var v=V.hagalaz,c=near(P,v.rad[r]);if(!c.length)return false;
+  var em=mkem('hagalaz'),px=P.x,py=P.y;
+  S('hit',px,py,0,1);ring(px,py,v.rad[r]*.45,.3,'#b08a5a');
+  RUN.q.push({t:.12,raw:1,f:function(){ring(px,py,v.rad[r]*.75,.3,'#b08a5a');burst(px,py,'#8a6a42',16)}});
+  RUN.q.push({t:.24,raw:1,f:function(){ring(px,py,v.rad[r],.35,'#d2a86a');burst(px,py,'#d2a86a',22);S('hit',px,py,0,1);
+    near({x:px,y:py},v.rad[r]).forEach(function(z){var dx=z.x-px,dy=z.y-py,dd=Math.hypot(dx,dy);dmg(z,v.m[r]*em,dx/(dd||1),dy/(dd||1),3)})}});
+  return true;
+}
+function doReplicas(r){
+  var v=V.gebo;if(!near(P,10).length)return false;
+  var em=mkem('gebo'),n=v.n[r],base=Math.random()*6.2832,i;
+  for(i=0;i<n;i++){
+    var a=base+i*6.2832/n,gx=P.x+Math.cos(a)*1.7,gy=P.y+Math.sin(a)*1.7;if(blocked(gx,gy,.3)){gx=P.x;gy=P.y}
+    var sv={x:P.x,y:P.y,ax:P.ax,ay:P.ay},tg=null,bd=12;
+    enemies.forEach(function(z){if(!z.dead){var d=Math.hypot(z.x-gx,z.y-gy);if(d<bd){bd=d;tg=z}}});
+    var n0=shots.length,z0=zones.length;
+    P.x=gx;P.y=gy;if(tg){P.ax=tg.x-gx;P.ay=tg.y-gy}
+    RUN.cp=true;P.dmg*=em;
+    try{doAttack(true)}finally{RUN.cp=false;P.dmg/=em;P.x=sv.x;P.y=sv.y;P.ax=sv.ax;P.ay=sv.ay}
+    var k;for(k=n0;k<shots.length;k++){if(!shots[k].own)shots[k].own=P;shots[k].mul=(shots[k].mul||1)*em}
+    for(k=z0;k<zones.length;k++){if(!zones[k].own)zones[k].own=P;zones[k].mul*=em}
+    RUN.fx.push({k:'gh',x:gx,y:gy,age:0});burst(gx,gy,'#9fe0ff',8);
+  }
+  return true;
+}
+function doDesplaza(r){
+  var v=V.uruz,c=near(P,10);if(!c.length)return false;
+  var em=mkem('uruz'),best=null,bn=-1;
+  c.forEach(function(z){var n=0;c.forEach(function(q){if(Math.hypot(q.x-z.x,q.y-z.y)<3)n++});if(n>bn){bn=n;best=z}});
+  if(!RUN.echo){
+    var dx=best.x-P.x,dy=best.y-P.y,d=Math.hypot(dx,dy)||1,dist=Math.min(v.dist[r],d-1.5),ok=false,nx=P.x,ny=P.y,s2;
+    if(dist>=1){for(s2=dist;s2>=1&&!ok;s2-=.75){nx=P.x+dx/d*s2;ny=P.y+dy/d*s2;if(!blocked(nx,ny,.35))ok=true}}
+    if(ok){ring(P.x,P.y,1.2,.3,'#c9b0ff');burst(P.x,P.y,'#c9b0ff',14);P.x=nx;P.y=ny;P.gx=nx;P.gy=ny;P.inv=Math.max(P.inv,.35)}
+  }
+  S('hit',P.x,P.y,0,1);ring(P.x,P.y,v.rad[r],.4,'#c9b0ff');burst(P.x,P.y,'#c9b0ff',20);
+  near(P,v.rad[r]).forEach(function(z){var dx2=z.x-P.x,dy2=z.y-P.y,dd=Math.hypot(dx2,dy2);dmg(z,v.m[r]*em,dx2/(dd||1),dy2/(dd||1),5)});
+  return true;
+}
+function doSacrificio(r){
+  var v=V.teiwaz;mkem('teiwaz');
+  if(P.hp<=1.5)return true;
+  var loss=Math.min(P.hp-1,P.hp*v.loss[r]);P.hp-=loss;
+  RUN.sacB=Math.min(v.cap[r],RUN.sacB+loss/P.maxHp*100*v.per[r]/100);
+  addText(P.x,P.y,'Sacrificio +'+Math.round(RUN.sacB*100)+'%','#ff6a6a',14);ring(P.x,P.y,1.4,.35,'#d9444e');burst(P.x,P.y,'#d9444e',12);
+  return true;
+}
+function doCongelar(r){
+  var v=V.laguz,c=near(P,v.rad[r]);if(!c.length)return false;
+  var em=mkem('laguz'),dur=v.dur[r]*(em>1?em:1);
+  c.forEach(function(z){if(z.boss)z.slow=Math.max(z.slow||0,dur);else z.frz=Math.max(z.frz||0,dur)});
+  ring(P.x,P.y,v.rad[r]*.5,.5,'#9fdcff');ring(P.x,P.y,v.rad[r]*.9,.6,'#cfeeff');burst(P.x,P.y,'#cfeeff',24);
+  return true;
+}
+function doVortice(r){
+  var v=V.eihwaz,c=near(P,v.rad[r]);if(!c.length)return false;
+  var em=mkem('eihwaz');
+  c.forEach(function(z){var dx=P.x-z.x,dy=P.y-z.y,d=Math.hypot(dx,dy)||1,disp=Math.max(0,d-1.6)*.9*(z.boss?.2:1)*em;z.kx+=dx/d*disp*3.9;z.ky+=dy/d*disp*3.9});
+  ring(P.x,P.y,v.rad[r]*.9,.5,'#b36bff');ring(P.x,P.y,v.rad[r]*.5,.4,'#d9b0ff');burst(P.x,P.y,'#b36bff',18);
+  return true;
+}
+function doRepulsion(r){
+  var v=V.berkano,c=near(P,v.rad[r]);if(!c.length)return false;
+  var em=mkem('berkano');
+  c.forEach(function(z){var dx=z.x-P.x,dy=z.y-P.y,d=Math.hypot(dx,dy)||1,k=14*(z.boss?.2:1)*em;z.kx+=dx/d*k;z.ky+=dy/d*k});
+  ring(P.x,P.y,v.rad[r],.4,'#8cf09a');ring(P.x,P.y,v.rad[r]*.5,.3,'#c6ffd0');burst(P.x,P.y,'#8cf09a',18);
   return true;
 }
 /* animaciones (sprites en runas/) */
@@ -10066,22 +10134,23 @@ var AIMG={};['cupula','espinas_abajo_derecha','espinas_arriba_derecha','serpient
 var TH_REACH=[.48,1.61,2.27,3.02,4.02,4.27,4.33,4.33,4.33,4.3,4.17,4.02];
 var TH_DIRS=[[1,0,'espinas_abajo_derecha',0],[0,-1,'espinas_arriba_derecha',0],[0,1,'espinas_abajo_derecha',1],[-1,0,'espinas_arriba_derecha',1]];
 function doEspinas(r){
-  var v=V.thurisaz,d=TH_DIRS.slice().sort(function(){return Math.random()-.5}).slice(0,Math.min(4,v.n[r]));
-  d.forEach(function(q){RUN.fx.push({k:'th',x:P.x,y:P.y,age:0,vx:q[0],vy:q[1],spr:q[2],flip:q[3],hit:[],m:v.m[r]})});
+  var em=mkem('thurisaz'),v=V.thurisaz,d=TH_DIRS.slice().sort(function(){return Math.random()-.5}).slice(0,Math.min(4,v.n[r]));
+  d.forEach(function(q){RUN.fx.push({k:'th',x:P.x,y:P.y,age:0,vx:q[0],vy:q[1],spr:q[2],flip:q[3],hit:[],m:v.m[r]*em})});
   S('hit',P.x,P.y,0,.7);
   return true;
 }
 function doNucleo(r,q){
-  var v=V.inguz,sv=P;P=q;RUN.fx.push({k:'dome',x:q.x,y:q.y,age:0,R:v.rad[r]});S('hit',q.x,q.y,0,1);
-  near(q,v.rad[r]).forEach(function(z){var dx=z.x-q.x,dy=z.y-q.y,dd=Math.hypot(dx,dy);dmg(z,v.m[r],dx/(dd||1),dy/(dd||1),5)});
+  var v=V.inguz,sv=P;P=q;var em=mkem('inguz');RUN.fx.push({k:'dome',x:q.x,y:q.y,age:0,R:v.rad[r]});S('hit',q.x,q.y,0,1);
+  near(q,v.rad[r]).forEach(function(z){var dx=z.x-q.x,dy=z.y-q.y,dd=Math.hypot(dx,dy);dmg(z,v.m[r]*em,dx/(dd||1),dy/(dd||1),5)});
   P=sv;
 }
 function doConstrictor(r){
   var v=V.jera,c=near(P,9);if(!c.length)return false;
+  var em=mkem('jera');
   var ce=c[Math.floor(Math.random()*c.length)],g=enemies.filter(function(z){return !z.dead&&Math.hypot(z.x-ce.x,z.y-ce.y)<v.rad[r]+z.r}),cx=0,cy=0;
   g.forEach(function(z){cx+=z.x;cy+=z.y});cx/=g.length;cy/=g.length;
   RUN.fx.push({k:'ser',x:cx,y:cy,age:0,R:v.rad[r]});
-  var dps=P.dmg*v.dps[r],dur=v.dur[r];
+  var dps=P.dmg*v.dps[r]*em,dur=v.dur[r];
   RUN.q.push({t:.5,raw:1,f:function(){S('hit',cx,cy,0,1);g.forEach(function(z){ignite(z,dps,dur)})}});
   return true;
 }
@@ -10098,6 +10167,15 @@ function drawFx(f){
     ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));if(f.flip)ctx.scale(-1,1);
     ctx.drawImage(im,fr*360,0,360,240,-(f.spr==='espinas_abajo_derecha'?32:32)/2,-(f.spr==='espinas_abajo_derecha'?72:196)/2,180,120);
     ctx.restore();
+  }else if(f.k==='gh'){
+    ctx.save();ctx.globalAlpha=Math.max(0,.5*(1-f.age/.7));ctx.fillStyle='#9fe0ff';
+    ctx.beginPath();ctx.ellipse(p.x,p.y,13,6,0,0,6.2832);ctx.fill();
+    ctx.fillStyle=(RUN.pl&&RUN.pl.c&&RUN.pl.c.col)||'#cfeeff';ctx.beginPath();ctx.ellipse(p.x,p.y-20,9,17,0,0,6.2832);ctx.fill();ctx.restore();
+  }else if(f.k==='zap'){
+    var pts=f.pts,j;ctx.save();ctx.globalAlpha=Math.max(0,1-f.age/.3);ctx.strokeStyle='#d8f0ff';ctx.lineWidth=2.5;ctx.shadowColor='#7fc4ff';ctx.shadowBlur=8;ctx.beginPath();
+    for(j=0;j<pts.length;j++){var pj=sp(pts[j].x,pts[j].y);pj={x:pj.x,y:pj.y-14};
+      if(!j)ctx.moveTo(pj.x,pj.y);else{var pa=sp(pts[j-1].x,pts[j-1].y);pa={x:pa.x,y:pa.y-14};for(var q2=1;q2<=3;q2++){var u=q2/4;ctx.lineTo(pa.x+(pj.x-pa.x)*u+(Math.random()-.5)*10,pa.y+(pj.y-pa.y)*u+(Math.random()-.5)*10)}ctx.lineTo(pj.x,pj.y)}}
+    ctx.stroke();ctx.restore();
   }else if(f.k==='ser'){
     im=AIMG.serpiente_fuego;if(!im.complete||!im.naturalWidth)return;
     k=f.R*45.25/38.7;var a2=f.age,row2,c2;
@@ -10109,7 +10187,9 @@ setTimeout(function(){
   var prev=window.EXTRADRAW;
   window.EXTRADRAW=function(list,seen){
     if(prev)prev(list,seen);
-    RUN.fx.forEach(function(f){list.push({d:f.x+f.y+(f.k==='dome'?-.5:0),xd:function(){drawFx(f)}})});
+    RUN.fx.forEach(function(f){var fx0=f.k==='zap'?f.pts[0]:f;list.push({d:fx0.x+fx0.y+(f.k==='dome'?-.5:0)+(f.k==='zap'?9:0),xd:function(){drawFx(f)}})});
+    RUN.trail.forEach(function(tp){list.push({d:tp.x+tp.y-.4,xd:function(){var pp=sp(tp.x,tp.y),al=Math.max(0,1-tp.t/tp.life);ctx.save();ctx.globalAlpha=.55*al;ctx.fillStyle='#7fe0ff';ctx.beginPath();ctx.ellipse(pp.x,pp.y,15*(.5+.5*al),7*(.5+.5*al),0,0,6.2832);ctx.fill();ctx.globalAlpha=.8*al;ctx.fillStyle='#e6fbff';ctx.beginPath();ctx.ellipse(pp.x,pp.y,6,3,0,0,6.2832);ctx.fill();ctx.restore()}})});
+    if(RUN.a.length)for(var fi=0;fi<enemies.length;fi++){var fe=enemies[fi];if(fe.frz>0&&!fe.dead)(function(fe){list.push({d:fe.x+fe.y+.05,xd:function(){var pp=sp(fe.x,fe.y);ctx.save();ctx.globalAlpha=.42;ctx.fillStyle='#bfeaff';ctx.beginPath();ctx.ellipse(pp.x,pp.y-fe.r*30,fe.r*34,fe.r*52,0,0,6.2832);ctx.fill();ctx.globalAlpha=.7;ctx.strokeStyle='#eefaff';ctx.lineWidth=1.5;ctx.stroke();ctx.restore()}})})(fe)}
   };
 },0);
 /* Escarcha: capa de nieve (nieve.png, 64 fotogramas de 256x256) recortada al radio de la runa */
@@ -10147,10 +10227,31 @@ playerStep=function(dt){
   for(k in RUN.cd)if(RUN.cd[k]>0)RUN.cd[k]-=dt;
   /* cola de repeticiones (Mimo) y efectos visuales */
   for(i=RUN.q.length-1;i>=0;i--){var it=RUN.q[i];it.t-=dt;if(it.t<=0){RUN.q.splice(i,1);if(it.raw)it.f();else{RUN.echo=true;try{it.f()}finally{RUN.echo=false}}}}
-  r=lv('sowilo');
-  if(r>=0&&RUN.cd.sowilo<=0){if(doRayo(r)){RUN.cd.sowilo=V.sowilo.cd[r];mimo(bind(doRayo,r))}else RUN.cd.sowilo=.5}
   r=lv('hagalaz');
-  if(r>=0&&RUN.cd.hagalaz<=0){if(doGranizo(r)){RUN.cd.hagalaz=V.hagalaz.cd[r];mimo(bind(doGranizo,r))}else RUN.cd.hagalaz=.5}
+  if(r>=0&&RUN.cd.hagalaz<=0){if(doTerremoto(r)){RUN.cd.hagalaz=V.hagalaz.cd[r];mimo(bind(doTerremoto,r))}else RUN.cd.hagalaz=.5}
+  r=lv('gebo');
+  if(r>=0&&RUN.cd.gebo<=0){if(doReplicas(r)){RUN.cd.gebo=V.gebo.cd[r];mimo(bind(doReplicas,r))}else RUN.cd.gebo=.5}
+  r=lv('uruz');
+  if(r>=0&&RUN.cd.uruz<=0){if(doDesplaza(r)){RUN.cd.uruz=V.uruz.cd[r];mimo(bind(doDesplaza,r))}else RUN.cd.uruz=.5}
+  r=lv('teiwaz');
+  if(r>=0&&RUN.cd.teiwaz<=0){RUN.cd.teiwaz=V.teiwaz.cd[r];doSacrificio(r)}
+  r=lv('laguz');
+  if(r>=0&&RUN.cd.laguz<=0){if(doCongelar(r))RUN.cd.laguz=V.laguz.cd[r];else RUN.cd.laguz=.5}
+  r=lv('eihwaz');
+  if(r>=0&&RUN.cd.eihwaz<=0){if(doVortice(r))RUN.cd.eihwaz=V.eihwaz.cd[r];else RUN.cd.eihwaz=.5}
+  r=lv('berkano');
+  if(r>=0&&RUN.cd.berkano<=0){if(doRepulsion(r))RUN.cd.berkano=V.berkano.cd[r];else RUN.cd.berkano=.5}
+  /* Sobrecoste: se pierde al pasar el tiempo sin activar */
+  if(RUN.scB>0){RUN.scT-=dt;if(RUN.scT<=0)RUN.scB=0}
+  /* Estela */
+  r=lv('ehwaz');
+  if(r>=0){
+    RUN.trT-=dt;if(P.moving&&RUN.trT<=0){RUN.trT=.18;RUN.trail.push({x:P.x,y:P.y,t:0,life:V.ehwaz.life[r],hit:[]});if(RUN.trail.length>26)RUN.trail.shift()}
+  }
+  for(i=RUN.trail.length-1;i>=0;i--){
+    var tp=RUN.trail[i];tp.t+=dt;if(tp.t>=tp.life){RUN.trail.splice(i,1);continue}
+    if(r>=0)for(k=0;k<enemies.length;k++){var ze=enemies[k];if(ze.dead||tp.hit.indexOf(ze)>=0)continue;if(Math.hypot(ze.x-tp.x,ze.y-tp.y)<.85+ze.r){tp.hit.push(ze);dmg(ze,V.ehwaz.m[r],0,0,0)}}
+  }
   r=lv('thurisaz');
   if(r>=0&&RUN.cd.thurisaz<=0){RUN.cd.thurisaz=V.thurisaz.cd[r];doEspinas(r);mimo(bind(doEspinas,r))}
   r=lv('jera');
@@ -10183,10 +10284,6 @@ playerStep=function(dt){
     if(low&&!RUN.low){RUN.low=true;P.dmg*=1+v.dmg[r];P.rate*=1+v.rate[r];toast('Pánico')}
     else if(!low&&RUN.low){RUN.low=false;P.dmg/=1+v.dmg[r];P.rate/=1+v.rate[r]}
   }
-  r=lv('laguz');
-  if(r>=0&&RUN.cd.laguz<=0){RUN.cd.laguz=V.laguz.cd[r];ring(P.x,P.y,1.8,.5,'#7fe0c8');burst(P.x,P.y,'#7fe0c8',14);heal(P,V.laguz.hp[r])}
-  r=lv('othala');
-  if(r>=2&&RUN.cd.othala<=0&&RUN.pool<=0){RUN.pool=P.maxHp*V.othala.pool[r];RUN.cd.othala=V.othala.cd[r];ring(P.x,P.y,1.6,.4,'#ffe08a')}
   /* Escarcha */
   r=lv('isa');
   if(r>=0){
@@ -10201,7 +10298,7 @@ playerStep=function(dt){
   RUN.hudT-=dt;
   if(RUN.hudT<=0&&RUN.hud){
     RUN.hudT=.2;
-    Array.prototype.forEach.call(RUN.hud.children,function(c){var id=c.dataset.id,a=CD[id],rr=lv(id);if(a&&rr>=0){var f=Math.max(0,Math.min(1,(RUN.cd[id]||0)/a[rr]));c.firstChild.nextSibling.style.height=(f*100)+'%'}else if(id==='othala'){c.firstChild.nextSibling.style.height=(RUN.pool>0?0:100)+'%'}})
+    Array.prototype.forEach.call(RUN.hud.children,function(c){var id=c.dataset.id,a=CD[id],rr=lv(id);if(a&&rr>=0){var f=Math.max(0,Math.min(1,(RUN.cd[id]||0)/a[rr]));c.firstChild.nextSibling.style.height=(f*100)+'%'}})
   }
 };
 var hitEnemy_run=hitEnemy;
@@ -10210,8 +10307,6 @@ hitEnemy=function(e,r,kx,ky,kb,quiet){
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
   var b=lv('kenaz');
   if(b>=0&&!e.dead&&Math.random()<V.kenaz.ch[b])ignite(e,P.dmg*V.kenaz.dps[b],V.kenaz.dur[b]);
-  var g=lv('gebo');
-  if(g>=0&&!e.dead&&Math.random()<V.gebo.ch[g]){var gm=V.gebo.m[g];ring(e.x,e.y,.9,.25,'#ffd25a');dmg(e,gm);mimo(function(){if(!e.dead){ring(e.x,e.y,.9,.25,'#ffd25a');dmg(e,gm)}})}
 };
 function explodeAt(ex,ey,rad,m,skip,col){
   ring(ex,ey,rad,.35,col);burst(ex,ey,col,14);S('hit',ex,ey,0,.8);
@@ -10222,11 +10317,34 @@ var killEnemy_run=killEnemy;
 killEnemy=function(e){
   killEnemy_run.apply(this,arguments);
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
-  var x=lv('teiwaz');
-  if(x>=0&&Math.random()<V.teiwaz.ch[x]){var ex=e.x,ey=e.y,tr=V.teiwaz.rad[x],tm=V.teiwaz.m[x];explodeAt(ex,ey,tr,tm,e,'#ffb36b');mimo(function(){explodeAt(ex,ey,tr,tm,e,'#ffb36b')})}
-  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x],e,'#ff6a2a');
-  x=lv('wunjo');if(x>=0&&++RUN.kc>=V.wunjo.k[x]){RUN.kc=0;heal(P,V.wunjo.hp[x]);ring(P.x,P.y,1.4,.35,'#ffe08a')}
+  var x;
+  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');
   x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;P.dmg*=1+V.fehu.dmg[x];addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
+};
+/* daño: bonificaciones de Sacrificio y Sobrecoste en todas las tiradas de daño */
+var roll_run=roll;
+roll=function(m){return roll_run.call(this,m*(1+bon()))};
+/* ataque: Venganza (siguiente ataque) y Sobrecarga (cada K ataques) */
+var doAttack_run=doAttack;
+doAttack=function(second){
+  if(RUN.cp||second||!RUN.a.length||P!==RUN.pl)return doAttack_run.apply(this,arguments);
+  var b=1,vr=lv('dagaz'),so=lv('sowilo'),disch=RUN.ovl,n0=shots.length,z0=zones.length,k;
+  if(vr>=0&&RUN.vg){b=1+V.dagaz.b[vr];RUN.vg=false;ring(P.x,P.y,1.1,.25,'#ff9ab0')}
+  P.dmg*=b;
+  try{doAttack_run.apply(this,arguments)}finally{P.dmg/=b}
+  if(b>1){for(k=n0;k<shots.length;k++)shots[k].mul=(shots[k].mul||1)*b;for(k=z0;k<zones.length;k++)zones[k].mul*=b}
+  if(so>=0){
+    if(disch){RUN.ovl=false;if(doDescarga(so))mimo(bind(doDescarga,so));else RUN.ovl=true}
+    else if(++RUN.ac>=V.sowilo.k[so]){RUN.ac=0;RUN.ovl=true;ring(P.x,P.y,.9,.2,'#bfe6ff')}
+  }
+};
+/* Congelación: los enemigos congelados no se mueven ni atacan */
+var updateEnemies_run=updateEnemies;
+updateEnemies=function(dt){
+  if(!RUN.a.length||lv('laguz')<0)return updateEnemies_run.apply(this,arguments);
+  var fz=[],i,e;
+  for(i=0;i<enemies.length;i++){e=enemies[i];if(e.frz>0){e.frz-=dt;fz.push(e,e.speed);e.speed=0;e.cd=Math.max(e.cd||0,.25);if(e.shoot!==undefined)e.shoot=Math.max(e.shoot,.3)}}
+  try{updateEnemies_run.apply(this,arguments)}finally{for(i=0;i<fz.length;i+=2)fz[i].speed=fz[i+1]}
 };
 var hurtPlayer_run=hurtPlayer;
 hurtPlayer=function(d,who){
@@ -10237,9 +10355,7 @@ hurtPlayer=function(d,who){
   var nr=lv('inguz');
   if(nr>=0&&++RUN.hits>=V.inguz.k[nr]){RUN.hits=0;var fnr=function(){doNucleo(nr,q)};fnr();mimo(fnr)}
   if((x=lv('algiz'))>=0&&Math.random()<V.algiz.ch[x]){q.inv=.35;addText(q.x,q.y,'Evitado','#ffe08a',15);ring(q.x,q.y,1.3,.3,'#ffe08a');return}
-  if(RUN.pool>0){var ab=Math.min(RUN.pool,d);RUN.pool-=ab;d-=ab;addText(q.x,q.y,'Escudo','#ffe08a',14);ring(q.x,q.y,1.3,.25,'#ffe08a');if(d<=.01){q.inv=.3;if(RUN.pool<=0)RUN.cd.othala=Math.max(RUN.cd.othala,lv('othala')>=2?V.othala.cd[lv('othala')]:0);return}}
-  var a=lv('dagaz');
-  if(a>=0&&!RUN.rev&&q.hp-d*(1-q.armor)<=0){RUN.rev=true;q.hp=q.maxHp*V.dagaz.hp[a];q.inv=a>=2?2:.8;ring(q.x,q.y,2.4,.6,'#ff9ab0');burst(q.x,q.y,'#ff9ab0',20);toast('Segundo aliento');return}
+  if((x=lv('dagaz'))>=0){RUN.vg=true;addText(q.x,q.y-.5,'Venganza','#ff9ab0',12)}
   hurtPlayer_run.call(this,d,who);
 };
 /* ---------- botín al terminar ---------- */
@@ -10264,7 +10380,7 @@ function note(){
 }
 var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return r};
 var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
-window.__RUN={RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv,ORDER:ORDER};
+window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv,ORDER:ORDER};
 })();
 
 /* (los aspectos remodelados del druida y la monja ya son los aspectos normales) */
