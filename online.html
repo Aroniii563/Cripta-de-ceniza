@@ -10439,6 +10439,542 @@ window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv
 /* (los aspectos remodelados del druida y la monja ya son los aspectos normales) */
 
 /* ==========================================================================
+   EL ARCHIVO  (evento del modo infinito · zona del portal)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS de los bloques de los mapas (mientras estás dentro de El Archivo usa sanctOn /
+   drawSanctFloor / drawSanctProp / drawSanctAtmos como punto de dibujo; fuera de él
+   todo funciona exactamente igual que antes). Los jefes de El Archivo van en bloques
+   aparte que se pegan DESPUÉS de este (se apuntan en ZV_BOSSES).
+   Qué hace:
+   - Solo en el modo infinito (tras vencer al jefe del minuto 20, con el Escritor ya
+     derrotado), cada cierto tiempo se abre un portal verde y morado a los pies del
+     jugador y lo arrastra dentro.
+   - El Archivo es una catedral gótica convertida en archivo, de la mitad de tamaño que
+     los mapas (30x30): losas de piedra con cuadrilóbulos y lápidas, un laberinto de
+     catedral incrustado en el centro con rosetón, pilares de haz de nervios (con bóveda,
+     con aro de velas o rotos), estanterías góticas llenas de libros, atriles con libros
+     abiertos, y muros con vidrieras apuntadas y rosetones en el borde. Ambiente: haces
+     de luz morada y verde de las vidrieras, polvo en suspensión y brillo de las velas.
+   - Dentro no salen enemigos: solo aparece uno de los jefes de El Archivo (van por turnos).
+     Mientras dura el combate se congelan el temporizador del jefe normal y los eventos.
+   - Al derrotarlo se abre el portal de vuelta y te devuelve al mapa normal, al mismo
+     sitio, con los enemigos y orbes que habías dejado allí.
+   Archivos: archivo/ (suelo, laberinto, pilares, estanterías, atril, muros, calcos) y efectos/portal.png.
+   ========================================================================== */
+var ZV_CFG={min:600,max:1200,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5};   /* portal cada 10-20 min; jefe con el doble de vida y el triple de daño; +5 niveles */
+function zvRand(){return ZV_CFG.min+Math.random()*(ZV_CFG.max-ZV_CFG.min)}
+var ZV_BOSSES=[];   /* {id,name,spawn(x,y)->enemigo} · los añaden los bloques de cada jefe */
+var ZV_SRC={"tw":128,"th":64,"floors":4,
+  "props":{"atril": {"w": 150, "h": 197, "fx": 75.0, "fy": 153.0}, "columna0": {"w": 150, "h": 287, "fx": 75.0, "fy": 243.0}, "columna1": {"w": 150, "h": 264, "fx": 75.0, "fy": 220.0}, "columna2": {"w": 150, "h": 193, "fx": 75.0, "fy": 149.0}, "deco0": {"w": 72, "h": 64, "fx": 36.0, "fy": 32.0}, "deco1": {"w": 72, "h": 64, "fx": 36.0, "fy": 32.0}, "deco2": {"w": 72, "h": 64, "fx": 36.0, "fy": 32.0}, "deco3": {"w": 72, "h": 64, "fx": 36.0, "fy": 32.0}, "estante0": {"w": 140, "h": 283, "fx": 70.0, "fy": 243.0}, "estante1": {"w": 140, "h": 283, "fx": 70.0, "fy": 243.0}, "muro0": {"w": 140, "h": 264, "fx": 70.0, "fy": 224.0}, "muro1": {"w": 140, "h": 264, "fx": 70.0, "fy": 224.0}},
+  "circulo":{"w":640,"h":320},
+  "portal":{"src":"efectos/portal.png","fw":200,"fh":240,"cx":100,"pie_y":212,"filas":{"abre":8,"bucle":8,"cierra":8},"fps":{"abre":12,"bucle":10,"cierra":12}}};
+var ZV={lights:[],img:{},n:0,ready:false,on:false,saved:null,portal:null,exit:null,t:0,next:0,flash:0,type:null,cache:{},order:[],N0:N,bi:0,boss:null,bossDone:false,doneT:0};
+(function(){
+  var files={suelo:'archivo/suelo.png',circulo:'archivo/circulo.png',portal:ZV_SRC.portal.src};
+  Object.keys(ZV_SRC.props).forEach(function(k){files[k]='archivo/'+k+'.png'});
+  var ks=Object.keys(files);
+  ks.forEach(function(k){var im=new Image();im.onload=function(){ZV.img[k]=im;ZV.n++;if(ZV.n===ks.length)ZV.ready=true};im.src=files[k]});
+})();
+
+/* ---------- generación de El Archivo (30x30) ---------- */
+var ZV_TYPES=['columna0','columna1','columna2','estante0','estante1','atril'];
+function zvGen(){
+  var n=N,x,y,i,c=n/2,k;
+  map=new Uint8Array(n*n);vari=new Uint8Array(n*n);ZV.type=new Int8Array(n*n).fill(-1);ZV.cache={};ZV.order=[];ZV.lights=[];
+  for(y=0;y<n;y++)for(x=0;x<n;x++){i=y*n+x;vari[i]=Math.floor(Math.random()*4);if(x===0||y===0||x===n-1||y===n-1)map[i]=1}
+  function put(x,y,t){
+    if(x<2||y<2||x>n-3||y>n-3)return;
+    if(Math.hypot(x+.5-c,y+.5-c)<4.2)return;            /* centro libre: laberinto y portal de vuelta */
+    var i=y*n+x;if(map[i])return;map[i]=1;ZV.type[i]=t;
+    if(t===1||t===5)ZV.lights.push({x:x+.5,y:y+.5});
+  }
+  /* crucero: ocho pilares de bóveda alrededor del laberinto */
+  for(k=0;k<8;k++){var a=k*Math.PI/4+Math.PI/8;put(Math.floor(c+Math.cos(a)*6.2),Math.floor(c+Math.sin(a)*6.2),k%2?1:0)}
+  /* naves: filas de pilares a lo largo de los dos ejes, algún pilar roto */
+  for(k=-2;k<=2;k++){if(!k)continue;var d=k*4.5;
+    [[c+d,c-3.5],[c+d,c+3.5],[c-3.5,c+d],[c+3.5,c+d]].forEach(function(p){if(Math.abs(d)>5)put(Math.floor(p[0]),Math.floor(p[1]),Math.random()<.2?2:(Math.random()<.6?0:1))});
+  }
+  /* archivo: en cada esquina, pasillos de estanterías con un atril */
+  [[1,1],[-1,1],[1,-1],[-1,-1]].forEach(function(s){
+    var ox=c+s[0]*9.5,oy=c+s[1]*9.5;
+    for(var r=0;r<2;r++)for(var j=-1;j<=1;j++){if(Math.random()<.15)continue;put(Math.floor(ox+j),Math.floor(oy+r*2.5*s[1]-1.25*s[1]),3+Math.floor(Math.random()*2))}
+    put(Math.floor(ox+2.5*s[0]),Math.floor(oy),5);
+  });
+  /* algún atril suelto en las naves */
+  for(k=0;k<3;k++){var ax=3+Math.floor(Math.random()*(n-6)),ay=3+Math.floor(Math.random()*(n-6));if(Math.hypot(ax-c,ay-c)>7)put(ax,ay,5)}
+}
+function zvProp(x,y){
+  var i=y*N+x,h=cHash(i,611);
+  if(x===0||y===0||x===N-1||y===N-1)return h<.72?'muro0':'muro1';
+  var t=ZV.type?ZV.type[i]:-1;return t<0?'columna'+Math.floor(h*3):ZV_TYPES[t];
+}
+function zvDrawProp(x,y){
+  var k=zvProp(x,y),d=ZV_SRC.props[k],im=ZV.img[k];if(!d||!im)return false;
+  var c=sp(x+.5,y+.5);ctx.drawImage(im,Math.round(c.x-d.fx/2),Math.round(c.y-d.fy/2),d.w/2,d.h/2);return true;
+}
+function zvChunk(cx,cy){
+  var key=cx+','+cy,c=ZV.cache[key];if(c)return c;
+  var x0=cx*CHUNK,y0=cy*CHUNK,x1=Math.min(N,x0+CHUNK),y1=Math.min(N,y0+CHUNK),pad=16,S=2;
+  var minX=sp(x0,y1).x-pad,maxX=sp(x1,y0).x+pad,minY=sp(x0,y0).y-pad,maxY=sp(x1,y1).y+pad;
+  var cv2=document.createElement('canvas');cv2.width=Math.ceil((maxX-minX)*S);cv2.height=Math.ceil((maxY-minY)*S);
+  var g=cv2.getContext('2d');g.imageSmoothingEnabled=false;g.setTransform(S,0,0,S,-minX*S,-minY*S);
+  var x,y,i,A=ZV_SRC;
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){
+    i=y*N+x;var q=sp(x,y),f=Math.floor(cHash(i,613)*A.floors),row=(x+y)%2;
+    g.drawImage(ZV.img.suelo,f*A.tw,row*A.th,A.tw,A.th,q.x-32,q.y,64,32);
+  }
+  for(y=y0;y<y1;y++)for(x=x0;x<x1;x++){
+    i=y*N+x;if(map[i]===1)continue;
+    var r=cHash(i,614),dk=r<.03?'deco0':r<.045?'deco1':r<.055?'deco2':r<.07?'deco3':null,dd=dk&&A.props[dk];
+    if(dd&&Math.hypot(x+.5-N/2,y+.5-N/2)>3){var cc=sp(x+.5,y+.5);g.drawImage(ZV.img[dk],Math.round(cc.x-dd.fx/2),Math.round(cc.y-dd.fy/2),dd.w/2,dd.h/2)}
+  }
+  c={cv:cv2,x:minX,y:minY,w:maxX-minX,h:maxY-minY};ZV.cache[key]=c;return c;
+}
+function zvFloor(x0,x1,y0,y1,vl,vr,vt,vb){
+  for(var cy=Math.floor(y0/CHUNK);cy<=Math.floor(y1/CHUNK);cy++)for(var cx=Math.floor(x0/CHUNK);cx<=Math.floor(x1/CHUNK);cx++){
+    var ax=cx*CHUNK,ay=cy*CHUNK,bx=Math.min(N,ax+CHUNK),by=Math.min(N,ay+CHUNK);
+    if(sp(bx,ay).x<vl||sp(ax,by).x>vr||sp(bx,by).y<vt||sp(ax,ay).y>vb)continue;
+    var c=zvChunk(cx,cy);ctx.drawImage(c.cv,c.x,c.y,c.w,c.h);
+  }
+  /* laberinto de catedral incrustado en el centro */
+  var ci=ZV.img.circulo,cp=sp(N/2,N/2),cw=ZV_SRC.circulo.w/2,ch=ZV_SRC.circulo.h/2;
+  ctx.drawImage(ci,Math.round(cp.x-cw/2),Math.round(cp.y-ch/2),cw,ch);
+}
+/* ---------- ambiente ---------- */
+var zvCv=null,zvG=null;
+function zvAtmos(){
+  var cs=sp(cam.x,cam.y),pp=P?sp(P.x,P.y):cs,k;
+  function scr(wx,wy,lift){var p=sp(wx,wy);return {x:(p.x-cs.x)*Z+W/2,y:(p.y-(lift||0)-cs.y)*Z+H/2}}
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);
+  /* polvo en suspensión, deriva lenta */
+  for(k=0;k<55;k++){
+    var cellW=W*1.3,cellH=H*1.3,bx=cHash(k,621)*cellW,by=cHash(k,622)*cellH;
+    var sx=((bx-cs.x*Z*.9+Math.sin(t*.25+k)*30)%cellW+cellW)%cellW-W*.15;
+    var sy=((by-cs.y*Z*.9+Math.cos(t*.2+k*1.7)*20-t*4)%cellH+cellH)%cellH-H*.15;
+    var tw=.4+.6*Math.max(0,Math.sin(t*(.8+cHash(k,623))+k));
+    ctx.globalAlpha=.5*tw;ctx.fillStyle=k%4?'#e4dcf0':(k%8?'#d8b0ff':'#b8ffb0');ctx.fillRect(Math.round(sx),Math.round(sy),k%6===0?2:1,k%6===0?2:1);
+  }
+  ctx.globalAlpha=1;
+  var q=4,cw=Math.ceil(W/q),ch=Math.ceil(H/q);
+  if(!zvCv){zvCv=document.createElement('canvas');zvG=zvCv.getContext('2d')}
+  if(zvCv.width!==cw||zvCv.height!==ch){zvCv.width=cw;zvCv.height=ch}
+  var g=zvG;g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cw,ch);
+  g.fillStyle='rgba(18,8,32,.22)';g.fillRect(0,0,cw,ch);
+  var dx=((pp.x-cs.x)*Z+W/2)/q,dy=((pp.y-16-cs.y)*Z+H/2)/q,R=Math.max(cw,ch);
+  var dg=g.createRadialGradient(dx,dy,R*.2,dx,dy,R*.72);
+  dg.addColorStop(0,'rgba(4,2,8,0)');dg.addColorStop(.6,'rgba(6,3,12,.45)');dg.addColorStop(1,'rgba(3,1,8,.86)');
+  g.fillStyle=dg;g.fillRect(0,0,cw,ch);
+  g.globalCompositeOperation='lighter';
+  /* haces de luz de las vidrieras (morados y verdes) que caen en diagonal desde los muros */
+  for(var b=0;b<8;b++){
+    var side=b%4,along=2+((b*7)%5)*5.2,wx=side===0?.6:side===1?N-.6:along,wy=side<2?along:(side===2?.6:N-.6);
+    var dxw=side===0?1:side===1?-1:0,dyw=side===2?1:side===3?-1:0;
+    var A0=scr(wx,wy,150),A1=scr(wx+dxw*5+dyw*.0,wy+dyw*5,0),wd=26*Z/q;
+    var col=b%2?'150,90,255':'90,230,110',br=.1+.04*Math.sin(t*.7+b*1.9);
+    var gr=g.createLinearGradient(A0.x/q,A0.y/q,A1.x/q,A1.y/q);gr.addColorStop(0,'rgba('+col+','+br+')');gr.addColorStop(1,'rgba('+col+',0)');
+    g.fillStyle=gr;g.beginPath();g.moveTo(A0.x/q-wd*.3,A0.y/q);g.lineTo(A0.x/q+wd*.3,A0.y/q);g.lineTo(A1.x/q+wd,A1.y/q);g.lineTo(A1.x/q-wd,A1.y/q);g.closePath();g.fill();
+  }
+  /* brillo cálido de las velas */
+  ZV.lights.forEach(function(L,i){
+    var s=scr(L.x,L.y,30),rr=(46+4*Math.sin(t*9+i*2.1))*Z/q;
+    var lg=g.createRadialGradient(s.x/q,s.y/q,0,s.x/q,s.y/q,rr);lg.addColorStop(0,'rgba(255,190,110,.32)');lg.addColorStop(1,'rgba(255,150,70,0)');
+    g.fillStyle=lg;g.fillRect(s.x/q-rr,s.y/q-rr,rr*2,rr*2);
+  });
+  /* leve luz verde en el rosetón del laberinto */
+  var cp=scr(N/2,N/2,0),rg=g.createRadialGradient(cp.x/q,cp.y/q,0,cp.x/q,cp.y/q,40*Z/q);
+  rg.addColorStop(0,'rgba(120,240,120,.16)');rg.addColorStop(1,'rgba(120,240,120,0)');g.fillStyle=rg;g.fillRect(0,0,cw,ch);
+  g.globalCompositeOperation='source-over';
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(zvCv,0,0,W,H);ctx.imageSmoothingEnabled=false;
+  if(ZV.flash>0){ctx.globalAlpha=Math.min(1,ZV.flash)*.85;ctx.fillStyle='#9af08a';ctx.fillRect(0,0,W,H);ctx.globalAlpha=1}
+  ctx.restore();
+}
+/* destello al salir (también en el mapa normal) */
+function zvFlashOverlay(){
+  if(ZV.on||ZV.flash<=0)return;
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.globalAlpha=Math.min(1,ZV.flash)*.85;ctx.fillStyle='#c890ff';ctx.fillRect(0,0,W,H);ctx.restore();
+}
+/* ---------- portales ---------- */
+function zvPortalFrame(o){
+  var S=ZV_SRC.portal,fA=S.fps.abre,fB=S.fps.bucle,fC=S.fps.cierra,nA=S.filas.abre,nC=S.filas.cierra;
+  if(o.st==='cierra'){var c=Math.floor(o.tc*fC);return c>=nC?null:[2,c]}
+  var ta=o.t*fA;if(ta<nA)return [0,Math.floor(ta)];
+  return [1,Math.floor((o.t-nA/fA)*fB)%S.filas.bucle];
+}
+function zvOpen(o){return o&&o.st!=='cierra'&&o.t>ZV_SRC.portal.filas.abre/ZV_SRC.portal.fps.abre}
+function zvDrawPortal(o){
+  var im=ZV.img.portal;if(!im)return;var fr=zvPortalFrame(o);if(!fr)return;
+  var S=ZV_SRC.portal,k=ZV_CFG.escala,p=sp(o.x,o.y);
+  ctx.drawImage(im,fr[1]*S.fw,fr[0]*S.fh,S.fw,S.fh,Math.round(p.x-S.cx*k),Math.round(p.y-S.pie_y*k),S.fw*k,S.fh*k);
+}
+function zvSpot(){
+  var T=livePlayer();
+  for(var k=0;k<24;k++){
+    var a=Math.random()*6.283,d=1.1+Math.random()*.6,x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
+    if(!blocked(x,y,.5))return {x:x,y:y};
+  }
+  return {x:T.x,y:T.y};
+}
+/* modo infinito: Escritor derrotado y el jefe del minuto 20 de este mapa ya vencido */
+function zvInfinite(){
+  if(typeof RUNINF==='undefined'||!RUNINF||curMap>=5||won)return false;     /* solo si el jugador ha elegido jugar en modo infinito */
+  if(typeof TW!=='undefined'&&TW.on)return false;
+  if(typeof ON!=='undefined'&&ON.on)return false;
+  return bossKills>=4;
+}
+function zvCanSpawn(){
+  if(ZV.on||ZV.portal||!ZV.ready||!ZV_BOSSES.length)return false;
+  if(bossAlive)return false;
+  if(typeof EVT!=='undefined'&&EVT&&EVT.cur)return false;      /* no se abre con un evento en marcha */
+  if(nextBoss-t<25)return false;
+  return true;
+}
+function zvEnter(){
+  var o=ZV.portal;
+  ZV.saved={map:map,vari:vari,N:N,enemies:enemies,orbs:orbs,haz:haz,corpses:corpses,zones:zones,
+    carpet:typeof carpet!=='undefined'?carpet:null,sw:typeof swampWater!=='undefined'?swampWater:null,
+    lava:typeof forgeLava!=='undefined'?forgeLava:null,sc:typeof sanctCarpet!=='undefined'?sanctCarpet:null,
+    px:o.x,py:o.y};
+  N=ZV_CFG.n;zvGen();
+  var z0=new Uint8Array(N*N);
+  if(typeof carpet!=='undefined'&&carpet)carpet=z0;if(typeof swampWater!=='undefined'&&swampWater)swampWater=z0;
+  if(typeof forgeLava!=='undefined'&&forgeLava)forgeLava=z0;if(typeof sanctCarpet!=='undefined'&&sanctCarpet)sanctCarpet=z0;
+  enemies=[];shots=[];orbs=[];haz=[];corpses=[];zones=[];sfx=[];
+  PL.forEach(function(q,k){q.x=N/2+.5+(k?1:0);q.y=N/2+2.5;q.inv=Math.max(q.inv||0,1.5)});
+  cam.x=P.x;cam.y=P.y;fcellA=[-1,-1,-1,-1];
+  ZV.on=true;ZV.t=0;ZV.portal=null;ZV.exit=null;ZV.flash=1;ZV.boss=null;ZV.bossDone=false;ZV.doneT=0;
+  toast('El portal te ha arrastrado a El Archivo');
+}
+function zvLeave(){
+  var s=ZV.saved;if(!s)return;
+  N=s.N;map=s.map;vari=s.vari;enemies=s.enemies;orbs=s.orbs;haz=s.haz;corpses=s.corpses;zones=s.zones;shots=[];sfx=[];
+  if(s.carpet!==null&&typeof carpet!=='undefined')carpet=s.carpet;if(s.sw!==null&&typeof swampWater!=='undefined')swampWater=s.sw;
+  if(s.lava!==null&&typeof forgeLava!=='undefined')forgeLava=s.lava;if(s.sc!==null&&typeof sanctCarpet!=='undefined')sanctCarpet=s.sc;
+  PL.forEach(function(q,k){q.x=s.px+(k?.8:0);q.y=s.py+.6;q.inv=Math.max(q.inv||0,1.5)});
+  cam.x=P.x;cam.y=P.y;fcellA=[-1,-1,-1,-1];
+  ZV.on=false;ZV.saved=null;ZV.exit=null;ZV.flash=1;
+  ZV.portal={x:s.px,y:s.py,t:99,st:'cierra',tc:0};          /* el portal de entrada se cierra detrás de ti */
+  ZV.next=t+zvRand();ZV.bi++;ZV.boss=null;
+  toast('Has salido de El Archivo');
+}
+function zvNear(o){
+  for(var k=0;k<PL.length;k++){var q=PL[k];if(!q.dead&&Math.hypot(q.x-o.x,q.y-o.y)<.75)return true}
+  return false;
+}
+/* el portal abierto arrastra a los jugadores hacia su centro y, pasado el tiempo, los mete dentro */
+function zvPull(o,dt){
+  o.pt=(o.pt||0)+dt;
+  PL.forEach(function(q){if(q.dead)return;var dx=o.x-q.x,dy=o.y-q.y,d=Math.hypot(dx,dy);if(d>.05){var v=Math.min(d,dt*(2+4*o.pt));q.x+=dx/d*v;q.y+=dy/d*v}});
+  return o.pt>=ZV_CFG.tirar;
+}
+function zvUpdate(dt){
+  if(ZV.flash>0)ZV.flash=Math.max(0,ZV.flash-dt*2.2);
+  if(!ZV.on){
+    var o=ZV.portal;
+    if(o&&o.st==='cierra'){o.tc+=dt;if(!zvPortalFrame(o))ZV.portal=null}
+    else if(o){o.t+=dt;if(zvOpen(o)&&zvPull(o,dt))zvEnter()}
+    if(!zvInfinite()){ZV.next=0;return}
+    if(!ZV.next)ZV.next=t+zvRand();
+    if(t>=ZV.next&&zvCanSpawn()){
+      var s=zvSpot();ZV.portal={x:s.x,y:s.y,t:0,st:'abre',tc:0};
+      toast('¡Se abre un portal a El Archivo bajo tus pies!');ZV.next=t+zvRand();
+    }
+  }else{
+    ZV.t+=dt;
+    /* el combate congela el jefe normal y los eventos */
+    nextBoss+=dt;if(typeof EVT!=='undefined'&&EVT&&EVT.next)EVT.next+=dt;
+    if(!ZV.boss&&!ZV.bossDone&&ZV.t>1.2){
+      var B=ZV_BOSSES[Math.floor(Math.random()*ZV_BOSSES.length)],T=livePlayer(),bx=N-1-T.x,by=N-1-T.y;
+      if(Math.hypot(bx-T.x,by-T.y)<5){bx=N/2;by=N/2-4}
+      ZV.boss=B.spawn(bx,by);
+    }
+    if(ZV.bossDone){
+      ZV.doneT+=dt;
+      if(!ZV.exit&&ZV.doneT>1.5){var T2=livePlayer();ZV.exit={x:T2.x+.9,y:T2.y+.9,t:0,st:'abre',tc:0};if(blocked(ZV.exit.x,ZV.exit.y,.4)){ZV.exit.x=T2.x;ZV.exit.y=T2.y}toast('El portal de regreso se ha abierto')}
+      if(ZV.exit){ZV.exit.t+=dt;if(zvOpen(ZV.exit)&&ZV.exit.t>ZV_CFG.salida-ZV_CFG.tirar+.67&&zvPull(ZV.exit,dt))zvLeave()}
+    }
+  }
+}
+function zvReset(){
+  if(ZV.saved){N=ZV.saved.N;map=ZV.saved.map;vari=ZV.saved.vari}
+  if(N!==ZV.N0)N=ZV.N0;
+  ZV.on=false;ZV.saved=null;ZV.portal=null;ZV.exit=null;ZV.next=0;ZV.flash=0;ZV.t=0;ZV.bi=0;ZV.boss=null;ZV.bossDone=false;
+}
+
+/* ---------- enganches ---------- */
+var zv_cryptOn=cryptOn;cryptOn=function(){return !ZV.on&&zv_cryptOn()};
+var zv_abyssOn=abyssOn;abyssOn=function(){return !ZV.on&&zv_abyssOn()};
+var zv_swampOn=swampOn;swampOn=function(){return !ZV.on&&zv_swampOn()};
+var zv_forgeOn=forgeOn;forgeOn=function(){return !ZV.on&&zv_forgeOn()};
+var zv_sanctOn=sanctOn;sanctOn=function(){return ZV.on?ZV.ready:zv_sanctOn()};
+var zv_drawSanctFloor=drawSanctFloor;drawSanctFloor=function(x0,x1,y0,y1,vl,vr,vt,vb){if(ZV.on)return zvFloor(x0,x1,y0,y1,vl,vr,vt,vb);return zv_drawSanctFloor(x0,x1,y0,y1,vl,vr,vt,vb)};
+var zv_drawSanctProp=drawSanctProp;drawSanctProp=function(x,y){if(ZV.on)return zvDrawProp(x,y);return zv_drawSanctProp(x,y)};
+var zv_drawSanctAtmos=drawSanctAtmos;drawSanctAtmos=function(){if(ZV.on)return zvAtmos();return zv_drawSanctAtmos()};
+var zv_sfxItems=sfxItems;sfxItems=function(list){
+  zv_sfxItems(list);
+  var o=ZV.on?ZV.exit:ZV.portal;
+  if(o)list.push({d:o.x+o.y+.05,fx:{zv:o,x:o.x,y:o.y}});
+};
+var zv_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.zv)return zvDrawPortal(it.fx.zv);return zv_drawFxItem(it)};
+var zv_update=update;update=function(dt){zv_update(dt);try{zvUpdate(dt)}catch(e){softErr('archivo',e)}};
+var zv_render=render;render=function(){zv_render();try{zvFlashOverlay()}catch(e){}};
+var zv_spawnEnemy=spawnEnemy;spawnEnemy=function(){if(ZV.on)return;return zv_spawnEnemy.apply(this,arguments)};   /* dentro de la zona solo está el jefe */
+var zv_startRun=startRun;startRun=function(key,mi){zvReset();return zv_startRun(key,mi)};
+var zv_showMenu=showMenu;showMenu=function(tab){zvReset();return zv_showMenu(tab)};
+
+/* ==========================================================================
+   JEFE DE EL ARCHIVO 1 · CONDE MORVAYNE
+   Bloque autónomo: pégalo justo DESPUÉS del bloque «El Archivo»
+   (se apunta en ZV_BOSSES y solo aparece dentro de El Archivo).
+   Vampiro de pelo blanco con levita roja, piel de oso pardo sobre los hombros,
+   guadaña en la mano derecha y espada en la izquierda.
+   Ataques:
+   - Tajos: de cerca, 5 tajos rápidos con la espada.
+   - Camino de hielo (x3): se mueve rapidísimo a otro sitio, alza la guadaña desde el
+     suelo y abre un camino de carámbanos hacia el jugador que estalla al segundo.
+   - Cortes de sangre: desde lejos lanza 6 cortes rápidos con la espada.
+   - Charcos de sangre: hasta 3 charcos grandes cerca del jugador que estallan a los 2 s.
+   - Invocar: levanta esqueletos (rastreros) del primer mapa.
+   Archivos: jefes/morvayne.png, efectos/fx_hielo.png, fx_corte.png, fx_charco.png
+   (y usa enemigos/mapa1/rastrero.png para los esqueletos).
+   ========================================================================== */
+var MV_SRC={"src": "jefes/morvayne.png", "fw": 420, "fh": 380, "fx": 210.0, "fy": 280.1, "filas": {"andar": 8, "tajos": 10, "muerte": 8, "guadana": 6, "cortes": 6, "invocar": 6}};
+var MV_FX={"hielo": {"fw": 64, "fh": 80, "fx": 32, "fy": 62, "crece": 5, "estalla": 6}, "corte": {"fw": 56, "fh": 40, "cx": 28, "cy": 20, "n": 4}, "charco": {"fw": 176, "fh": 120, "cx": 88, "cy": 72, "rx": 72, "burbujea": 6, "estalla": 7}};
+var MV_CFG={k:1.35,hp:5.5,dmg:1.4,speed:2.1,tajo:.32,hielo:.75,corte:.42,charco:.85,esq:4,esqMax:8};
+var MV={spr:null,fx:{},sk:{},fxl:[]};
+(function(){
+  var im=new Image();
+  im.onload=function(){
+    var fc=document.createElement('canvas');fc.width=im.width;fc.height=im.height;
+    var g=fc.getContext('2d');g.drawImage(im,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#ffffff';g.fillRect(0,0,fc.width,fc.height);
+    var F=MV_SRC.filas;MV.spr={img:im,flash:fc,d:{fw:MV_SRC.fw,fh:MV_SRC.fh,fx:MV_SRC.fx,fy:MV_SRC.fy,top:MV_SRC.fy*.8,walk:F.andar,attack:F.tajos,death:F.muerte}};
+  };
+  im.src=MV_SRC.src;
+  ['hielo','corte','charco'].forEach(function(k){var i2=new Image();i2.onload=function(){MV.fx[k]=i2};i2.src='efectos/fx_'+k+'.png'});
+  /* esqueletos del primer mapa (rastrero) con su propia clave, sirvan en cualquier mapa */
+  try{
+    var d0=ENEMY_ASSETS[0].zombie,i3=new Image();
+    i3.onload=function(){
+      var fc=document.createElement('canvas');fc.width=i3.width;fc.height=i3.height;
+      var g=fc.getContext('2d');g.drawImage(i3,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#ffffff';g.fillRect(0,0,fc.width,fc.height);
+      MV.sk={img:i3,flash:fc,d:d0};
+    };
+    i3.src=ENEMY_DIR[0]+d0.name+'.png';
+  }catch(e){}
+})();
+function mvEnsure(){if(MV.spr&&!ESPR.morvayne)ESPR.morvayne=MV.spr;if(MV.sk.img&&!ESPR.zv_rastrero)ESPR.zv_rastrero=MV.sk}
+
+/* referencia: el jefe normal medio de este mapa (el jefe de El Archivo tiene ×2 de vida y ×3 de daño sobre ella) */
+function mvRef(){var h=0,d=0,k,c;for(k=1;k<=4;k++){c=BOSS_CFG[bossKindOf(k)]||{hp:1,dmg:1};h+=c.hp;d+=c.dmg}return {hp:h/4,dmg:d/4}}
+function mvSpawn(x,y){
+  mvEnsure();
+  var cyc=bossCycle(bossN+1),R=mvRef(),hp=BOSS_BASE*R.hp*(1+.6*cyc)*MAPS[curMap].hp*HM*ZV_CFG.hp*(1+tB()/1200)*tK()*coopHp();
+  var b={type:'boss',boss:true,zvBoss:true,bossN:bossN,kind:'morvayne',name:'Conde Morvayne',x:x+.5,y:y+.5,r:.7,hf:MV_CFG.hp,hp:hp,maxHp:hp,
+    speed:MV_CFG.speed,dmg:28*R.dmg*(1+.15*cyc)*MAPS[curMap].dmg*HM*ZV_CFG.dmg,xp:0,h:130,col:'#c01c2c',armor:.45,elite:false,kx:0,ky:0,flash:0,cd:1,slow:0,
+    shoot:99,side:1,dead:false,ai:1.2,wind:-1,sc:0,born:t,zst:'walk',zt:0,nx:1.2,last:'',rep:0};
+  enemies.push(b);bossAlive=b;S('bossRoar');toast('¡El Conde Morvayne te esperaba!');
+  burst(b.x,b.y,'#c01c2c',30);
+  return b;
+}
+ZV_BOSSES.push({id:'morvayne',name:'Conde Morvayne',spawn:mvSpawn});
+
+/* ---------- IA ---------- */
+function mvState(e,st){e.zst=st;e.zt=0;e.step=0;e.last=st==='walk'?e.last:st}
+function mvChoose(e,d){
+  var low=e.hp<e.maxHp*.5;
+  if(d<2.7&&Math.random()<.75){mvState(e,'tajos');e.aimA=Math.atan2(e.tg.y-e.y,e.tg.x-e.x);return}
+  var nS=enemies.filter(function(q){return q.zvSk&&!q.dead}).length,pools=MV.fxl.filter(function(f){return f.k==='pool'}).length;
+  var opts=['hielo','cortes','charcos','invocar'].filter(function(o){
+    if(o===e.last)return false;if(o==='invocar'&&nS>=MV_CFG.esqMax-2)return false;if(o==='charcos'&&pools>0)return false;return true;
+  });
+  var o=opts[Math.floor(Math.random()*opts.length)]||'cortes';
+  mvState(e,o);if(o==='hielo')e.rep=3;
+}
+function mvAI(e,dt,d){
+  mvEnsure();
+  var T=e.tg||P,res={s:0,rev:false},low=e.hp<e.maxHp*.5;
+  e.cd=1;e.zt+=dt;
+  if(e.zst==='walk'){
+    res.s=d>1.6?1:0;e.nx-=dt*(low?1.4:1);
+    if(e.nx<=0){mvChoose(e,d);}
+    return res;
+  }
+  if(e.zst==='tajos'){               /* 5 tajos rápidos: preparación .3 s y un tajo cada .16 s */
+    res.s=.35;
+    var hitT=.3+.16*e.step;
+    if(e.step<5&&e.zt>=hitT){
+      e.aimA=Math.atan2(T.y-e.y,T.x-e.x);
+      if(sfx.length<160)sfx.push({k:'swing',x:e.x,y:e.y,ang:e.aimA,arc:2.2,range:2.3,t:0,dur:.2});
+      S('claw',e.x,e.y);
+      PL.forEach(function(q){if(q.dead)return;var dx=q.x-e.x,dy=q.y-e.y,dd=Math.hypot(dx,dy),da=Math.atan2(dy,dx)-e.aimA;da=Math.atan2(Math.sin(da),Math.cos(da));if(dd<2.4&&Math.abs(da)<1.15)hurtPlayer(e.dmg*MV_CFG.tajo,q)});
+      e.step++;
+    }
+    if(e.zt>1.25){mvState(e,'walk');e.nx=low?.5:.9}
+    return res;
+  }
+  if(e.zst==='hielo'){                /* desplazamiento ultrarrápido + guadaña desde el suelo */
+    if(e.step===0){
+      /* elegir destino a 4-6 casillas del jugador, con espacio libre */
+      var ok=false;
+      for(var k=0;k<20&&!ok;k++){var a=Math.random()*6.283,r=4+Math.random()*2,tx=T.x+Math.cos(a)*r,ty=T.y+Math.sin(a)*r;if(!blocked(tx,ty,.6)){e.dx0=e.x;e.dy0=e.y;e.dx1=tx;e.dy1=ty;ok=true}}
+      if(!ok){e.dx0=e.dx1=e.x;e.dy0=e.dy1=e.y}
+      e.step=1;e.zt=0;e.gh=0;S('zap',e.x,e.y);
+    }
+    if(e.step===1){
+      var k2=Math.min(1,e.zt/.18);e.x=e.dx0+(e.dx1-e.dx0)*k2;e.y=e.dy0+(e.dy1-e.dy0)*k2;
+      e.gh-=dt;if(e.gh<=0){e.gh=.035;MV.fxl.push({k:'ghost',x:e.x,y:e.y,flip:!!e.flip,t:0})}
+      if(k2>=1){e.step=2;e.zt=0}
+      return res;
+    }
+    if(e.step===2&&e.zt>=.25){        /* camino de carámbanos hacia el jugador; estallan 1 s después */
+      var ax=T.x-e.x,ay=T.y-e.y,L=Math.hypot(ax,ay)||1;ax/=L;ay/=L;
+      var n=Math.ceil((L+2)/.55);
+      for(var i=1;i<=n;i++){var px=e.x+ax*.55*i,py=e.y+ay*.55*i;if(solid(px,py))break;MV.fxl.push({k:'ice',x:px,y:py,t:-i*.035,exp:1.0,hit:false})}
+      S('smash',e.x,e.y);e.step=3;
+    }
+    if(e.step===3&&e.zt>=.6){e.rep--;if(e.rep>0){e.step=0;e.zt=0}else{mvState(e,'walk');e.nx=low?.6:1.1}}
+    return res;
+  }
+  if(e.zst==='cortes'){               /* 6 cortes de sangre rápidos desde lejos */
+    var fT=.2+.11*e.step;
+    if(e.step<6&&e.zt>=fT){
+      var aa=Math.atan2(T.y-e.y,T.x-e.x)+(Math.random()-.5)*.24,sp2=8.5;
+      MV.fxl.push({k:'cut',x:e.x+Math.cos(aa)*.6,y:e.y+Math.sin(aa)*.6,vx:Math.cos(aa)*sp2,vy:Math.sin(aa)*sp2,t:0,life:2.2});
+      S('shoot',e.x,e.y);e.step++;
+    }
+    if(e.zt>1.05){mvState(e,'walk');e.nx=low?.6:1.1}
+    return res;
+  }
+  if(e.zst==='charcos'){              /* hasta 3 charcos grandes cerca del jugador */
+    if(e.step===0&&e.zt>=.35){
+      var nP=3-MV.fxl.filter(function(f){return f.k==='pool'}).length;
+      for(var j=0;j<nP;j++){
+        var ang=Math.random()*6.283,rr=j===0?Math.random()*.6:1.4+Math.random()*1.4,qx=T.x+Math.cos(ang)*rr,qy=T.y+Math.sin(ang)*rr;
+        if(solid(qx,qy)){qx=T.x;qy=T.y}
+        MV.fxl.push({k:'pool',x:qx,y:qy,t:-j*.15,dur:2.1,r:1.6,hit:false});
+      }
+      S('zap',T.x,T.y);e.step=1;
+    }
+    if(e.zt>.9){mvState(e,'walk');e.nx=low?.6:1.1}
+    return res;
+  }
+  if(e.zst==='invocar'){              /* levanta esqueletos del primer mapa */
+    if(e.step===0&&e.zt>=.4){
+      var nS2=enemies.filter(function(q){return q.zvSk&&!q.dead}).length,m=Math.min(MV_CFG.esq,MV_CFG.esqMax-nS2);
+      for(var j2=0;j2<m;j2++){
+        var a3=j2*6.283/m+Math.random()*.5,sx=e.x+Math.cos(a3)*1.6,sy=e.y+Math.sin(a3)*1.6;
+        if(blocked(sx,sy,.35))continue;
+        var Z0=ETYPES.zombie,hp2=enemyHp(HPF.zombie)*1.6;
+        enemies.push({type:'zombie',zvSk:'zv_rastrero',x:sx,y:sy,r:Z0.r,hf:HPF.zombie,hp:hp2,maxHp:hp2,speed:Z0.speed*1.1,dmg:Z0.dmg*(1+tE()/300)*MAPS[curMap].dmg,
+          xp:Z0.xp*MAPS[curMap].xp,h:Z0.h,col:'#a89c78',elite:false,kx:0,ky:0,flash:0,cd:.6,slow:0,shoot:2,side:Math.random()<.5?1:-1,dead:false});
+        MV.fxl.push({k:'rise',x:sx,y:sy,t:0});burst(sx,sy,'#a89c78',8);
+      }
+      S('bossRoar',e.x,e.y,0,.5);e.step=1;
+    }
+    if(e.zt>.9){mvState(e,'walk');e.nx=low?.6:1.1}
+    return res;
+  }
+  mvState(e,'walk');return res;
+}
+/* ---------- efectos: actualización y daño ---------- */
+function mvFxUpdate(dt){
+  for(var i=MV.fxl.length-1;i>=0;i--){
+    var f=MV.fxl[i];f.t+=dt;
+    if(f.k==='ice'){
+      if(!f.hit&&f.t>=f.exp){f.hit=true;PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.75)hurtPlayer(bossAlive?bossAlive.dmg*MV_CFG.hielo:20,q)});if(i%3===0)S('smash',f.x,f.y,0,.4)}
+      if(f.t>f.exp+.4)MV.fxl.splice(i,1);
+    }else if(f.k==='cut'){
+      f.x+=f.vx*dt;f.y+=f.vy*dt;
+      var gone=f.t>f.life||solid(f.x,f.y);
+      for(var k=0;k<PL.length&&!gone;k++){var q=PL[k];if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.5){hurtPlayer(bossAlive?bossAlive.dmg*MV_CFG.corte:15,q);gone=true}}
+      if(gone)MV.fxl.splice(i,1);
+    }else if(f.k==='pool'){
+      if(!f.hit&&f.t>=f.dur){f.hit=true;S('smash',f.x,f.y);PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<f.r)hurtPlayer(bossAlive?bossAlive.dmg*MV_CFG.charco:30,q)})}
+      if(f.t>f.dur+.55)MV.fxl.splice(i,1);
+    }else if(f.k==='ghost'){if(f.t>.3)MV.fxl.splice(i,1)}
+    else if(f.k==='rise'){if(f.t>.6)MV.fxl.splice(i,1)}
+  }
+}
+/* ---------- dibujo ---------- */
+function mvDrawGround(){
+  MV.fxl.forEach(function(f){
+    if(f.k==='pool'&&f.t>=0){
+      var im=MV.fx.charco,F=MV_FX.charco,p=sp(f.x,f.y);if(!im)return;
+      if(f.t<f.dur){
+        var c=Math.floor(f.t*8)%F.burbujea,sc=Math.min(1,f.t/.25);
+        ctx.globalAlpha=.92;ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,Math.round(p.x-F.cx*sc),Math.round(p.y-F.cy*sc+ (1-sc)*0),F.fw*sc,F.fh*sc);
+        /* aviso: anillo que late los últimos 0,7 s */
+        if(f.t>f.dur-.7){var ph=.5+.5*Math.sin(f.t*30);ctx.globalAlpha=.55+.4*ph;ctx.strokeStyle='#ff4050';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p.x,p.y,f.r*45.25,f.r*22.6,0,0,6.283);ctx.stroke();ctx.lineWidth=1}
+        ctx.globalAlpha=1;
+      }else{
+        var c2=Math.min(F.estalla-1,Math.floor((f.t-f.dur)/.55*F.estalla));
+        ctx.drawImage(im,c2*F.fw,F.fh,F.fw,F.fh,Math.round(p.x-F.cx),Math.round(p.y-F.cy),F.fw,F.fh);
+      }
+    }else if(f.k==='rise'){
+      var p2=sp(f.x,f.y),a=1-f.t/.6;ctx.globalAlpha=a*.7;ctx.fillStyle='#7a0812';ctx.beginPath();ctx.ellipse(p2.x,p2.y,22*(1+f.t),11*(1+f.t),0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+    }
+  });
+}
+function mvItems(list){
+  MV.fxl.forEach(function(f){
+    if(f.k==='ice'&&f.t>=0)list.push({d:f.x+f.y+.02,fx:{mv:f,x:f.x,y:f.y}});
+    else if(f.k==='cut'||f.k==='ghost')list.push({d:f.x+f.y+.04,fx:{mv:f,x:f.x,y:f.y}});
+  });
+}
+function mvDrawItem(f){
+  var p=sp(f.x,f.y);
+  if(f.k==='ice'){
+    var im=MV.fx.hielo,F=MV_FX.hielo;if(!im)return;
+    var row,c;
+    if(f.t<f.exp){row=0;c=Math.min(F.crece-1,Math.floor(f.t/.3*F.crece))}else{row=1;c=Math.min(F.estalla-1,Math.floor((f.t-f.exp)/.4*F.estalla))}
+    ctx.drawImage(im,c*F.fw,row*F.fh,F.fw,F.fh,Math.round(p.x-F.fx),Math.round(p.y-F.fy),F.fw,F.fh);
+  }else if(f.k==='cut'){
+    var im2=MV.fx.corte,C=MV_FX.corte;if(!im2)return;
+    var ang=Math.atan2((f.vx+f.vy)*16,(f.vx-f.vy)*32),c3=Math.floor(f.t*16)%C.n;
+    ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y-26));ctx.rotate(ang);
+    ctx.drawImage(im2,c3*C.fw,0,C.fw,C.fh,-C.cx,-C.cy,C.fw,C.fh);ctx.restore();
+  }else if(f.k==='ghost'){
+    var s=ESPR.morvayne;if(!s)return;
+    var al=(1-f.t/.3)*.45;
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    drawSprEnemy('morvayne',0,2,p.x,p.y,f.flip,MV_CFG.k,false,al*.6);
+    ctx.restore();
+  }
+}
+/* fotograma del jefe según su estado */
+function mvFrame(e){
+  var F=MV_SRC.filas,z=e.zt||0;
+  if(e.zst==='tajos')return [1,Math.min(F.tajos-1,Math.max(0,Math.floor((z-.2)/.1)))];
+  if(e.zst==='hielo'){if(e.step===1)return [0,2];return [3,Math.min(F.guadana-1,Math.floor(z/.6*F.guadana))]}
+  if(e.zst==='cortes')return [4,Math.min(F.cortes-1,Math.floor(z/1.0*F.cortes))];
+  if(e.zst==='charcos'||e.zst==='invocar')return [5,Math.min(F.invocar-1,Math.floor(z/.9*F.invocar))];
+  if((e.mv||0)<.15)return [0,0];
+  return [0,Math.floor((e.wt||0)*9)%F.andar];
+}
+
+/* ---------- enganches ---------- */
+var mv_bossAI=bossAI;bossAI=function(e,dt,d){if(e.zvBoss&&e.kind==='morvayne')return mvAI(e,dt,d);return mv_bossAI(e,dt,d)};
+var mv_sprKey=sprKey;sprKey=function(e){if(e.zvSk)return e.zvSk;return mv_sprKey(e)};
+var mv_sprScale=sprScale;sprScale=function(e){if(e.zvBoss&&e.kind==='morvayne')return MV_CFG.k;return mv_sprScale(e)};
+var mv_enemyFrame=enemyFrame;enemyFrame=function(e){if(e.zvBoss&&e.kind==='morvayne')return mvFrame(e);return mv_enemyFrame(e)};
+var mv_killEnemy=killEnemy;killEnemy=function(e){
+  if(!(e.zvBoss&&e.kind==='morvayne'))return mv_killEnemy(e);
+  e.dead=true;kills++;S('bossDie',e.x,e.y,0,1.2);burst(e.x,e.y,'#c01c2c',40);
+  meta.bestiary['archivo:morvayne']=(meta.bestiary['archivo:morvayne']||0)+1;
+  if(corpses.length<60)corpses.push({type:'morvayne',boss:true,x:e.x,y:e.y,flip:!!e.flip,k:MV_CFG.k,t:0});
+  PL.forEach(function(q){q.level+=ZV_CFG.niveles;q.pend+=ZV_CFG.niveles;q.need=xpNeed(q.level)});
+  orbs.push({x:e.x,y:e.y,v:0,heal:true,t:0});
+  bossKills++;bossAlive=null;toast('Conde Morvayne derrotado: +'+ZV_CFG.niveles+' niveles');
+  enemies.forEach(function(q){if(q.zvSk&&!q.dead){q.dead=true;burst(q.x,q.y,'#a89c78',6)}});   /* sus esqueletos se deshacen */
+  MV.fxl=MV.fxl.filter(function(f){return f.k==='ghost'});
+  ZV.bossDone=true;
+};
+var mv_update=update;update=function(dt){mv_update(dt);try{mvEnsure();mvFxUpdate(dt)}catch(e){softErr('morvayne',e)}};
+var mv_sfxItems=sfxItems;sfxItems=function(list){mv_sfxItems(list);try{mvItems(list)}catch(e){}};
+var mv_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.mv)return mvDrawItem(it.fx.mv);return mv_drawFxItem(it)};
+var mv_drawHazGround=drawHazGround;drawHazGround=function(){mv_drawHazGround();try{mvDrawGround()}catch(e){}};
+var mv_startRun=startRun;startRun=function(key,mi){MV.fxl=[];return mv_startRun(key,mi)};
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
