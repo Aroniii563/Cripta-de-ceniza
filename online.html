@@ -11230,6 +11230,281 @@ var nx_drawHazGround=drawHazGround;drawHazGround=function(){nx_drawHazGround();t
 var nx_startRun=startRun;startRun=function(key,mi){NX.fxl=[];return nx_startRun(key,mi)};
 
 /* ==========================================================================
+   JEFE DE EL ARCHIVO 3 · VAEL, REY DEMONIO
+   Bloque autónomo: pégalo DESPUÉS del bloque «El Archivo» y de los jefes anteriores
+   (se apunta en ZV_BOSSES y solo aparece dentro de El Archivo, por turnos).
+   Hombre esbelto de piel blanca con marcas, máscara negra con cuernos, pantalón marrón,
+   manos y antebrazos envueltos en una mancha negra y una varita en la mano derecha.
+   Ataques:
+   - Tres rayos: apunta con la varita y lanza tres rayos verdes en direcciones distintas.
+   - Tajos: de cerca, hasta 4 tajos con la varita.
+   - Grito: suelta 20 esferas verdes que rebotan 3 veces en las paredes; si te tocan te
+     envenenan 2 s.
+   - Fuego morado: alza la mano libre y brotan hasta 6 columnas de fuego cerca del jugador.
+   Desde la mitad de la vida añade:
+   - Oscuridad: la pantalla se pone muy oscura y hace hasta 5 embestidas; antes de cada una
+     se ve la dirección con un brillo naranja.
+   - Tres orbes: invoca tres orbes sobre él; si te acercas al jefe salen a por ti y te
+     persiguen hasta golpearte o chocar con una estructura.
+   Archivos: jefes/vael.png, efectos/fx_esfera.png, fx_orbe.png, fx_fuego.png.
+   ========================================================================== */
+var VL_SRC={"src": "jefes/vael.png", "fw": 380, "fh": 340, "fx": 190.0, "fy": 248.4, "filas": {"andar": 8, "tajos": 8, "muerte": 8, "rayos": 6, "grito": 6, "invocar": 6, "dash": 4}};
+var VL_FX={"esfera": {"fw": 24, "fh": 24, "cx": 12, "cy": 12, "n": 4}, "orbe": {"fw": 44, "fh": 44, "cx": 22, "cy": 22, "n": 6}, "fuego": {"fw": 72, "fh": 160, "fx": 36, "fy": 146, "sale": 4, "arde": 6, "apaga": 4}};
+var VL_CFG={k:1.2,hp:6,dmg:1.4,speed:2.6,tajo:.3,rayo:.75,esfera:.18,veneno:.07,fuego:.6,fuegoTick:.15,dash:.65,orbe:.55,orbeR:4.5,esferas:20,columnas:6,dashes:5};
+var VL={spr:null,fx:{},fxl:[],dark:0,darkT:0,orbs:[]};
+(function(){
+  var im=new Image();
+  im.onload=function(){
+    var fc=document.createElement('canvas');fc.width=im.width;fc.height=im.height;
+    var g=fc.getContext('2d');g.drawImage(im,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#ffffff';g.fillRect(0,0,fc.width,fc.height);
+    var F=VL_SRC.filas;VL.spr={img:im,flash:fc,d:{fw:VL_SRC.fw,fh:VL_SRC.fh,fx:VL_SRC.fx,fy:VL_SRC.fy,top:VL_SRC.fy*.8,walk:F.andar,attack:F.tajos,death:F.muerte}};
+  };
+  im.src=VL_SRC.src;
+  ['esfera','orbe','fuego'].forEach(function(k){var i2=new Image();i2.onload=function(){VL.fx[k]=i2};i2.src='efectos/fx_'+k+'.png'});
+})();
+function vlEnsure(){if(VL.spr&&!ESPR.vael)ESPR.vael=VL.spr}
+function vlSpawn(x,y){
+  vlEnsure();
+  var cyc=bossCycle(bossN+1),R=mvRef(),hp=BOSS_BASE*R.hp*(1+.6*cyc)*MAPS[curMap].hp*HM*ZV_CFG.hp*(1+tB()/1200)*tK()*coopHp();
+  var b={type:'boss',boss:true,zvBoss:true,bossN:bossN,kind:'vael',name:'Vael, rey demonio',x:x+.5,y:y+.5,r:.55,hf:VL_CFG.hp,hp:hp,maxHp:hp,
+    speed:VL_CFG.speed,dmg:28*R.dmg*(1+.15*cyc)*MAPS[curMap].dmg*HM*ZV_CFG.dmg,xp:0,h:120,col:'#30e050',armor:.4,elite:false,kx:0,ky:0,flash:0,cd:1,slow:0,
+    shoot:99,side:1,dead:false,ai:1.2,wind:-1,sc:0,born:t,zst:'walk',zt:0,nx:1.3,last:'',p2:false};
+  enemies.push(b);bossAlive=b;S('bossRoar');toast('Vael, rey demonio, te estaba esperando');burst(b.x,b.y,'#30e050',30);
+  VL.fxl=[];VL.orbs=[];VL.dark=0;VL.darkT=0;
+  return b;
+}
+ZV_BOSSES.push({id:'vael',name:'Vael, rey demonio',spawn:vlSpawn});
+
+/* ---------- utilidades ---------- */
+function vlSt(e,st){e.zst=st;e.zt=0;e.step=0;if(st!=='walk')e.last=st}
+function vlHurt(q,mul){var b=bossAlive;hurtPlayer((b&&b.kind==='vael'?b.dmg:40)*mul,q)}
+function vlRayLen(x,y,a){var L=0;for(;L<13;L+=.25){if(solid(x+Math.cos(a)*L,y+Math.sin(a)*L))break}return L}
+function vlSeg(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy||1,t2=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2));return Math.hypot(px-ax-dx*t2,py-ay-dy*t2)}
+function vlChoose(e,d){
+  if(d<2.6&&Math.random()<.7){vlSt(e,'tajos');return}
+  var opts=['rayos','grito','fuego'];
+  if(e.p2){opts.push('oscuridad');if(!VL.orbs.length)opts.push('orbes')}
+  opts=opts.filter(function(o){return o!==e.last});
+  vlSt(e,opts[Math.floor(Math.random()*opts.length)]);
+}
+/* ---------- IA ---------- */
+function vlAI(e,dt,d){
+  vlEnsure();
+  var T=e.tg||P,res={s:0,rev:false},cool=e.p2?.6:1.0;
+  e.cd=1;e.zt+=dt;
+  if(!e.p2&&e.hp<e.maxHp*.5){e.p2=true;toast('¡Vael se enfurece!');S('bossRoar',e.x,e.y);burst(e.x,e.y,'#ff8a20',30)}
+  if(e.zst==='walk'){res.s=d>2?1:0;e.nx-=dt;if(e.nx<=0)vlChoose(e,d);return res}
+  if(e.zst==='tajos'){                 /* hasta 4 tajos con la varita */
+    res.s=.4;var hitT=.25+.17*e.step;
+    if(e.step<4&&e.zt>=hitT){
+      e.aimA=Math.atan2(T.y-e.y,T.x-e.x);
+      if(sfx.length<160)sfx.push({k:'swing',x:e.x,y:e.y,ang:e.aimA,arc:2.2,range:2.3,t:0,dur:.2,green:true});S('claw',e.x,e.y);
+      PL.forEach(function(q){if(q.dead)return;var dx=q.x-e.x,dy=q.y-e.y,dd=Math.hypot(dx,dy),da=Math.atan2(dy,dx)-e.aimA;da=Math.atan2(Math.sin(da),Math.cos(da));if(dd<2.4&&Math.abs(da)<1.15)vlHurt(q,VL_CFG.tajo)});
+      e.step++;
+    }
+    if(e.zt>1.05){vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='rayos'){                 /* tres rayos verdes en direcciones distintas: aviso .55 s */
+    if(e.step===0){
+      var base=Math.atan2(T.y-e.y,T.x-e.x),off=.55+Math.random()*.25;
+      e.rays=[base,base+off,base-off].map(function(a){return {a:a,L:vlRayLen(e.x,e.y,a)}});
+      e.rays.forEach(function(r){VL.fxl.push({k:'rayWarn',x:e.x,y:e.y,a:r.a,L:r.L,t:0,dur:.55})});e.step=1;
+    }
+    if(e.step===1&&e.zt>=.55){
+      S('zap',e.x,e.y);
+      e.rays.forEach(function(r){VL.fxl.push({k:'ray',x:e.x,y:e.y,a:r.a,L:r.L,t:0,dur:.35});
+        var bx=e.x+Math.cos(r.a)*r.L,by=e.y+Math.sin(r.a)*r.L;
+        PL.forEach(function(q){if(!q.dead&&vlSeg(q.x,q.y,e.x,e.y,bx,by)<.55)vlHurt(q,VL_CFG.rayo)});
+      });
+      e.step=2;
+    }
+    if(e.zt>1.1){vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='grito'){                 /* 20 esferas que rebotan 3 veces */
+    if(e.step===0&&e.zt>=.4){
+      var n=VL_CFG.esferas,a0=Math.random()*6.283;
+      for(var i=0;i<n;i++){var a=a0+i*6.283/n,sp2=5.2+Math.random()*.8;VL.fxl.push({k:'sph',x:e.x+Math.cos(a)*.5,y:e.y+Math.sin(a)*.5,vx:Math.cos(a)*sp2,vy:Math.sin(a)*sp2,b:3,t:0})}
+      S('bossRoar',e.x,e.y,0,.8);e.step=1;
+    }
+    if(e.zt>1.0){vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='fuego'){                 /* hasta 6 columnas de fuego morado cerca del jugador */
+    if(e.step===0&&e.zt>=.4){
+      for(var j=0;j<VL_CFG.columnas;j++){
+        var aa=Math.random()*6.283,rr=j===0?0:1+Math.random()*2.2,px=T.x+Math.cos(aa)*rr,py=T.y+Math.sin(aa)*rr;
+        if(solid(px,py))continue;
+        VL.fxl.push({k:'fire',x:px,y:py,t:-j*.12,warn:.8,tick:0});
+      }
+      S('zap',T.x,T.y);e.step=1;
+    }
+    if(e.zt>1.0){vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='oscuridad'){             /* pantalla oscura + hasta 5 embestidas avisadas en naranja */
+    VL.darkT=1;
+    if(e.step===0){e.step=1;e.dn=0;e.sub=0;e.zt=0}
+    if(e.step===1&&e.zt>=.6){         /* apuntar: brillo naranja .55 s */
+      var aim=Math.atan2(T.y-e.y,T.x-e.x),Ld=Math.min(vlRayLen(e.x,e.y,aim)-.3,Math.hypot(T.x-e.x,T.y-e.y)+2.5);
+      e.da=aim;e.dL=Math.max(1,Ld);e.dx0=e.x;e.dy0=e.y;e.step=2;e.zt=0;e.hitD=false;
+      VL.fxl.push({k:'dashWarn',x:e.x,y:e.y,a:aim,L:e.dL,t:0,dur:.55});
+    }
+    if(e.step===2&&e.zt>=.55){e.step=3;e.zt=0;e.gh=0;S('zap',e.x,e.y)}
+    if(e.step===3){                   /* embestida muy rápida */
+      var k2=Math.min(1,e.zt/(e.dL/18));e.x=e.dx0+Math.cos(e.da)*e.dL*k2;e.y=e.dy0+Math.sin(e.da)*e.dL*k2;
+      e.gh-=dt;if(e.gh<=0){e.gh=.03;VL.fxl.push({k:'ghost',x:e.x,y:e.y,flip:!!e.flip,t:0})}
+      if(!e.hitD)PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<.85){vlHurt(q,VL_CFG.dash);e.hitD=true}});
+      if(k2>=1){e.dn++;e.zt=0;e.step=e.dn<VL_CFG.dashes?1:4;if(e.step===1)e.zt=.25}
+      return res;
+    }
+    if(e.step===4&&e.zt>.6){VL.darkT=0;vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='orbes'){                 /* tres orbes que flotan sobre él */
+    if(e.step===0&&e.zt>=.45){for(var o=0;o<3;o++)VL.orbs.push({i:o,st:'idle',x:e.x,y:e.y,t:0,cd:o*.45});S('bossRoar',e.x,e.y,0,.5);e.step=1}
+    if(e.zt>1.0){vlSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  vlSt(e,'walk');return res;
+}
+/* ---------- efectos ---------- */
+function vlFxUpdate(dt){
+  var e=bossAlive&&bossAlive.kind==='vael'?bossAlive:null;
+  if(!e||e.zst!=='oscuridad')VL.darkT=0;
+  VL.dark+=((e?VL.darkT:0)-VL.dark)*Math.min(1,dt*4);
+  for(var i=VL.fxl.length-1;i>=0;i--){
+    var f=VL.fxl[i];f.t+=dt;
+    if(f.k==='sph'){
+      var nx=f.x+f.vx*dt,ny=f.y+f.vy*dt,bounced=false;
+      if(solid(nx,f.y)){f.vx=-f.vx;bounced=true}else f.x=nx;
+      if(solid(f.x,ny)){f.vy=-f.vy;bounced=true}else f.y=ny;
+      if(bounced){f.b--;if(f.b<0){VL.fxl.splice(i,1);continue}}
+      var hit=false;
+      PL.forEach(function(q){if(!hit&&!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.42){hit=true;vlHurt(q,VL_CFG.esfera);q.vlPois=2;q.vlPt=q.vlPt||0}});
+      if(hit||f.t>9)VL.fxl.splice(i,1);
+    }else if(f.k==='fire'){
+      var ft=f.t-f.warn;
+      if(ft>=0&&ft<1.25){f.tick-=dt;if(f.tick<=0){f.tick=.3;PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.6)vlHurt(q,ft<.3?VL_CFG.fuego:VL_CFG.fuegoTick)})}}
+      if(ft>1.6)VL.fxl.splice(i,1);
+    }else if(f.k==='ghost'){if(f.t>.3)VL.fxl.splice(i,1)}
+    else if(f.t>f.dur)VL.fxl.splice(i,1);
+  }
+  /* veneno: 2 s de daño a pequeños golpes */
+  PL.forEach(function(q){
+    if(!(q.vlPois>0))return;q.vlPois-=dt;q.vlPt=(q.vlPt||0)-dt;
+    if(q.vlPt<=0){q.vlPt=.4;var sv=q.inv;q.inv=0;vlHurt(q,VL_CFG.veneno);q.inv=sv}
+  });
+  /* orbes: flotan sobre el jefe; si te acercas salen a por ti */
+  for(var j=VL.orbs.length-1;j>=0;j--){
+    var o=VL.orbs[j];o.t+=dt;
+    if(o.st==='idle'){
+      if(!e){VL.orbs.splice(j,1);continue}
+      var a=o.i*2.094+t*1.6;o.x=e.x+Math.cos(a)*.7;o.y=e.y+Math.sin(a)*.7;o.lift=95+8*Math.sin(t*3+o.i);
+      var T=livePlayer();
+      if(Math.hypot(T.x-e.x,T.y-e.y)<VL_CFG.orbeR){o.cd-=dt;if(o.cd<=0){o.st='go';var aa=Math.atan2(T.y-o.y,T.x-o.x);o.vx=Math.cos(aa)*4.6;o.vy=Math.sin(aa)*4.6;S('zap',o.x,o.y)}}
+    }else{
+      var T2=livePlayer(),want=Math.atan2(T2.y-o.y,T2.x-o.x),cur=Math.atan2(o.vy,o.vx),df=Math.atan2(Math.sin(want-cur),Math.cos(want-cur)),mt=2.6*dt;
+      cur+=Math.max(-mt,Math.min(mt,df));o.vx=Math.cos(cur)*4.6;o.vy=Math.sin(cur)*4.6;
+      o.x+=o.vx*dt;o.y+=o.vy*dt;o.lift=Math.max(20,(o.lift||95)-dt*160);
+      var gone=solid(o.x,o.y)||o.t>14;
+      PL.forEach(function(q){if(!gone&&!q.dead&&Math.hypot(q.x-o.x,q.y-o.y)<.55){vlHurt(q,VL_CFG.orbe);gone=true}});
+      if(gone){burst(o.x,o.y,'#7a38bc',12);VL.orbs.splice(j,1)}
+    }
+  }
+}
+function vlWarn(col,k){var ph=.5+.5*Math.sin(t*24);ctx.strokeStyle='rgba('+col+','+(.5+.45*ph)+')';ctx.fillStyle='rgba('+col+','+(.12+.12*k)+')';ctx.lineWidth=2}
+function vlDrawGround(){
+  VL.fxl.forEach(function(f){
+    if(f.k==='rayWarn'){var A1=sp(f.x,f.y),B1=sp(f.x+Math.cos(f.a)*f.L,f.y+Math.sin(f.a)*f.L);vlWarn('90,240,110',f.t/f.dur);ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.lineWidth=2+5*f.t/f.dur;ctx.stroke();ctx.lineWidth=1}
+    else if(f.k==='fire'&&f.t>=0&&f.t<f.warn){var p=sp(f.x,f.y);vlWarn('170,90,255',f.t/f.warn);ctx.beginPath();ctx.ellipse(p.x,p.y,28,14,0,0,6.283);ctx.fill();ctx.stroke();ctx.lineWidth=1}
+  });
+}
+function vlItems(list){
+  VL.fxl.forEach(function(f){
+    if(f.k==='sph'||f.k==='ghost'||(f.k==='fire'&&f.t>=f.warn)||f.k==='ray')list.push({d:f.x+f.y+.03,fx:{vl:f,x:f.x,y:f.y}});
+  });
+  VL.orbs.forEach(function(o){list.push({d:o.x+o.y+.6,fx:{vl:{k:'orb',o:o},x:o.x,y:o.y}})});
+  PL.forEach(function(q){if(q.vlPois>0)list.push({d:q.x+q.y+.01,fx:{vl:{k:'pois',q:q},x:q.x,y:q.y}})});
+}
+function vlDrawItem(f){
+  var p,im,F,c;
+  if(f.k==='sph'){im=VL.fx.esfera;F=VL_FX.esfera;if(!im)return;p=sp(f.x,f.y);c=Math.floor(f.t*12)%F.n;
+    ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(p.x,p.y,8,4,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+    ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,Math.round(p.x-F.cx),Math.round(p.y-24-F.cy),F.fw,F.fh)}
+  else if(f.k==='orb'){var o=f.o;im=VL.fx.orbe;F=VL_FX.orbe;if(!im)return;p=sp(o.x,o.y);c=Math.floor(o.t*10)%F.n;
+    ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(p.x,p.y,10,5,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+    ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,Math.round(p.x-F.cx),Math.round(p.y-(o.lift||95)-F.cy),F.fw,F.fh)}
+  else if(f.k==='fire'){im=VL.fx.fuego;F=VL_FX.fuego;if(!im)return;p=sp(f.x,f.y);var ft=f.t-f.warn,row,col;
+    if(ft<.25){row=0;col=Math.min(F.sale-1,Math.floor(ft/.25*F.sale))}else if(ft<1.25){row=1;col=Math.floor(ft*10)%F.arde}else{row=2;col=Math.min(F.apaga-1,Math.floor((ft-1.25)/.35*F.apaga))}
+    ctx.drawImage(im,col*F.fw,row*F.fh,F.fw,F.fh,Math.round(p.x-F.fx),Math.round(p.y-F.fy),F.fw,F.fh)}
+  else if(f.k==='ray'){
+    var A1=sp(f.x+Math.cos(f.a)*.4,f.y+Math.sin(f.a)*.4),B1=sp(f.x+Math.cos(f.a)*f.L,f.y+Math.sin(f.a)*f.L);A1.y-=62;B1.y-=20;
+    var k=1-f.t/f.dur,dx=B1.x-A1.x,dy=B1.y-A1.y,len=Math.hypot(dx,dy)||1;
+    ctx.save();ctx.translate(A1.x,A1.y);ctx.rotate(Math.atan2(dy,dx));ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle='rgba(60,220,90,'+(.45*k)+')';ctx.fillRect(0,-9*k,len,18*k);
+    ctx.fillStyle='rgba(180,255,180,'+(.9*k)+')';ctx.fillRect(0,-3*k,len,6*k);
+    ctx.fillStyle='rgba(255,255,255,'+k+')';ctx.fillRect(0,-1,len,2);ctx.restore();
+  }
+  else if(f.k==='ghost'){if(!ESPR.vael)return;p=sp(f.x,f.y);ctx.save();ctx.globalCompositeOperation='lighter';drawSprEnemy('vael',6,1,p.x,p.y,f.flip,VL_CFG.k,false,(1-f.t/.3)*.35);ctx.restore()}
+  else if(f.k==='pois'){var q=f.q;p=sp(q.x,q.y);ctx.fillStyle='#70e880';
+    for(var j=0;j<6;j++){var ph=(t*1.5+j/6)%1;ctx.globalAlpha=(1-ph)*.9;ctx.fillRect(Math.round(p.x-12+j*5+Math.sin(t*5+j)*2),Math.round(p.y-40-ph*26),3,3)}ctx.globalAlpha=1}
+}
+/* oscuridad: capa casi negra con un pequeño halo alrededor del jugador; el aviso naranja de la embestida se ve encima */
+function vlDarkOverlay(){
+  if(VL.dark<.02||!ZV.on)return;
+  var cs=sp(cam.x,cam.y);
+  function scr(wx,wy,lift){var p=sp(wx,wy);return {x:(p.x-cs.x)*Z+W/2,y:(p.y-(lift||0)-cs.y)*Z+H/2}}
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);
+  var pp=P?scr(P.x,P.y,24):{x:W/2,y:H/2},R=110*Z;
+  var g=ctx.createRadialGradient(pp.x,pp.y,R*.25,pp.x,pp.y,R);
+  g.addColorStop(0,'rgba(0,0,0,'+(.15*VL.dark)+')');g.addColorStop(1,'rgba(2,0,4,'+(.93*VL.dark)+')');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  /* ojos verdes del jefe en la oscuridad */
+  var e=bossAlive;if(e&&e.kind==='vael'){var pe=scr(e.x,e.y,108*VL_CFG.k/1.2);ctx.fillStyle='rgba(120,255,140,'+(.9*VL.dark)+')';ctx.fillRect(Math.round(pe.x-5),Math.round(pe.y),3,2);ctx.fillRect(Math.round(pe.x+3),Math.round(pe.y),3,2)}
+  VL.fxl.forEach(function(f){
+    if(f.k!=='dashWarn')return;
+    var A1=scr(f.x,f.y),B1=scr(f.x+Math.cos(f.a)*f.L,f.y+Math.sin(f.a)*f.L),k=f.t/f.dur,ph=.6+.4*Math.sin(t*30);
+    ctx.globalCompositeOperation='lighter';
+    ctx.strokeStyle='rgba(255,140,40,'+(.35*ph)+')';ctx.lineWidth=(14+10*k)*Z;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.stroke();
+    ctx.strokeStyle='rgba(255,200,110,'+(.8*ph)+')';ctx.lineWidth=3*Z;ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.stroke();
+    ctx.globalCompositeOperation='source-over';ctx.lineCap='butt';
+  });
+  ctx.restore();
+}
+function vlFrame(e){
+  var F=VL_SRC.filas,z=e.zt||0;
+  if(e.zst==='tajos')return [1,Math.min(F.tajos-1,Math.max(0,Math.floor((z-.12)/.085)))];
+  if(e.zst==='rayos')return [3,Math.min(F.rayos-1,Math.floor(z/1.1*F.rayos))];
+  if(e.zst==='grito')return [4,Math.min(F.grito-1,Math.floor(z/.9*F.grito))];
+  if(e.zst==='fuego'||e.zst==='orbes')return [5,Math.min(F.invocar-1,Math.floor(z/.9*F.invocar))];
+  if(e.zst==='oscuridad'){if(e.step===3)return [6,Math.floor(z*24)%F.dash];return [6,0]}
+  if((e.mv||0)<.15)return [0,0];
+  return [0,Math.floor((e.wt||0)*9)%F.andar];
+}
+/* ---------- enganches ---------- */
+var vl_bossAI=bossAI;bossAI=function(e,dt,d){if(e.zvBoss&&e.kind==='vael')return vlAI(e,dt,d);return vl_bossAI(e,dt,d)};
+var vl_sprScale=sprScale;sprScale=function(e){if(e.zvBoss&&e.kind==='vael')return VL_CFG.k;return vl_sprScale(e)};
+var vl_enemyFrame=enemyFrame;enemyFrame=function(e){if(e.zvBoss&&e.kind==='vael')return vlFrame(e);return vl_enemyFrame(e)};
+var vl_killEnemy=killEnemy;killEnemy=function(e){
+  if(!(e.zvBoss&&e.kind==='vael'))return vl_killEnemy(e);
+  e.dead=true;kills++;S('bossDie',e.x,e.y,0,1.2);burst(e.x,e.y,'#30e050',40);
+  meta.bestiary['archivo:vael']=(meta.bestiary['archivo:vael']||0)+1;
+  if(corpses.length<60)corpses.push({type:'vael',boss:true,x:e.x,y:e.y,flip:!!e.flip,k:VL_CFG.k,t:0});
+  PL.forEach(function(q){q.level+=ZV_CFG.niveles;q.pend+=ZV_CFG.niveles;q.need=xpNeed(q.level);q.vlPois=0});
+  orbs.push({x:e.x,y:e.y,v:0,heal:true,t:0});
+  bossKills++;bossAlive=null;toast('Vael, rey demonio, derrotado: +'+ZV_CFG.niveles+' niveles');
+  VL.fxl=[];VL.orbs=[];VL.darkT=0;ZV.bossDone=true;
+};
+var vl_update=update;update=function(dt){vl_update(dt);try{vlEnsure();vlFxUpdate(dt)}catch(e){softErr('vael',e)}};
+var vl_sfxItems=sfxItems;sfxItems=function(list){vl_sfxItems(list);try{vlItems(list)}catch(e){}};
+var vl_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.vl)return vlDrawItem(it.fx.vl);return vl_drawFxItem(it)};
+var vl_drawHazGround=drawHazGround;drawHazGround=function(){vl_drawHazGround();try{vlDrawGround()}catch(e){}};
+var vl_render=render;render=function(){vl_render();try{vlDarkOverlay()}catch(e){}};
+var vl_startRun=startRun;startRun=function(key,mi){VL.fxl=[];VL.orbs=[];VL.dark=0;VL.darkT=0;return vl_startRun(key,mi)};
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
