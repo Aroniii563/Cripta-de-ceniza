@@ -11527,7 +11527,7 @@ var vl_startRun=startRun;startRun=function(key,mi){VL.fxl=[];VL.orbs=[];VL.dark=
 var VA_SRC={"src": "jefes/valeria.png", "fw": 380, "fh": 360, "fx": 196.4, "fy": 255.2, "filas": {"andar": 8, "estocadas": 6, "transforma": 6, "salto": 6, "grito": 6, "lluvia": 6}};
 var VA_WSRC={"src": "jefes/licantropa.png", "fw": 480, "fh": 440, "fx": 246.4, "fy": 306.9, "filas": {"andar": 8, "zarpazos": 8, "muerte": 8, "carga": 4, "fuego": 6, "grito": 6}};
 var VA_FX={"espinas": {"fw": 64, "fh": 72, "fx": 32, "fy": 60, "sale": 4, "hunde": 4}, "flecha": {"fw": 16, "fh": 40, "fx": 8, "fy": 38, "n": 2}, "bola": {"fw": 40, "fh": 40, "cx": 22, "cy": 20, "n": 4}, "estrella": {"fw": 96, "fh": 64, "cx": 48, "cy": 40, "n": 6}};
-var VA_CFG={k1:1.15,k2:1.25,hp:3.8,hp2:4.4,dmg:1.4,speed1:2.4,speed2:3.0,estoc:.4,salto:.8,saltoR:3.2,espinas:.6,espinasR:1.8,flecha:.3,zarpa:.28,carga:.6,estrella:.9,estrellaR:3.2,bola:.6};
+var VA_CFG={k1:1.15,k2:1.25,hp:3.8,hp2:4.4,dmg:1.4,speed1:2.4,speed2:3.0,estoc:.4,salto:.8,saltoR:3.2,espinas:.6,espinasR:1.8,flecha:.3,zarpa:.28,carga:.6,estrella:.9,estrellaR:12.5,estrellaTip:2.4,estrellaCen:3.4,vcarga:30,bola:.6};
 var VA={spr:{},fx:{},fxl:[]};
 (function(){
   function load(src,key,F,rowsMap){
@@ -11658,25 +11658,25 @@ function vaAI(e,dt,d){
   }
   if(e.zst==='estrella'){              /* 5 embestidas que dibujan una estrella alrededor del jugador y luego estalla */
     if(e.step===0){
-      e.cx=T.x;e.cy=T.y;e.pts=[];var a1=Math.random()*6.283,R=VA_CFG.estrellaR;
+      e.cx=N/2;e.cy=N/2;e.pts=[];var a1=Math.random()*6.283,R=Math.min(VA_CFG.estrellaR,N/2-2);   /* estrella gigante centrada en el mapa */
       for(var k2=0;k2<5;k2++){var ang=a1+k2*2*6.283/5;e.pts.push({x:e.cx+Math.cos(ang)*R,y:e.cy+Math.sin(ang)*R})}
-      e.pts.forEach(function(p){if(solid(p.x,p.y)){p.x=e.cx+(p.x-e.cx)*.5;p.y=e.cy+(p.y-e.cy)*.5}});
+      e.pts.forEach(function(p){for(var g=0;g<8&&solid(p.x,p.y);g++){p.x=e.cx+(p.x-e.cx)*.9;p.y=e.cy+(p.y-e.cy)*.9}});
       e.di=0;e.step=1;e.zt=0;e.lines=[];
-      VA.fxl.push({k:'starWarn',pts:e.pts,t:0,dur:4.0});
+      VA.fxl.push({k:'starWarn',pts:e.pts,t:0,dur:5.0});
     }
     if(e.step===1){                    /* aviso de cada tramo .3 s y embestida */
       var from=e.di===0?{x:e.x,y:e.y}:e.pts[e.di-1],to=e.pts[e.di];
-      if(e.zt>=.3){
-        var dl=Math.hypot(to.x-from.x,to.y-from.y),k3=Math.min(1,(e.zt-.3)/(dl/16+.05));
+      if(e.zt>=.18){
+        var dl=Math.hypot(to.x-from.x,to.y-from.y),k3=Math.min(1,(e.zt-.18)/(dl/VA_CFG.vcarga+.05));
         e.x=from.x+(to.x-from.x)*k3;e.y=from.y+(to.y-from.y)*k3;
         PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<.9&&!e['h'+e.di]){e['h'+e.di]=1;vaHurt(q,VA_CFG.carga)}});
-        if(k3>=1){if(e.di>0)VA.fxl.push({k:'trail',a:from,b:to,t:0,dur:2.4});e.di++;e.zt=0;S('claw',e.x,e.y);if(e.di>=5){e.step=2;e.zt=0;VA.fxl.push({k:'trail',a:e.pts[4],b:e.pts[0],t:0,dur:1.4})}}
+        if(k3>=1){if(e.di>0)VA.fxl.push({k:'trail',a:from,b:to,t:0,dur:6});e.di++;e.zt=0;S('claw',e.x,e.y);if(e.di>=5){e.step=2;e.zt=0;VA.fxl.push({k:'trail',a:e.pts[4],b:e.pts[0],t:0,dur:2})}}
       }
     }
-    if(e.step===2&&e.zt>=.8){         /* la estrella estalla */
+    if(e.step===2&&e.zt>=1.0){         /* la estrella estalla */
       S('bossDie',e.cx,e.cy,0,.6);
       e.pts.forEach(function(p){VA.fxl.push({k:'boom',x:p.x,y:p.y,t:0})});VA.fxl.push({k:'boom',x:e.cx,y:e.cy,t:0,big:true});
-      PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.cx,q.y-e.cy)<VA_CFG.estrellaR+.3)vaHurt(q,VA_CFG.estrella)});
+      PL.forEach(function(q){if(q.dead)return;var hit=Math.hypot(q.x-e.cx,q.y-e.cy)<VA_CFG.estrellaCen;e.pts.forEach(function(p){if(Math.hypot(q.x-p.x,q.y-p.y)<VA_CFG.estrellaTip)hit=true});if(hit)vaHurt(q,VA_CFG.estrella)});
       VA.fxl=VA.fxl.filter(function(f){return f.k!=='starWarn'&&f.k!=='trail'});e.step=3;
     }
     if(e.step===3&&e.zt>1.6){vaSt(e,'walk');e.nx=cool}
