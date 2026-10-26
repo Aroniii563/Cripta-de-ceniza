@@ -11505,6 +11505,294 @@ var vl_render=render;render=function(){vl_render();try{vlDarkOverlay()}catch(e){
 var vl_startRun=startRun;startRun=function(key,mi){VL.fxl=[];VL.orbs=[];VL.dark=0;VL.darkT=0;return vl_startRun(key,mi)};
 
 /* ==========================================================================
+   JEFE DE EL ARCHIVO 4 · VALERIA  /  VALERIA, JEFA LICÁNTROPA
+   Bloque autónomo: pégalo DESPUÉS del bloque «El Archivo» y de los jefes anteriores
+   (se apunta en ZV_BOSSES y solo aparece dentro de El Archivo, por turnos).
+   Un solo jefe con DOS barras de vida: al vaciar la primera, Valeria se transforma en
+   licántropa (invulnerable durante la transformación) y la barra se rellena para la segunda.
+   Fase 1 · Valeria (cazadora con lanza):
+   - Estocadas: de cerca, 3 estocadas hacia delante.
+   - Salto: salta hacia el jugador, clava la lanza y brota un área amplia de espinas.
+   - Grito: donde está el jugador se marca un área de la que brotan espinas.
+   - Lluvia de flechas: alza la lanza; caen tres lluvias de flechas desde lados distintos,
+     en franjas que terminan todas en el jugador.
+   Fase 2 · Valeria, jefa licántropa (lobo enorme a dos patas):
+   - Zarpazos: de cerca, 6 zarpazos.
+   - Estrella: embiste 5 veces dibujando una estrella alrededor del jugador; luego estalla.
+   - Fuego: escupe 3 bolas de fuego por la boca.
+   - Grito: conserva el área de espinas alrededor del jugador.
+   Archivos: jefes/valeria.png, jefes/licantropa.png, efectos/fx_espinas.png, fx_flecha.png,
+   fx_bolafuego.png, fx_estrella.png.
+   ========================================================================== */
+var VA_SRC={"src": "jefes/valeria.png", "fw": 380, "fh": 360, "fx": 196.4, "fy": 255.2, "filas": {"andar": 8, "estocadas": 6, "transforma": 6, "salto": 6, "grito": 6, "lluvia": 6}};
+var VA_WSRC={"src": "jefes/licantropa.png", "fw": 480, "fh": 440, "fx": 246.4, "fy": 306.9, "filas": {"andar": 8, "zarpazos": 8, "muerte": 8, "carga": 4, "fuego": 6, "grito": 6}};
+var VA_FX={"espinas": {"fw": 64, "fh": 72, "fx": 32, "fy": 60, "sale": 4, "hunde": 4}, "flecha": {"fw": 16, "fh": 40, "fx": 8, "fy": 38, "n": 2}, "bola": {"fw": 40, "fh": 40, "cx": 22, "cy": 20, "n": 4}, "estrella": {"fw": 96, "fh": 64, "cx": 48, "cy": 40, "n": 6}};
+var VA_CFG={k1:1.15,k2:1.25,hp:3.8,hp2:4.4,dmg:1.4,speed1:2.4,speed2:3.0,estoc:.4,salto:.8,saltoR:3.2,espinas:.6,espinasR:1.8,flecha:.3,zarpa:.28,carga:.6,estrella:.9,estrellaR:3.2,bola:.6};
+var VA={spr:{},fx:{},fxl:[]};
+(function(){
+  function load(src,key,F,rowsMap){
+    var im=new Image();
+    im.onload=function(){
+      var fc=document.createElement('canvas');fc.width=im.width;fc.height=im.height;
+      var g=fc.getContext('2d');g.drawImage(im,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#ffffff';g.fillRect(0,0,fc.width,fc.height);
+      VA.spr[key]={img:im,flash:fc,d:{fw:F.fw,fh:F.fh,fx:F.fx,fy:F.fy,top:F.fy*.8,walk:F.filas.andar,attack:6,death:rowsMap}};
+    };
+    im.src=src;
+  }
+  load(VA_SRC.src,'valeria',VA_SRC,6);load(VA_WSRC.src,'licantropa',VA_WSRC,VA_WSRC.filas.muerte);
+  ['espinas','flecha','bolafuego','estrella'].forEach(function(k){var i2=new Image();i2.onload=function(){VA.fx[k]=i2};i2.src='efectos/fx_'+k+'.png'});
+})();
+function vaEnsure(){if(VA.spr.valeria&&!ESPR.valeria)ESPR.valeria=VA.spr.valeria;if(VA.spr.licantropa&&!ESPR.licantropa)ESPR.licantropa=VA.spr.licantropa}
+/* vida total (las dos barras juntas) = ZV_CFG.hp × la de un jefe normal medio; se reparte en proporción hp:hp2 */
+function vaHp(mul){var cyc=bossCycle(bossN+1),R=mvRef();return BOSS_BASE*R.hp*ZV_CFG.hp*(mul/(VA_CFG.hp+VA_CFG.hp2))*(1+.6*cyc)*MAPS[curMap].hp*HM*(1+tB()/1200)*tK()*coopHp()}
+function vaSpawn(x,y){
+  vaEnsure();
+  var cyc=bossCycle(bossN+1),R=mvRef(),hp=vaHp(VA_CFG.hp);
+  var b={type:'boss',boss:true,zvBoss:true,bossN:bossN,kind:'valeria',name:'Valeria',x:x+.5,y:y+.5,r:.5,hf:VA_CFG.hp,hp:hp,maxHp:hp,
+    speed:VA_CFG.speed1,dmg:28*R.dmg*(1+.15*cyc)*MAPS[curMap].dmg*HM*ZV_CFG.dmg,xp:0,h:110,col:'#ee7c2c',armor:.4,elite:false,kx:0,ky:0,flash:0,cd:1,slow:0,
+    shoot:99,side:1,dead:false,ai:1.2,wind:-1,sc:0,born:t,zst:'walk',zt:0,nx:1.3,last:'',phase:1,vaInv:false};
+  enemies.push(b);bossAlive=b;S('bossRoar');toast('Valeria, la cazadora, te tiene en el punto de mira');burst(b.x,b.y,'#ee7c2c',30);
+  VA.fxl=[];vaBars(true);
+  return b;
+}
+ZV_BOSSES.push({id:'valeria',name:'Valeria',spawn:vaSpawn});
+
+/* ---------- dos barras de vida: pequeñas marcas bajo la barra del jefe ---------- */
+function vaBars(show){
+  var bb=document.getElementById('bossBar');if(!bb)return;
+  var el=document.getElementById('vaPips');
+  if(!el){el=document.createElement('div');el.id='vaPips';el.style.cssText='display:flex;gap:6px;justify-content:center;margin-top:4px';
+    for(var i=0;i<2;i++){var s=document.createElement('i');s.style.cssText='display:block;width:46px;height:6px;border:1px solid #d8b070;background:#b0335f';el.appendChild(s)}
+    bb.appendChild(el)}
+  el.style.display=show?'flex':'none';
+}
+function vaPipsUpdate(){
+  var el=document.getElementById('vaPips');if(!el)return;
+  var b=bossAlive&&bossAlive.zvBoss&&(bossAlive.kind==='valeria'||bossAlive.kind==='licantropa')?bossAlive:null;
+  el.style.display=b?'flex':'none';if(!b)return;
+  el.children[0].style.background=b.phase===1?'#b0335f':'#2a1a1e';el.children[1].style.background='#b0335f';
+}
+
+/* ---------- utilidades ---------- */
+function vaSt(e,st){e.zst=st;e.zt=0;e.step=0;if(st!=='walk')e.last=st}
+function vaHurt(q,mul){var b=bossAlive;hurtPlayer((b&&b.zvBoss?b.dmg:40)*mul,q)}
+function vaSegD(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy||1,k=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/L2));return Math.hypot(px-ax-dx*k,py-ay-dy*k)}
+function vaSpikeArea(x,y,r,delay){   /* aviso + espinas que brotan en un círculo */
+  VA.fxl.push({k:'warnC',x:x,y:y,r:r,t:-delay,dur:.9});
+  var n=Math.round(r*r*2.2);
+  for(var i=0;i<n;i++){var a=Math.random()*6.283,rr=Math.sqrt(Math.random())*r,px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;if(!solid(px,py))VA.fxl.push({k:'thorn',x:px,y:py,t:-delay-.9-Math.random()*.12})}
+  VA.fxl.push({k:'spkHit',x:x,y:y,r:r,t:-delay-.9,hit:false});
+}
+function vaChoose(e,d){
+  var near=e.phase===1?2.8:2.6;
+  if(d<near&&Math.random()<.7){vaSt(e,e.phase===1?'estocadas':'zarpazos');return}
+  var opts=e.phase===1?['salto','grito','lluvia']:['estrella','fuego','grito'];
+  opts=opts.filter(function(o){return o!==e.last});
+  vaSt(e,opts[Math.floor(Math.random()*opts.length)]);
+}
+/* ---------- IA ---------- */
+function vaAI(e,dt,d){
+  vaEnsure();
+  var T=e.tg||P,res={s:0,rev:false},cool=e.phase===2?.7:1.0;
+  e.cd=1;e.zt+=dt;
+  if(e.zst==='transforma'){            /* invulnerable mientras cambia de forma */
+    if(e.step===0&&e.zt>=1.4){
+      e.kind='licantropa';e.name='Valeria, jefa licántropa';e.phase=2;e.r=.85;e.speed=VA_CFG.speed2;
+      e.hp=e.maxHp=vaHp(VA_CFG.hp2);e.vaInv=false;burst(e.x,e.y,'#3e7e7c',40);S('bossRoar',e.x,e.y);
+      toast('¡Valeria se transforma en licántropa!');e.step=1;e.zt=0;
+    }
+    if(e.step===1&&e.zt>.6){vaSt(e,'walk');e.nx=.6}
+    return res;
+  }
+  if(e.zst==='walk'){res.s=d>2?1:0;e.nx-=dt;if(e.nx<=0)vaChoose(e,d);return res}
+  /* ---------------- fase 1 ---------------- */
+  if(e.zst==='estocadas'){             /* 3 estocadas hacia delante */
+    res.s=.3;var hitT=.3+.28*e.step;
+    if(e.step<3&&e.zt>=hitT-.2&&!e.warned){e.aimA=Math.atan2(T.y-e.y,T.x-e.x);e.warned=true;VA.fxl.push({k:'warnL',x:e.x,y:e.y,a:e.aimA,L:3,w:.5,t:0,dur:.2})}
+    if(e.step<3&&e.zt>=hitT){
+      var bx=e.x+Math.cos(e.aimA)*3,by=e.y+Math.sin(e.aimA)*3;S('claw',e.x,e.y);
+      PL.forEach(function(q){if(!q.dead&&vaSegD(q.x,q.y,e.x,e.y,bx,by)<.55)vaHurt(q,VA_CFG.estoc)});
+      e.step++;e.warned=false;
+    }
+    if(e.zt>1.2){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='salto'){                 /* salta al jugador y clava la lanza: área amplia de espinas */
+    if(e.step===0){e.tx=T.x;e.ty=T.y;e.sx0=e.x;e.sy0=e.y;VA.fxl.push({k:'warnC',x:e.tx,y:e.ty,r:VA_CFG.saltoR,t:0,dur:.75});e.step=1}
+    if(e.step===1&&e.zt>=.3){var k=Math.min(1,(e.zt-.3)/.45);e.x=e.sx0+(e.tx-e.sx0)*k;e.y=e.sy0+(e.ty-e.sy0)*k;e.jump=Math.sin(k*Math.PI);if(k>=1){e.step=2;e.jump=0;S('smash',e.x,e.y);
+      PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<1.3)vaHurt(q,VA_CFG.salto)});vaSpikeArea(e.x,e.y,VA_CFG.saltoR,0)}}
+    if(e.zt>2.5){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='grito'){                 /* área de espinas justo donde está el jugador */
+    if(e.step===0&&e.zt>=.45){S('bossRoar',e.x,e.y,0,.7);vaSpikeArea(T.x,T.y,VA_CFG.espinasR,0);e.step=1}
+    if(e.zt>1.4){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='lluvia'){                /* tres lluvias de flechas desde lados distintos que acaban en el jugador */
+    if(e.step===0&&e.zt>=.5){
+      var a0=Math.random()*6.283;
+      for(var j=0;j<3;j++){
+        var a=a0+j*2.094,sx=T.x+Math.cos(a)*7,sy=T.y+Math.sin(a)*7;
+        VA.fxl.push({k:'warnL',x:sx,y:sy,a:a+Math.PI,L:7.6,w:1.1,t:-j*.35,dur:.8});
+        for(var s=0;s<16;s++){var u=s/15*7.6,px=sx+Math.cos(a+Math.PI)*u,py=sy+Math.sin(a+Math.PI)*u;
+          for(var r2=0;r2<2;r2++){var o=(Math.random()-.5)*1.6,qx=px-Math.sin(a)*o*.5,qy=py+Math.cos(a)*o*.5;
+            if(!solid(qx,qy))VA.fxl.push({k:'arrow',x:qx,y:qy,t:-j*.35-.8-s*.035-Math.random()*.05,hit:false})}}
+      }
+      S('shoot',e.x,e.y);e.step=1;
+    }
+    if(e.zt>2.6){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  /* ---------------- fase 2 ---------------- */
+  if(e.zst==='zarpazos'){              /* 6 zarpazos */
+    res.s=.45;var hitT2=.22+.15*e.step;
+    if(e.step<6&&e.zt>=hitT2){
+      e.aimA=Math.atan2(T.y-e.y,T.x-e.x);
+      if(sfx.length<160)sfx.push({k:'swing',x:e.x,y:e.y,ang:e.aimA,arc:2.0,range:2.4,t:0,dur:.18});S('claw',e.x,e.y);
+      PL.forEach(function(q){if(q.dead)return;var dx=q.x-e.x,dy=q.y-e.y,dd=Math.hypot(dx,dy),da=Math.atan2(dy,dx)-e.aimA;da=Math.atan2(Math.sin(da),Math.cos(da));if(dd<2.5&&Math.abs(da)<1.1)vaHurt(q,VA_CFG.zarpa)});
+      e.step++;
+    }
+    if(e.zt>1.25){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='estrella'){              /* 5 embestidas que dibujan una estrella alrededor del jugador y luego estalla */
+    if(e.step===0){
+      e.cx=T.x;e.cy=T.y;e.pts=[];var a1=Math.random()*6.283,R=VA_CFG.estrellaR;
+      for(var k2=0;k2<5;k2++){var ang=a1+k2*2*6.283/5;e.pts.push({x:e.cx+Math.cos(ang)*R,y:e.cy+Math.sin(ang)*R})}
+      e.pts.forEach(function(p){if(solid(p.x,p.y)){p.x=e.cx+(p.x-e.cx)*.5;p.y=e.cy+(p.y-e.cy)*.5}});
+      e.di=0;e.step=1;e.zt=0;e.lines=[];
+      VA.fxl.push({k:'starWarn',pts:e.pts,t:0,dur:4.0});
+    }
+    if(e.step===1){                    /* aviso de cada tramo .3 s y embestida */
+      var from=e.di===0?{x:e.x,y:e.y}:e.pts[e.di-1],to=e.pts[e.di];
+      if(e.zt>=.3){
+        var dl=Math.hypot(to.x-from.x,to.y-from.y),k3=Math.min(1,(e.zt-.3)/(dl/16+.05));
+        e.x=from.x+(to.x-from.x)*k3;e.y=from.y+(to.y-from.y)*k3;
+        PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<.9&&!e['h'+e.di]){e['h'+e.di]=1;vaHurt(q,VA_CFG.carga)}});
+        if(k3>=1){if(e.di>0)VA.fxl.push({k:'trail',a:from,b:to,t:0,dur:2.4});e.di++;e.zt=0;S('claw',e.x,e.y);if(e.di>=5){e.step=2;e.zt=0;VA.fxl.push({k:'trail',a:e.pts[4],b:e.pts[0],t:0,dur:1.4})}}
+      }
+    }
+    if(e.step===2&&e.zt>=.8){         /* la estrella estalla */
+      S('bossDie',e.cx,e.cy,0,.6);
+      e.pts.forEach(function(p){VA.fxl.push({k:'boom',x:p.x,y:p.y,t:0})});VA.fxl.push({k:'boom',x:e.cx,y:e.cy,t:0,big:true});
+      PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.cx,q.y-e.cy)<VA_CFG.estrellaR+.3)vaHurt(q,VA_CFG.estrella)});
+      VA.fxl=VA.fxl.filter(function(f){return f.k!=='starWarn'&&f.k!=='trail'});e.step=3;
+    }
+    if(e.step===3&&e.zt>1.6){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  if(e.zst==='fuego'){                 /* 3 bolas de fuego por la boca */
+    var fT=.4+.3*e.step;
+    if(e.step<3&&e.zt>=fT){
+      var aa=Math.atan2(T.y-e.y,T.x-e.x)+(e.step-1)*.22,sp2=7;
+      VA.fxl.push({k:'fire',x:e.x+Math.cos(aa)*.8,y:e.y+Math.sin(aa)*.8,vx:Math.cos(aa)*sp2,vy:Math.sin(aa)*sp2,t:0});S('shoot',e.x,e.y);e.step++;
+    }
+    if(e.zt>1.5){vaSt(e,'walk');e.nx=cool}
+    return res;
+  }
+  vaSt(e,'walk');return res;
+}
+/* ---------- efectos ---------- */
+function vaFxUpdate(dt){
+  for(var i=VA.fxl.length-1;i>=0;i--){
+    var f=VA.fxl[i];f.t+=dt;
+    if(f.k==='spkHit'){if(!f.hit&&f.t>=0){f.hit=true;S('smash',f.x,f.y,0,.4);PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<f.r)vaHurt(q,VA_CFG.espinas)})}if(f.t>.2)VA.fxl.splice(i,1)}
+    else if(f.k==='thorn'){if(f.t>1.4)VA.fxl.splice(i,1)}
+    else if(f.k==='arrow'){if(!f.hit&&f.t>=0){f.hit=true;PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.45)vaHurt(q,VA_CFG.flecha)})}if(f.t>1.2)VA.fxl.splice(i,1)}
+    else if(f.k==='fire'){
+      f.x+=f.vx*dt;f.y+=f.vy*dt;var gone=f.t>3||solid(f.x,f.y);
+      PL.forEach(function(q){if(!gone&&!q.dead&&Math.hypot(q.x-f.x,q.y-f.y)<.55){vaHurt(q,VA_CFG.bola);gone=true}});
+      if(gone){VA.fxl.splice(i,1);VA.fxl.push({k:'boom',x:f.x,y:f.y,t:0})}
+    }
+    else if(f.k==='boom'){if(f.t>.6)VA.fxl.splice(i,1)}
+    else if(f.t>f.dur)VA.fxl.splice(i,1);
+  }
+  vaPipsUpdate();
+}
+function vaWarn(k){var ph=.5+.5*Math.sin(t*24);ctx.fillStyle='rgba(255,120,40,'+(.12+.12*k)+')';ctx.strokeStyle='rgba(255,'+(150+60*ph|0)+',60,'+(.55+.4*ph)+')';ctx.lineWidth=2}
+function vaDrawGround(){
+  VA.fxl.forEach(function(f){
+    if(f.t<0)return;
+    if(f.k==='warnC'&&f.t<f.dur){var p=sp(f.x,f.y);vaWarn(f.t/f.dur);ctx.beginPath();ctx.ellipse(p.x,p.y,f.r*45.25,f.r*22.6,0,0,6.283);ctx.fill();ctx.stroke();ctx.lineWidth=1}
+    else if(f.k==='warnL'&&f.t<f.dur){
+      var c=Math.cos(f.a),s=Math.sin(f.a),nx=-s*f.w/2,ny=c*f.w/2;
+      vaWarn(f.t/f.dur);poly([sp(f.x+nx,f.y+ny),sp(f.x+c*f.L+nx,f.y+s*f.L+ny),sp(f.x+c*f.L-nx,f.y+s*f.L-ny),sp(f.x-nx,f.y-ny)],ctx.fillStyle,ctx.strokeStyle);ctx.lineWidth=1}
+    else if(f.k==='starWarn'){
+      vaWarn(.5);ctx.beginPath();for(var k=0;k<=5;k++){var p2=sp(f.pts[(k*1)%5].x,f.pts[(k*1)%5].y);if(!k)ctx.moveTo(p2.x,p2.y);else ctx.lineTo(p2.x,p2.y)}ctx.globalAlpha=.6;ctx.stroke();ctx.globalAlpha=1;ctx.lineWidth=1}
+    else if(f.k==='trail'){var A1=sp(f.a.x,f.a.y),B1=sp(f.b.x,f.b.y),al=1-f.t/f.dur;ctx.strokeStyle='rgba(255,170,60,'+al+')';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(A1.x,A1.y);ctx.lineTo(B1.x,B1.y);ctx.stroke();ctx.strokeStyle='rgba(255,240,180,'+al+')';ctx.lineWidth=2;ctx.stroke();ctx.lineWidth=1}
+  });
+}
+function vaItems(list){
+  VA.fxl.forEach(function(f){
+    if(f.t<0)return;
+    if(f.k==='thorn'||f.k==='arrow'||f.k==='fire'||f.k==='boom')list.push({d:f.x+f.y+.02,fx:{va:f,x:f.x,y:f.y}});
+  });
+}
+function vaDrawItem(f){
+  var p=sp(f.x,f.y),im,F,c;
+  if(f.k==='thorn'){im=VA.fx.espinas;F=VA_FX.espinas;if(!im)return;var row=f.t<.8?0:1;c=row?Math.min(F.hunde-1,Math.floor((f.t-.8)/.5*F.hunde)):Math.min(F.sale-1,Math.floor(f.t/.15*F.sale));
+    ctx.drawImage(im,c*F.fw,row*F.fh,F.fw,F.fh,Math.round(p.x-F.fx*.6),Math.round(p.y-F.fy*.6),F.fw*.6,F.fh*.6)}
+  else if(f.k==='arrow'){im=VA.fx.flecha;F=VA_FX.flecha;if(!im)return;
+    if(f.t<.12){var dy=(1-f.t/.12)*160;ctx.drawImage(im,0,0,F.fw,F.fh,Math.round(p.x-F.fx),Math.round(p.y-F.fy-dy),F.fw,F.fh)}
+    else{ctx.globalAlpha=f.t>.9?(1.2-f.t)/.3:1;ctx.drawImage(im,F.fw,0,F.fw,F.fh,Math.round(p.x-F.fx),Math.round(p.y-F.fy),F.fw,F.fh);ctx.globalAlpha=1}}
+  else if(f.k==='fire'){im=VA.fx.bolafuego;F=VA_FX.bola;if(!im)return;c=Math.floor(f.t*12)%F.n;
+    ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(p.x,p.y,10,5,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
+    var ang=Math.atan2((f.vx+f.vy)*16,(f.vx-f.vy)*32);
+    ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y-40));ctx.rotate(ang);ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,-F.cx,-F.cy,F.fw,F.fh);ctx.restore()}
+  else if(f.k==='boom'){im=VA.fx.estrella;F=VA_FX.estrella;if(!im)return;c=Math.min(F.n-1,Math.floor(f.t/.6*F.n));var s=f.big?2.2:1.2;
+    ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,Math.round(p.x-F.cx*s),Math.round(p.y-F.cy*s),F.fw*s,F.fh*s)}
+}
+function vaFrame(e){
+  var z=e.zt||0;
+  if(e.kind==='valeria'){
+    var F=VA_SRC.filas;
+    if(e.zst==='transforma')return [2,Math.min(F.transforma-1,Math.floor(z/1.4*F.transforma))];
+    if(e.zst==='estocadas')return [1,Math.min(F.estocadas-1,Math.max(0,Math.floor((z-.1)/.14)))];
+    if(e.zst==='salto')return [3,Math.min(F.salto-1,e.step===0?0:e.step===1?1+Math.floor(Math.min(1,(z-.3)/.45)*2.99):4+(z>1.2?1:0))];
+    if(e.zst==='grito')return [4,Math.min(F.grito-1,Math.floor(z/1.0*F.grito))];
+    if(e.zst==='lluvia')return [5,Math.min(F.lluvia-1,Math.floor(z/1.2*F.lluvia))];
+    if((e.mv||0)<.15)return [0,0];return [0,Math.floor((e.wt||0)*9)%F.andar];
+  }
+  var G=VA_WSRC.filas;
+  if(e.zst==='transforma')return [5,Math.min(G.grito-1,2+Math.floor(z/.6*3))];
+  if(e.zst==='zarpazos')return [1,Math.min(G.zarpazos-1,Math.max(0,Math.floor((z-.1)/.15)))];
+  if(e.zst==='estrella')return e.step===1&&z>=.3?[3,Math.floor(z*20)%G.carga]:[4,0];
+  if(e.zst==='fuego')return [4,Math.min(G.fuego-1,Math.floor(z/1.3*G.fuego))];
+  if(e.zst==='grito')return [5,Math.min(G.grito-1,Math.floor(z/1.0*G.grito))];
+  if((e.mv||0)<.15)return [0,0];return [0,Math.floor((e.wt||0)*8)%G.andar];
+}
+/* ---------- enganches ---------- */
+function vaIs(e){return e&&e.zvBoss&&(e.kind==='valeria'||e.kind==='licantropa')}
+var va_bossAI=bossAI;bossAI=function(e,dt,d){if(vaIs(e))return vaAI(e,dt,d);return va_bossAI(e,dt,d)};
+var va_sprScale=sprScale;sprScale=function(e){if(vaIs(e))return e.kind==='valeria'?VA_CFG.k1:VA_CFG.k2;return va_sprScale(e)};
+var va_enemyFrame=enemyFrame;enemyFrame=function(e){if(vaIs(e))return vaFrame(e);return va_enemyFrame(e)};
+var va_hitEnemy=hitEnemy;hitEnemy=function(e,r,kx,ky,kb,quiet){if(vaIs(e)&&e.vaInv)return;return va_hitEnemy(e,r,kx,ky,kb,quiet)};
+var va_killEnemy=killEnemy;killEnemy=function(e){
+  if(!vaIs(e))return va_killEnemy(e);
+  if(e.phase===1){   /* primera barra vacía: se transforma */
+    e.hp=1;e.vaInv=true;vaSt(e,'transforma');VA.fxl=[];S('bossRoar',e.x,e.y);toast('Valeria aúlla...');return;
+  }
+  e.dead=true;kills++;S('bossDie',e.x,e.y,0,1.2);burst(e.x,e.y,'#3e7e7c',44);
+  meta.bestiary['archivo:valeria']=(meta.bestiary['archivo:valeria']||0)+1;
+  if(corpses.length<60)corpses.push({type:'licantropa',boss:true,x:e.x,y:e.y,flip:!!e.flip,k:VA_CFG.k2,t:0});
+  PL.forEach(function(q){q.level+=ZV_CFG.niveles;q.pend+=ZV_CFG.niveles;q.need=xpNeed(q.level)});
+  orbs.push({x:e.x,y:e.y,v:0,heal:true,t:0});
+  bossKills++;bossAlive=null;toast('Valeria, jefa licántropa, derrotada: +'+ZV_CFG.niveles+' niveles');
+  VA.fxl=[];vaBars(false);ZV.bossDone=true;
+};
+/* el salto se dibuja elevado */
+var va_drawSprEnemy=drawSprEnemy;drawSprEnemy=function(type,row,col,x,y,flip,k,flash,alpha){
+  if(type==='valeria'&&bossAlive&&bossAlive.kind==='valeria'&&bossAlive.jump)y-=bossAlive.jump*70;
+  return va_drawSprEnemy(type,row,col,x,y,flip,k,flash,alpha);
+};
+var va_update=update;update=function(dt){va_update(dt);try{vaEnsure();vaFxUpdate(dt)}catch(e){softErr('valeria',e)}};
+var va_sfxItems=sfxItems;sfxItems=function(list){va_sfxItems(list);try{vaItems(list)}catch(e){}};
+var va_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.va)return vaDrawItem(it.fx.va);return va_drawFxItem(it)};
+var va_drawHazGround=drawHazGround;drawHazGround=function(){va_drawHazGround();try{vaDrawGround()}catch(e){}};
+var va_startRun=startRun;startRun=function(key,mi){VA.fxl=[];vaBars(false);return va_startRun(key,mi)};
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
