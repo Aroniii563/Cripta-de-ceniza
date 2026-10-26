@@ -9871,7 +9871,7 @@ try{
 /* ==========================================================================
    RUNAS (VERSIÓN DE PRUEBA: solo en /online)
    24 runas del futhark antiguo: 8 ofensivas (1 hueco, rojo) y 16 defensivas (3 huecos, azul). 4 rarezas.
-   Se consiguen al terminar una partida. Solo afectan al J1 en solitario / cooperativo local.
+   Se compran con polvo rúnico (se gana al terminar partidas). Solo afectan al J1 en solitario / cooperativo local.
    ========================================================================== */
 (function(){
 var RAR=['Común','Rara','Épica','Legendaria'],RCOL=['#b8b2a0','#5aa9ff','#b36bff','#ffb038'];
@@ -9935,26 +9935,32 @@ var ORDER=['thurisaz','inguz','jera','sowilo','teiwaz','hagalaz','uruz','gebo','
 var OFF=ORDER.filter(function(i){return RUNES[i].o}),DEF=ORDER.filter(function(i){return !RUNES[i].o});
 var OLD={rayo:'sowilo',brasas:'kenaz',ejecutor:'teiwaz',chispa:'nauthiz',barrera:'algiz',espinas:'thurisaz',aliento:'dagaz',piel:'eihwaz'};
 var SLOTS={o:1,d:3};
+/* cada runa tiene UNA rareza fija: 0 común, 1 rara, 2 épica, 3 legendaria */
+var RR={thurisaz:0,inguz:1,jera:1,hagalaz:2,gebo:1,teiwaz:2,sowilo:1,uruz:3,
+ isa:0,ansuz:3,fehu:1,algiz:0,nauthiz:1,perthro:3,kenaz:0,raido:1,laguz:1,dagaz:0,eihwaz:1,mannaz:2,wunjo:2,ehwaz:1,berkano:0,othala:3};
+/* economía: polvo rúnico */
+var COST=100,DUST_PCT=.15,SELLV=[20,70,100,200],BUYW=[60,28,9,3];
 function mig(k){if(!k)return k;var a=k.split(':');return (OLD[a[0]]||a[0])+':'+a[1]}
 function R(){
   var m=meta.runes;if(!m)m=meta.runes={inv:{},eq:{o:[null],d:[null,null,null]},pity:0,n:0,seen:{}};
+  if(m.dust==null)m.dust=window.TEST_BUILD?99999:0;
   if(!m.inv)m.inv={};if(!m.eq)m.eq={o:[null],d:[null,null,null]};if(!m.seen)m.seen={};
   if(!m.mig){m.mig=1;var ni={};Object.keys(m.inv).forEach(function(k){var nk=mig(k);ni[nk]=(ni[nk]||0)+m.inv[k]});m.inv=ni;m.eq.o=m.eq.o.map(mig);m.eq.d=m.eq.d.map(mig)}
+  if(!m.mig2){m.mig2=1;var ni2={};Object.keys(m.inv).forEach(function(k){var p0=parse(k);if(!RUNES[p0.id])return;var nk=key(p0.id);ni2[nk]=(ni2[nk]||0)+m.inv[k]});m.inv=ni2;['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return null;var p1=parse(k);return RUNES[p1.id]?key(p1.id):null})})}
   while(m.eq.d.length<3)m.eq.d.push(null);
   ['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return null;var p=parse(k);if(!RUNES[p.id]||(RUNES[p.id].o?'o':'d')!==tp){if(RUNES[p.id])m.inv[k]=(m.inv[k]||0)+1;return null}return k})});
   if(m.eq.o.length>1){var x=m.eq.o.splice(1).filter(Boolean);x.forEach(function(k){m.inv[k]=(m.inv[k]||0)+1})}
   return m}
-function key(id,r){return id+':'+r}
+function key(id){return id+':'+RR[id]}
 function parse(k){var a=k.split(':');return {id:a[0],r:+a[1]}}
-function give(id,r){var m=R(),k=key(id,r);m.inv[k]=(m.inv[k]||0)+1;m.n=(m.n||0)+1;m.seen[id]=1;saveMeta();return k}
-function rollRarity(mins,boss){
-  var w=[70,22,7,1],sh=Math.min(40,mins*.7+boss*3),i;
-  w[0]-=sh;w[1]+=sh*.6;w[2]+=sh*.32;w[3]+=sh*.08;
-  var s=w[0]+w[1]+w[2]+w[3],x=Math.random()*s;
-  for(i=0;i<4;i++){if(x<w[i])return i;x-=w[i]}return 0;
+function give(id){var m=R(),k=key(id);m.inv[k]=(m.inv[k]||0)+1;m.n=(m.n||0)+1;m.seen[id]=1;saveMeta();return k}
+function rollRarity(){var s0=BUYW[0]+BUYW[1]+BUYW[2]+BUYW[3],x=Math.random()*s0,i;for(i=0;i<4;i++){if(x<BUYW[i])return i;x-=BUYW[i]}return 0}
+function buyRune(){
+  var m=R();if(m.dust<COST)return null;
+  m.dust-=COST;var rar=rollRarity(),pool=ORDER.filter(function(i){return RR[i]===rar}),id=pool[Math.floor(Math.random()*pool.length)];
+  return give(id);
 }
-/* 1 de cada 3 runas es ofensiva (son 8 de 24) */
-function rollRune(mins,boss){var id=ORDER[Math.floor(Math.random()*ORDER.length)];return give(id,rollRarity(mins,boss))}
+function owned(id){var m=R(),n=m.inv[key(id)]||0;['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k&&parse(k).id===id)n++})});return n}
 function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
@@ -9964,7 +9970,7 @@ st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas
  '#pRunas .rimg{image-rendering:pixelated;vertical-align:middle}#pRunas .rcard .nm{margin-left:6px}'+
  '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}'+
  '#pRunas .rcard{border:1px solid var(--line);background:#0c1415;padding:10px;font-size:13px;line-height:1.35}#pRunas .rcard b{font-size:15px}#pRunas .rcard .gl{font-size:20px;margin-right:4px}#pRunas .rcard .rb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}#pRunas .rcard.lk{opacity:.45;text-align:center;padding:14px 10px}'+
- '#pRunas h3{margin:0 0 8px;font-weight:400;color:var(--gold)}#pRunas h3.ho{color:#d9444e}#pRunas h3.hd{color:#4f8fe0}#pRunas h3 small{color:var(--muted);font-size:13px}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
+ '#pRunas .rdust{margin:0 0 8px;font-size:15px;color:#c9b0ff}#pRunas .rdust b{color:#e8dcff}#pRunas h3{margin:0 0 8px;font-weight:400;color:var(--gold)}#pRunas h3.ho{color:#d9444e}#pRunas h3.hd{color:#4f8fe0}#pRunas h3 small{color:var(--muted);font-size:13px}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
  '#hud>.statp{top:118px}#runHud{display:flex;gap:5px;margin-top:5px;pointer-events:none}#runHud div{width:25px;height:30px;position:relative;overflow:hidden}#runHud img{display:block;width:100%;height:100%!important}'+
  '#runHud i{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.65)}';
 document.head.appendChild(st);
@@ -9975,13 +9981,13 @@ tb.className='mt';tb.type='button';tb.setAttribute('data-m','runas');tb.setAttri
 var ub=mt.querySelector('[data-m="upg"]');mt.insertBefore(tb,ub?ub.nextSibling:rb);
 function im(id,h,x){return '<img class="rimg" src="runas/'+id+'.png" alt="" style="height:'+h+'px'+(x||'')+'">'}
 function card(k,n,inInv){
-  var p=parse(k),u=RUNES[p.id];
-  return '<div class="rcard" style="border-color:'+RCOL[p.r]+'"><b style="color:'+RCOL[p.r]+'">'+im(p.id,34,';filter:drop-shadow(0 0 3px '+RCOL[p.r]+')')+'<span class="nm">'+u.n+'</span></b> <small>'+u.w+' · '+RAR[p.r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(p.r)+'</div>'+
-   (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(n>=3&&p.r<3?'<button class="btn sm" data-fu="'+k+'">Fusionar 3 → '+RAR[p.r+1]+'</button>':'')+'</div>':'')+'</div>';
+  var id=parse(k).id,u=RUNES[id],r=RR[id],can=inInv&&owned(id)>=2;
+  return '<div class="rcard" style="border-color:'+RCOL[r]+'"><b style="color:'+RCOL[r]+'">'+im(id,34,';filter:drop-shadow(0 0 3px '+RCOL[r]+')')+'<span class="nm">'+u.n+'</span></b> <small>'+u.w+' · '+RAR[r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(r)+'</div>'+
+   (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(can?'<button class="btn sm" data-sell="'+k+'">Vender repetida (+'+SELLV[r]+')</button>':'')+'</div>':'')+'</div>';
 }
 function build(){
-  var m=R(),h='<div class="rwrap"><div class="rleft"><h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Se consiguen al terminar una partida (más tiempo y jefes = mejor rareza). <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. Con 3 runas iguales puedes fusionarlas en una de rareza superior. De momento solo funcionan en solitario y cooperativo local.</p>';
-  var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return parse(b).r-parse(a).r||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
+  var m=R(),h='<div class="rwrap"><div class="rleft"><h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Cada partida te da <b style="color:#c9b0ff">polvo rúnico</b> con el que compras runas al azar (las más raras salen menos). Si repites una, puedes venderla por polvo: una común no da para otra runa, una rara casi, una épica da una y una legendaria dos. <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. De momento solo funcionan en solitario y cooperativo local.</p>';
+  var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return RR[parse(b).id]-RR[parse(a).id]||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
   var SP={o0:[73.8,38.5,40],d0:[32.3,88.3,27],d1:[74,105,27],d2:[115.7,87.3,27]};
   function slot(tp,i){var k=m.eq[tp][i],c=SP[tp+i],p=k&&parse(k),u=k&&RUNES[p.id];
     return '<div class="rsl2" data-sl="'+tp+i+'" title="'+(k?u.n+' · '+u.w+' · '+RAR[p.r]+' (clic para quitar)':(tp==='o'?'Hueco de runa ofensiva':'Hueco de runa defensiva'))+'" style="left:'+(c[0]/144*100)+'%;top:'+(c[1]/143*100)+'%;width:'+(c[2]/144*100)+'%;height:'+(c[2]*1.2/143*100)+'%">'+(k?'<img class="rimg" src="runas/'+p.id+'.png" alt="" style="filter:drop-shadow(0 0 4px '+RCOL[p.r]+')">':'')+'</div>'}
@@ -9989,17 +9995,17 @@ function build(){
   function sect(list,cls,title){
     var mine=ks.filter(function(k){return list.indexOf(parse(k).id)>=0}),seen=list.filter(function(i){return m.seen[i]||mine.some(function(k){return parse(k).id===i})}).length;
     var lock=list.filter(function(i){return !(m.seen[i]||mine.some(function(k){return parse(k).id===i}))});
-    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+'</small></div></div>'}).join('')+'</div>';
+    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+' · <span style="color:'+RCOL[RR[i]]+'">'+RAR[RR[i]]+'</span></small></div></div>'}).join('')+'</div>';
   }
   h+=sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
-  h+='<div class="rright"><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><button class="btn" data-dev="1">Conseguir runa (prueba)</button></div></div>';
+  h+='<div class="rright"><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><div class="rdust">Polvo rúnico: <b>'+m.dust+'</b></div><button class="btn" data-buy="1"'+(m.dust<COST?' style="opacity:.55"':'')+'>Comprar runa ('+COST+' polvo)</button></div></div>';
   sec.innerHTML=h;
 }
 sec.addEventListener('click',function(e){
-  var b=e.target.closest('[data-eq],[data-fu],[data-sl],[data-dev]');if(!b)return;var m=R();
-  if(b.dataset.dev){var c=b.dataset.dev==='2'?3:1;for(var i=0;i<c;i++)rollRune(Math.random()*15,Math.random()<.2?1:0);build();return}
+  var b=e.target.closest('[data-eq],[data-sell],[data-sl],[data-buy]');if(!b)return;var m=R();
+  if(b.dataset.buy){if(m.dust<COST){toast('Te falta polvo rúnico ('+m.dust+'/'+COST+')');return}var nk=buyRune();if(nk){var np=parse(nk);toast('Runa obtenida: '+RUNES[np.id].n+' ('+RAR[RR[np.id]]+')')}build();return}
   if(b.dataset.sl){var tp=b.dataset.sl[0],ix=+b.dataset.sl[1],k=m.eq[tp][ix];if(k){m.inv[k]=(m.inv[k]||0)+1;m.eq[tp][ix]=null}saveMeta();build();return}
-  if(b.dataset.fu){var k2=b.dataset.fu,p=parse(k2);if((m.inv[k2]||0)<3)return;m.inv[k2]-=3;give(p.id,p.r+1);m.n-=1;saveMeta();toast('Fusión: '+RUNES[p.id].n+' '+RAR[p.r+1]);build();return}
+  if(b.dataset.sell){var ks2=b.dataset.sell,p2=parse(ks2);if((m.inv[ks2]||0)<1||owned(p2.id)<2)return;m.inv[ks2]--;m.dust+=SELLV[RR[p2.id]];saveMeta();toast('Vendida: '+RUNES[p2.id].n+' (+'+SELLV[RR[p2.id]]+' polvo)');build();return}
   if(b.dataset.eq){var k3=b.dataset.eq,p3=parse(k3),tp3=RUNES[p3.id].o?'o':'d',sl=m.eq[tp3];if(!(m.inv[k3]>0))return;
     var other=sl.map(function(x){return x&&parse(x).id});
     var ix3=sl.indexOf(null);if(ix3<0)ix3=0;
@@ -10363,24 +10369,19 @@ var endRun_run=endRun;
 endRun=function(why){
   var awarded=P&&P.awarded,r=endRun_run.apply(this,arguments);
   if(!awarded&&on()&&!coop0()){
-    var m=R(),mins=t/60;
-    if(t>=90){
-      var ch=Math.min(.9,.3+mins*.04);
-      if(m.pity>=2||Math.random()<ch){m.pity=0;RUN.drop=rollRune(mins,bossKills||0)}
-      else m.pity=(m.pity||0)+1;
-    }
-    saveMeta();
+    var m=R(),g=(r&&r.g)||(meta.last&&meta.last.gold)||0,d=Math.max(g>0?1:0,Math.ceil(g*DUST_PCT));
+    m.dust+=d;RUN.drop=d;saveMeta();
   }
   return r;
 };
 function coop0(){return typeof PL!=='undefined'&&PL.length>1}
 function note(){
-  if(!RUN.drop)return;var p=parse(RUN.drop),u=RUNES[p.id],el=$('deadSub');
-  if(el)el.textContent+=' · Runa obtenida: '+u.n+' ('+RAR[p.r]+')';RUN.drop=null;
+  if(!RUN.drop)return;var el=$('deadSub');
+  if(el)el.textContent+=' · Polvo rúnico: +'+RUN.drop;RUN.drop=null;
 }
 var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return r};
 var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
-window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,rollRune:rollRune,lv:lv,ORDER:ORDER};
+window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv:lv,ORDER:ORDER};
 })();
 
 /* (los aspectos remodelados del druida y la monja ya son los aspectos normales) */
