@@ -9983,9 +9983,14 @@ st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas
  '@media(max-width:820px){#pRunas .rwrap{flex-wrap:wrap}#pRunas .rleft,#pRunas .rright{flex:1 1 100%}#pRunas .rright{position:static;height:auto;min-height:0}#pRunas .rmed{width:100%;max-width:420px}}'+
  '#pRunas .rmed{position:relative;width:108%;max-width:620px;flex:none;margin:0 0 10px}#pRunas .rmed>img{display:block;width:100%;image-rendering:pixelated}#pRunas .rsl2{position:absolute;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}#pRunas .rsl2:hover{outline:2px solid #ffffff55}#pRunas .rsl2 img{width:100%;height:100%;object-fit:contain}'+
  '#pRunas .rimg{image-rendering:pixelated;vertical-align:middle}#pRunas .rcard .nm{margin-left:6px}'+
- '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}'+
- '#pRunas .rcard{border:1px solid var(--line);background:#0c1415;padding:10px;font-size:13px;line-height:1.35}#pRunas .rcard b{font-size:15px}#pRunas .rcard .gl{font-size:20px;margin-right:4px}#pRunas .rcard .rb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}#pRunas .rcard.lk{opacity:.45;text-align:center;padding:14px 10px}'+
- '#pRunas .rdust{margin:0 0 8px;font-size:15px;color:#c9b0ff}#pRunas .rdust b{color:#e8dcff}#pRunas h3{margin:0 0 8px;font-weight:400;color:var(--gold)}#pRunas h3.ho{color:#d9444e}#pRunas h3.hd{color:#4f8fe0}#pRunas h3 small{color:var(--muted);font-size:13px}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
+ '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px 14px;margin-bottom:22px}'+
+ '#pRunas .rcard{--c:var(--line);position:relative;display:flex;align-items:center;font-size:13px;line-height:1.35}'+
+ '#pRunas .rcard .roval{flex:none;width:112px;height:176px;box-sizing:border-box;border:2px solid var(--c);border-radius:50%;background:#0a1112;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}'+
+ '#pRunas .rcard .roval img{height:92px;max-width:80%;object-fit:contain}'+
+ '#pRunas .rcard .rbox{flex:1;min-width:0;align-self:center;margin-left:-30px;box-sizing:border-box;min-height:132px;padding:10px 14px 10px 42px;border:2px solid var(--c);border-radius:0 24px 24px 0;background:#0c1415;display:flex;flex-direction:column;gap:5px}'+
+ '#pRunas .rcard .rtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}#pRunas .rcard .rn{font-size:16px;font-weight:700;color:var(--c)}#pRunas .rcard .rcat{font-size:12px;color:var(--c);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}'+
+ '#pRunas .rcard .rd{color:#cfd8d6;flex:1}#pRunas .rcard .rd small{color:var(--muted)}#pRunas .rcard .rb{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}#pRunas .rcard .rb .btn[disabled]{opacity:.4;cursor:default}#pRunas .rcard.lk{opacity:.5}#pRunas .rcard.lk .rbox{min-height:110px}'+
+'#pRunas .rdust{margin:0 0 8px;font-size:15px;color:#c9b0ff}#pRunas .rdust b{color:#e8dcff}#pRunas h3{margin:0 0 8px;font-weight:400;color:var(--gold)}#pRunas h3.ho{color:#d9444e}#pRunas h3.hd{color:#4f8fe0}#pRunas h3 small{color:var(--muted);font-size:13px}#pRunas .btn.sm{padding:5px 10px;font-size:13px}'+
  '#hud>.statp{top:118px}#runHud{display:flex;gap:5px;margin-top:5px;pointer-events:none}#runHud div{width:25px;height:30px;position:relative;overflow:hidden}#runHud img{display:block;width:100%;height:100%!important}'+
  '#runHud i{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.65)}';
 document.head.appendChild(st);
@@ -9997,8 +10002,8 @@ var ub=mt.querySelector('[data-m="upg"]');mt.insertBefore(tb,ub?ub.nextSibling:r
 function im(id,h,x){return '<img class="rimg" src="runas/'+id+'.png" alt="" style="height:'+h+'px'+(x||'')+'">'}
 function card(k,n,inInv){
   var id=parse(k).id,u=RUNES[id],r=RR[id],can=inInv&&owned(id)>=2;
-  return '<div class="rcard" style="border-color:'+RCOL[r]+'"><b style="color:'+RCOL[r]+'">'+im(id,34,';filter:drop-shadow(0 0 3px '+RCOL[r]+')')+'<span class="nm">'+u.n+'</span></b> <small>'+u.w+' · '+RAR[r]+(n>1?' ×'+n:'')+'</small><div>'+u.d(r)+'</div>'+
-   (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(can?'<button class="btn sm" data-sell="'+k+'">Vender repetida (+'+SELLV[r]+')</button>':'')+'</div>':'')+'</div>';
+  return '<div class="rcard" style="--c:'+RCOL[r]+'"><div class="roval">'+im(id,92,';filter:drop-shadow(0 0 5px '+RCOL[r]+')')+'</div><div class="rbox"><div class="rtop"><span class="rn">'+u.n+'</span><span class="rcat">'+RAR[r]+(n>1?' ×'+n:'')+'</span></div><div class="rd">'+u.d(r)+'</div>'+
+   (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button><button class="btn sm" data-sell="'+k+'"'+(can?'':' disabled title="Solo puedes vender runas repetidas"')+'>Vender (+'+SELLV[r]+')</button></div>':'')+'</div></div>';
 }
 function build(){
   var m=R(),h='<div class="rwrap"><div class="rleft"><h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Cada partida te da <b style="color:#c9b0ff">polvo rúnico</b> con el que compras runas al azar (las más raras salen menos). Si repites una, puedes venderla por polvo: una común no da para otra runa, una rara casi, una épica da una y una legendaria dos. <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. De momento solo funcionan en solitario y cooperativo local.</p>';
@@ -10010,7 +10015,7 @@ function build(){
   function sect(list,cls,title){
     var mine=ks.filter(function(k){return list.indexOf(parse(k).id)>=0}),seen=list.filter(function(i){return m.seen[i]||mine.some(function(k){return parse(k).id===i})}).length;
     var lock=list.filter(function(i){return !(m.seen[i]||mine.some(function(k){return parse(k).id===i}))});
-    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+' · <span style="color:'+RCOL[RR[i]]+'">'+RAR[RR[i]]+'</span></small></div></div>'}).join('')+'</div>';
+    return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk" style="--c:'+RCOL[RR[i]]+'"><div class="roval">'+im(i,92,';filter:grayscale(1) brightness(.5)')+'</div><div class="rbox"><div class="rtop"><span class="rn">???</span><span class="rcat">'+RAR[RR[i]]+'</span></div><div class="rd"><small>'+RUNES[i].w+' · sin descubrir</small></div></div></div>'}).join('')+'</div>';
   }
   h+=sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
   h+='<div class="rright"><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><div class="rdust">Polvo rúnico: <b>'+m.dust+'</b></div><button class="btn" data-buy="1"'+(m.dust<COST?' style="opacity:.55"':'')+'>Comprar runa ('+COST+' polvo)</button></div></div>';
