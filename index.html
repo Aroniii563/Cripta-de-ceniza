@@ -8352,8 +8352,8 @@ function twBar(){
   cg.hidden=modes;if(cv)cv.hidden=modes;if(ky)ky.hidden=modes;
   if(modes){
     b.style.display='flex';
-    b.innerHTML='<button class="mdcard" type="button" data-md="classic"><img alt="" src="mapas/mapa1.png"><span class="nm">Clásico</span><p>Elige mapa y sobrevive: un jefe cada 5 minutos.</p></button>'+
-      '<button class="mdcard" type="button" data-md="tower"'+(un?'':' disabled')+'><img alt="" src="mapimg/ceniza/retrato.png"><span class="nm">Torre de ceniza</span><p>24 jefes seguidos, en el orden de los mapas, con una mejora especial desde el inicio.</p>'+(un?'':'<span class="lk">Bloqueado: derrota al Escritor en el modo clásico</span>')+'</button>';
+    b.innerHTML='<button class="mdcard" type="button" data-md="classic"><img alt="" src="iconos/modo_clasico.png"><span class="nm">Clásico</span><p>Elige mapa y sobrevive: un jefe cada 5 minutos.</p></button>'+
+      '<button class="mdcard" type="button" data-md="tower"'+(un?'':' disabled')+'><img alt="" src="iconos/modo_torre.png"><span class="nm">Torre de ceniza</span><p>24 jefes seguidos, en el orden de los mapas, con una mejora especial desde el inicio.</p>'+(un?'':'<span class="lk">Bloqueado: derrota al Escritor en el modo clásico</span>')+'</button>';
     $('modeNote').textContent='';
   }else{
     b.style.display='block';
