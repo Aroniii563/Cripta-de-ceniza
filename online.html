@@ -10461,7 +10461,7 @@ window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv
      sitio, con los enemigos y orbes que habías dejado allí.
    Archivos: archivo/ (suelo, laberinto, pilares, estanterías, atril, muros, calcos) y efectos/portal.png.
    ========================================================================== */
-var ZV_CFG={min:600,max:1200,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5};   /* portal cada 10-20 min; jefe con el doble de vida y el triple de daño; +5 niveles */
+var ZV_CFG={min:600,max:1200,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5,dur:60,rango:2.2,dmin:4,dmax:7};   /* portal cada 10-20 min; jefe con el doble de vida y el triple de daño; +5 niveles */
 function zvRand(){return ZV_CFG.min+Math.random()*(ZV_CFG.max-ZV_CFG.min)}
 var ZV_BOSSES=[];   /* {id,name,spawn(x,y)->enemigo} · los añaden los bloques de cada jefe */
 var ZV_SRC={"tw":128,"th":64,"floors":4,
@@ -10609,9 +10609,10 @@ function zvDrawPortal(o){
 function zvSpot(){
   var T=livePlayer();
   for(var k=0;k<24;k++){
-    var a=Math.random()*6.283,d=1.1+Math.random()*.6,x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
+    var a=Math.random()*6.283,d=ZV_CFG.dmin+Math.random()*(ZV_CFG.dmax-ZV_CFG.dmin),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(!blocked(x,y,.5))return {x:x,y:y};
   }
+  for(var k=0;k<24;k++){var a=Math.random()*6.283,d=1.5+Math.random()*1.5,x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;if(!blocked(x,y,.5))return {x:x,y:y}}
   return {x:T.x,y:T.y};
 }
 /* modo infinito: Escritor derrotado y el jefe del minuto 20 de este mapa ya vencido */
@@ -10666,17 +10667,51 @@ function zvPull(o,dt){
   PL.forEach(function(q){if(q.dead)return;var dx=o.x-q.x,dy=o.y-q.y,d=Math.hypot(dx,dy);if(d>.05){var v=Math.min(d,dt*(2+4*o.pt));q.x+=dx/d*v;q.y+=dy/d*v}});
   return o.pt>=ZV_CFG.tirar;
 }
+/* el portal es opcional: el jugador decide con E estando cerca */
+function zvNearR(o){
+  for(var k=0;k<PL.length;k++){var q=PL[k];if(!q.dead&&Math.hypot(q.x-o.x,q.y-o.y)<ZV_CFG.rango)return q}
+  return null;
+}
+function zvTarget(){
+  var o=ZV.on?ZV.exit:ZV.portal;
+  return (o&&zvOpen(o)&&zvNearR(o))?o:null;
+}
+function zvChestNear(){
+  if(typeof chests==='undefined'||typeof COF_CFG==='undefined')return false;
+  return PL.some(function(p){return !p.dead&&chests.some(function(c){return c.st===0&&!c.gone&&Math.hypot(p.x-c.x,p.y-c.y)<COF_CFG.openR})});
+}
+function zvPrompt(){
+  if(state!=='play')return;
+  var o=zvTarget();if(!o)return;
+  var cs=sp(cam.x,cam.y),p=sp(o.x,o.y),x=(p.x-cs.x)*Z+W/2,y=(p.y-cs.y)*Z+H/2-90*Z*ZV_CFG.escala/.7;
+  var m=ZV.on?'[E] Volver al mapa':'[E] Entrar a El Archivo';
+  ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);ctx.font='bold 15px sans-serif';ctx.textAlign='center';
+  var w=ctx.measureText(m).width+22;
+  ctx.fillStyle='rgba(20,10,35,.82)';ctx.strokeStyle='#c890ff';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.rect(x-w/2,y-16,w,26);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#f0e0ff';ctx.fillText(m,x,y+2);ctx.restore();
+}
+window.addEventListener('keydown',function(e){
+  if(e.repeat||state!=='play'||!e.key||e.key.toLowerCase()!=='e')return;
+  if(typeof ON!=='undefined'&&ON.on)return;
+  var o=zvTarget();if(!o||zvChestNear())return;
+  try{
+    if(ZV.on){if(ZV.exit&&o===ZV.exit)zvLeave()}
+    else if(bossAlive)toast('No puedes entrar mientras haya un jefe vivo');
+    else zvEnter();
+  }catch(er){softErr('archivo',er)}
+});
 function zvUpdate(dt){
   if(ZV.flash>0)ZV.flash=Math.max(0,ZV.flash-dt*2.2);
   if(!ZV.on){
     var o=ZV.portal;
     if(o&&o.st==='cierra'){o.tc+=dt;if(!zvPortalFrame(o))ZV.portal=null}
-    else if(o){o.t+=dt;if(zvOpen(o)&&zvPull(o,dt))zvEnter()}
+    else if(o){o.t+=dt;if(zvOpen(o)&&o.t>ZV_CFG.dur){o.st='cierra';o.tc=0;toast('El portal a El Archivo se ha cerrado')}}
     if(!zvInfinite()){ZV.next=0;return}
     if(!ZV.next)ZV.next=t+zvRand();
     if(t>=ZV.next&&zvCanSpawn()){
       var s=zvSpot();ZV.portal={x:s.x,y:s.y,t:0,st:'abre',tc:0};
-      toast('¡Se abre un portal a El Archivo bajo tus pies!');ZV.next=t+zvRand();
+      toast('¡Se ha abierto un portal a El Archivo! Acércate y pulsa E para entrar (o ignóralo)');ZV.next=t+zvRand();
     }
   }else{
     ZV.t+=dt;
@@ -10689,8 +10724,8 @@ function zvUpdate(dt){
     }
     if(ZV.bossDone){
       ZV.doneT+=dt;
-      if(!ZV.exit&&ZV.doneT>1.5){var T2=livePlayer();ZV.exit={x:T2.x+.9,y:T2.y+.9,t:0,st:'abre',tc:0};if(blocked(ZV.exit.x,ZV.exit.y,.4)){ZV.exit.x=T2.x;ZV.exit.y=T2.y}toast('El portal de regreso se ha abierto')}
-      if(ZV.exit){ZV.exit.t+=dt;if(zvOpen(ZV.exit)&&ZV.exit.t>ZV_CFG.salida-ZV_CFG.tirar+.67&&zvPull(ZV.exit,dt))zvLeave()}
+      if(!ZV.exit&&ZV.doneT>1.5){var T2=livePlayer();ZV.exit={x:T2.x+.9,y:T2.y+.9,t:0,st:'abre',tc:0};if(blocked(ZV.exit.x,ZV.exit.y,.4)){ZV.exit.x=T2.x;ZV.exit.y=T2.y}toast('El portal de regreso se ha abierto: pulsa E junto a él para volver')}
+      if(ZV.exit)ZV.exit.t+=dt;
     }
   }
 }
@@ -10716,7 +10751,7 @@ var zv_sfxItems=sfxItems;sfxItems=function(list){
 };
 var zv_drawFxItem=drawFxItem;drawFxItem=function(it){if(it.fx&&it.fx.zv)return zvDrawPortal(it.fx.zv);return zv_drawFxItem(it)};
 var zv_update=update;update=function(dt){zv_update(dt);try{zvUpdate(dt)}catch(e){softErr('archivo',e)}};
-var zv_render=render;render=function(){zv_render();try{zvFlashOverlay()}catch(e){}};
+var zv_render=render;render=function(){zv_render();try{zvPrompt();zvFlashOverlay()}catch(e){}};
 var zv_spawnEnemy=spawnEnemy;spawnEnemy=function(){if(ZV.on)return;return zv_spawnEnemy.apply(this,arguments)};   /* dentro de la zona solo está el jefe */
 var zv_startRun=startRun;startRun=function(key,mi){zvReset();return zv_startRun(key,mi)};
 var zv_showMenu=showMenu;showMenu=function(tab){zvReset();return zv_showMenu(tab)};
