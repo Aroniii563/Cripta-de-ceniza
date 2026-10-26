@@ -9958,8 +9958,8 @@ function rollRune(mins,boss){var id=ORDER[Math.floor(Math.random()*ORDER.length)
 function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
-st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas .rleft{flex:0 0 calc(65% - 12px);min-width:0}#pRunas .rright{flex:0 0 calc(35% - 12px);min-width:0;position:sticky;align-self:flex-start;top:max(10px,calc(50vh - 215px));display:flex;flex-direction:column;align-items:center;justify-content:center}'+
- '@media(max-width:820px){#pRunas .rwrap{flex-wrap:wrap}#pRunas .rleft,#pRunas .rright{flex:1 1 100%}#pRunas .rright{position:static;height:auto;max-height:none}#pRunas .rmed{width:100%;max-width:420px}}'+
+st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas .rleft{flex:0 0 calc(65% - 12px);min-width:0}#pRunas .rright{flex:0 0 calc(35% - 12px);min-width:0;position:sticky;align-self:flex-start;top:10px;height:calc(100vh - 200px);min-height:440px;display:flex;flex-direction:column;align-items:center;justify-content:center}'+
+ '@media(max-width:820px){#pRunas .rwrap{flex-wrap:wrap}#pRunas .rleft,#pRunas .rright{flex:1 1 100%}#pRunas .rright{position:static;height:auto;min-height:0}#pRunas .rmed{width:100%;max-width:420px}}'+
  '#pRunas .rmed{position:relative;width:108%;max-width:620px;flex:none;margin:0 0 10px}#pRunas .rmed>img{display:block;width:100%;image-rendering:pixelated}#pRunas .rsl2{position:absolute;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}#pRunas .rsl2:hover{outline:2px solid #ffffff55}#pRunas .rsl2 img{width:100%;height:100%;object-fit:contain}'+
  '#pRunas .rimg{image-rendering:pixelated;vertical-align:middle}#pRunas .rcard .nm{margin-left:6px}'+
  '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}'+
@@ -9980,7 +9980,7 @@ function card(k,n,inInv){
    (inInv?'<div class="rb"><button class="btn sm" data-eq="'+k+'">Equipar</button>'+(n>=3&&p.r<3?'<button class="btn sm" data-fu="'+k+'">Fusionar 3 → '+RAR[p.r+1]+'</button>':'')+'</div>':'')+'</div>';
 }
 function build(){
-  var m=R(),h='<h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Se consiguen al terminar una partida (más tiempo y jefes = mejor rareza). <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. Con 3 runas iguales puedes fusionarlas en una de rareza superior. De momento solo funcionan en solitario y cooperativo local.</p>';
+  var m=R(),h='<div class="rwrap"><div class="rleft"><h2>Runas</h2><p class="lead">Versión de prueba con las 24 runas del futhark antiguo. Se consiguen al terminar una partida (más tiempo y jefes = mejor rareza). <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. Con 3 runas iguales puedes fusionarlas en una de rareza superior. De momento solo funcionan en solitario y cooperativo local.</p>';
   var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return parse(b).r-parse(a).r||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
   var SP={o0:[73.8,38.5,40],d0:[32.3,88.3,27],d1:[74,105,27],d2:[115.7,87.3,27]};
   function slot(tp,i){var k=m.eq[tp][i],c=SP[tp+i],p=k&&parse(k),u=k&&RUNES[p.id];
@@ -9991,7 +9991,7 @@ function build(){
     var lock=list.filter(function(i){return !(m.seen[i]||mine.some(function(k){return parse(k).id===i}))});
     return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+'</small></div></div>'}).join('')+'</div>';
   }
-  h+='<div class="rwrap"><div class="rleft">'+sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
+  h+=sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
   h+='<div class="rright"><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><button class="btn" data-dev="1">Conseguir runa (prueba)</button></div></div>';
   sec.innerHTML=h;
 }
