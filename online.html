@@ -316,14 +316,15 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 .mappanel .mapmsg:empty{display:none}
 .mapfoot{margin:0}
 .maps{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-.mapc{display:grid;grid-template-columns:112px minmax(0,1fr) 190px;gap:18px;align-items:center;background:rgba(10,20,26,.55);border:1px solid var(--line);padding:12px 16px 12px 12px;min-width:0}
+.mapc{display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:18px;align-items:center;background:rgba(10,20,26,.55);border:1px solid var(--line);padding:12px 16px 12px 12px;min-width:0}
 .mapc.lockd .ic{filter:grayscale(1) brightness(.5)}
 .mapc .ic{display:block;width:112px;height:112px;border:1px solid var(--line);image-rendering:pixelated;object-fit:cover;background:#0b1214}
 .mapc .mi{display:flex;flex-direction:column;gap:4px;min-width:0}
 .mapc .nm{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.05;color:var(--gold)}
 .mapc .ef{font-size:13.5px;color:var(--muted)}
 .mapc .btn{width:100%}
-@media (max-width:700px){#mapOv{padding:14px;overflow:auto}.mapwrap{height:auto;grid-template-rows:auto}.mappanel{overflow:visible;padding:12px}.mapc{grid-template-columns:84px minmax(0,1fr);gap:12px}.mapc .ic{width:84px;height:84px}.mapc .nm{font-size:23px}.mapc .btn{grid-column:1 / -1}}
+.mapc .mact{display:flex;gap:8px;justify-content:flex-end;align-items:center}.mapc .mact .btn{width:auto;min-width:104px;white-space:nowrap;padding-left:14px;padding-right:14px}.mapc .mact .btn.hard{border-color:#c0504a;color:#ff8c84}.mapc .mact .btn.hard:disabled{border-color:var(--line);color:inherit}.mapc .mact .btn.inf{border-color:#9a6ae0;color:#cfb0ff}
+@media (max-width:700px){#mapOv{padding:14px;overflow:auto}.mapwrap{height:auto;grid-template-rows:auto}.mappanel{overflow:visible;padding:12px}.mapc{grid-template-columns:84px minmax(0,1fr);gap:12px}.mapc .ic{width:84px;height:84px}.mapc .nm{font-size:23px}.mapc .mact{grid-column:1 / -1;flex-wrap:wrap;justify-content:stretch}.mapc .mact .btn{flex:1 1 90px}}
 
 /* Movimiento: transiciones cortas (120–260 ms) y suaves; se desactivan con "reducir movimiento" */
 .btn,.tab,.mt,.card,.skc,.mapc,.mrow,.up{transition:transform .14s ease-out,background-color .14s ease-out,border-color .14s ease-out,color .14s ease-out,box-shadow .14s ease-out}
@@ -619,7 +620,7 @@ var CLASSES={
    Jefes: BOSS_HITS golpes normales (tras armadura) x BOSS_K ("un 50% más"). */
 var PROJ_MAX=20;
 var HPF={zombie:1.3,archer:1,brute:8},HP_REF=18,HP_TIME=240,BOSS_BASE=1500,BOSS_HITS=10,BOSS_K=1.7;
-function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp}
+function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp*HM}
 function bossHf(n,armor){return BOSS_HITS*BOSS_K*(1+.6*(n-1))}
 var ETYPES={
   zombie:{hp:14,speed:1.9,dmg:8,r:.32,xp:5,h:30,col:'#7f9d6c',name:'Zombi'},
@@ -1036,6 +1037,7 @@ function clsLabel(c){return String(c).split('+').map(function(k){return CLASSES[
 })();
 function postRank(lvl){
   if(!PL.length)return;
+  if(RUNMODE==='hard')return;
   if(TW.on){
     if(!won)return;
     var te={mode:'torre',cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:5,ts:Date.now()};
@@ -1228,6 +1230,7 @@ var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],par
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
 var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
+var RUNMODE='',NEXTMODE='',HM=1,HARDP=[.5,.42,.35,.28,.22,.15,.15];
 var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
 /* Cooperativo local: PL = jugadores; P apunta al jugador "actual" mientras se procesa su lógica (P=PL[0] el resto del tiempo). */
@@ -1297,7 +1300,12 @@ function mkPlayer(key,idx){
   return p;
 }
 function startRun(key,mi){
-  var c=CLASSES[key];lastKey=key;curMap=mi||0;applyMap(curMap);genMap();carpet=null;if(curMap===0)cryptGen();if(curMap===1)abyssReset();if(curMap===2)swampGen();else swampWater=null;
+  var c=CLASSES[key];lastKey=key;curMap=mi||0;
+  RUNMODE=NEXTMODE;NEXTMODE='';
+  if(RUNMODE==='hard'&&!meta.done[curMap])RUNMODE='';
+  if(RUNMODE==='inf'&&(!meta.infinite||curMap===5))RUNMODE='';
+  HM=RUNMODE==='hard'?1+(HARDP[curMap]||.15):1;
+  applyMap(curMap);genMap();carpet=null;if(curMap===0)cryptGen();if(curMap===1)abyssReset();if(curMap===2)swampGen();else swampWater=null;
   coop=coopOn&&!touchMode&&!COARSE;
   PL=[mkPlayer(key,0)];
   if(coop){var p2=mkPlayer(coopCls,1);p2.x+=1.2;p2.flip=false;PL.push(p2)}
@@ -1307,7 +1315,7 @@ function startRun(key,mi){
   zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;window.FBN=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1,-1,-1];
   statsOpen=W>=700;applyStatsOpen();
   $('toast').hidden=true;
-  $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n;$('hudClass').style.color=c.col;
+  $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n+(RUNMODE==='hard'?' · Difícil':RUNMODE==='inf'?' · Infinito':'');$('hudClass').style.color=c.col;
   $('hud2').hidden=!coop;
   if(coop){$('hud2Class').textContent='J2 · '+CLASSES[coopCls].name;$('hud2Class').style.color=CLASSES[coopCls].col}
   $('helpTxt').innerHTML=coop?'J1: WASD · J2: flechas · ataque automático<br>P pausa · C estadísticas':'WASD mover · el ataque es automático<br>P pausa · C estadísticas';
@@ -1400,7 +1408,7 @@ function killEnemy(e){
     if(e.bossN<=4&&!(curMap===5&&e.bossN===4)&&(!TW.on||TW.cur<3))PL.forEach(function(q){q.pendS++});
     bossAlive=null;if(TW.on)TW.nextT=t+3;
     if(e.bossN===4&&state==='play'&&!won&&(!TW.on||TW.bi>=24)){
-      if(curMap===5||!meta.infinite){won=true;later.push({t:2.2,f:victory})}
+      if(curMap===5||RUNMODE!=='inf'){won=true;later.push({t:2.2,f:victory})}
       else{
         /* modo infinito: la partida sigue tras el jefe del minuto 20 */
         meta.done[curMap]=true;saveMeta();
@@ -1425,8 +1433,8 @@ function spawnBoss(){
     var a=Math.random()*6.283,d=rnd(10,13),T=livePlayer(),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(blocked(x,y,.9))continue;
     bossN++;
-    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*(1+tB()/1200)*tK()*coopHp();
-    var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:(curMap===0||curMap===5)?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg,
+    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*HM*(1+tB()/1200)*tK()*coopHp();
+    var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:(curMap===0||curMap===5)?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg*HM,
       xp:0,h:76,col:(curMap===0||curMap===5)?'#a89c78':curMap===1?'#4ea2b0':curMap===2?'#5a7a2a':curMap===3?'#8a2a1a':'#d0a032',armor:bar,elite:false,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:2.5,side:1,dead:false,ai:1.2,wind:-1,sc:0};
     b.born=t;enemies.push(b);bossAlive=b;S('bossRoar');toast(kind==='muerte'||kind==='cangrejo'||kind==='wendigo'||kind==='devorador'||kind==='papa'?'¡'+b.name+' ha llegado!':'Jefe: '+b.name);
     return true;
@@ -1459,7 +1467,7 @@ function victory(){
   var r=endRun('victoria'),g=r.g,lv=0;
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
   $('deadTitle').textContent='¡Victoria!';
-  $('deadSub').textContent=(curMap===5?'Has derrotado al Escritor.'+(newInf?' ¡Modo infinito desbloqueado en los demás mapas!':''):'Has vencido al jefe del minuto 20 de '+MAPS[curMap].n+'.')+(curMap<MAPS.length-1?' Ya puedes comprar el siguiente mapa.':'')+(newPage?' Has desbloqueado una página del diario.':'');
+  $('deadSub').textContent=(curMap===5?'Has derrotado al Escritor.'+(newInf?' ¡Modo infinito desbloqueado en los demás mapas!':''):'Has vencido al jefe del minuto 20 de '+MAPS[curMap].n+(RUNMODE==='hard'?' en dificultad Difícil':'')+'.')+(curMap<MAPS.length-1?' Ya puedes comprar el siguiente mapa.':'')+(newPage?' Has desbloqueado una página del diario.':'');
   var dp=$('deadPage');if(newPage){dp.innerHTML='<img src="'+diaryImg(curMap+1)+'" alt="Página del diario">';dp.hidden=false;dp.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dp.hidden=true;
   $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
   saveMeta();
@@ -1536,7 +1544,7 @@ function spawnEnemy(){
     var typ='zombie',r=Math.random();
     if(tE()>90&&r<.14)typ='brute';else if(tE()>40&&r<.38)typ='archer';
     var def=ETYPES[typ],elite=tE()>60&&Math.random()<.07;
-    var hf=HPF[typ]*(elite?2.4:1),dm=(1+tE()/300)*(elite?1.3:1)*MAPS[curMap].dmg;
+    var hf=HPF[typ]*(elite?2.4:1),dm=(1+tE()/300)*(elite?1.3:1)*MAPS[curMap].dmg*HM;
     enemies.push({type:typ,x:x,y:y,r:def.r*(elite?1.2:1),hf:hf,hp:enemyHp(hf),maxHp:enemyHp(hf),speed:def.speed*(elite?1.1:1),dmg:def.dmg*dm,
       xp:def.xp*(elite?4:1)*MAPS[curMap].xp,h:def.h*(elite?1.2:1),col:curMap===0?'#a89c78':curMap===1?({zombie:'#b07c78',archer:'#4ea2b0',brute:'#6e4a30'})[typ]:curMap===2?({zombie:'#4a6a1c',archer:'#c4321c',brute:'#1e4a4a'})[typ]:curMap===3?({zombie:'#9c2816',archer:'#5a2a8a',brute:'#6e2416'})[typ]:curMap===4?({zombie:'#8a7a7a',archer:'#d6a62c',brute:'#dddbe2'})[typ]:def.col,elite:elite,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:rnd(1,2.5),side:Math.random()<.5?1:-1,dead:false});
     return;
@@ -1762,7 +1770,7 @@ function update(dt){
   if(spawnT<=0){
     spawnT=.12;
     /* Enemigos objetivo en pantalla: sube un 10% cada 10 segundos (tope 320). */
-    var target=Math.round(Math.min(capMax()*(pactoOn()?1.35:1),16*Math.pow(1.09,Math.floor(tE()/10))*coopN()*(pactoOn()?1.35:1))*capScale);
+    var target=Math.round(Math.min(capMax()*(pactoOn()?1.35:1),16*Math.pow(1.09,Math.floor(tE()/10))*coopN()*(pactoOn()?1.35:1))*capScale*HM);
     var need=Math.min(6,target-enemies.length);
     for(var k=0;k<need;k++)spawnEnemy();
   }
@@ -1926,17 +1934,22 @@ function buildMaps(msg){
   $('mapGold').textContent=meta.gold;
   $('mapMsg').textContent=msg||'';
   $('mapGrid').innerHTML=MAPS.map(function(m,i){
-    var st=mapStatus(i),btn,note;
-    if(st==='own')btn='<button class="btn" type="button" data-play="'+i+'">Jugar</button>';
+    var st=mapStatus(i),btn,note,last=(i===5);
+    if(st==='own'){
+      btn='<button class="btn" type="button" data-play="'+i+'">Jugar</button>'+
+        '<button class="btn hard" type="button" data-play="'+i+'" data-mode="hard" title="+'+Math.round((HARDP[i]||.15)*100)+'% de vida, daño y enemigos"'+(meta.done[i]?'':' disabled')+'>Difícil</button>'+
+        ((meta.infinite&&!last)?'<button class="btn inf" type="button" data-play="'+i+'" data-mode="inf" title="La partida sigue tras el jefe del minuto 20">Infinito</button>':'');
+    }
     else if(st==='buy')btn='<button class="btn" type="button" data-buy="'+i+'"'+(meta.gold<MAP_COST?' disabled':'')+'>Comprar · '+MAP_COST+' oro</button>';
     else btn='<button class="btn" type="button" disabled>Bloqueado</button>';
+    var hardTxt=' Difícil: +'+Math.round((HARDP[i]||.15)*100)+'% de vida, daño y enemigos.';
     if(st==='lock')note='Vence al jefe del minuto 20 del mapa '+i+' para poder comprarlo.';
-    else if(i===5)note=meta.infinite?'Escritor derrotado. Este mapa no tiene modo infinito.':'Derrota al Escritor (minuto 20) para desbloquear el modo infinito en los demás mapas.';
-    else note=meta.infinite?(meta.done[i]?'Mapa superado · modo infinito activo.':'Modo infinito activo: sigue jugando tras el jefe del minuto 20.'):(meta.done[i]?'Mapa superado.':'Vence al jefe del minuto 20 para desbloquear el siguiente.');
+    else if(last)note=(meta.infinite?'Escritor derrotado. Modo infinito desbloqueado en los demás mapas.':'Derrota al Escritor (minuto 20) para desbloquear el modo infinito en los demás mapas.')+(meta.done[i]?hardTxt:' Vence al Escritor para desbloquear Difícil.');
+    else note=(meta.done[i]?'Mapa superado.'+hardTxt:'Vence al jefe del minuto 20 para desbloquear el siguiente mapa y la dificultad Difícil.')+(meta.infinite?' Modo infinito disponible.':'');
     return '<div class="mapc'+(st==='lock'?' lockd':'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
       '<div class="mi"><span class="nm">'+m.n+'</span>'+
       '<span class="ef">Enemigos y jefes: daño x'+es(m.dmg)+'</span>'+
-      '<span class="ef">'+note+'</span></div>'+btn+'</div>';
+      '<span class="ef">'+note+'</span></div>'+(st==='own'?'<div class="mact">'+btn+'</div>':btn)+'</div>';
   }).join('');
 }
 function openMaps(k){mapChar=k;fillCoopCls();$('menu').hidden=true;$('mapOv').hidden=false;$('coopBar').hidden=COARSE;$('coopChk').checked=coopOn;$('coopSel').hidden=!coopOn;buildMaps('')}
@@ -1953,7 +1966,7 @@ function openMaps(k){mapChar=k;fillCoopCls();$('menu').hidden=true;$('mapOv').hi
 })();
 $('mapGrid').addEventListener('click',function(e){
   var pb=e.target.closest('[data-play]'),bb=e.target.closest('[data-buy]');
-  if(pb){startRun(mapChar,+pb.getAttribute('data-play'));return}
+  if(pb){if(pb.disabled)return;NEXTMODE=pb.getAttribute('data-mode')||'';startRun(mapChar,+pb.getAttribute('data-play'));return}
   if(bb&&!bb.disabled){
     var i=+bb.getAttribute('data-buy');
     if(mapStatus(i)==='buy'&&meta.gold>=MAP_COST){
