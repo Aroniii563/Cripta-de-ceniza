@@ -9958,8 +9958,9 @@ function rollRune(mins,boss){var id=ORDER[Math.floor(Math.random()*ORDER.length)
 function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
-st.textContent='#pRunas .rwrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}#pRunas .rleft{flex:1 1 420px;min-width:280px}#pRunas .rright{flex:0 0 330px;max-width:100%;position:sticky;top:10px}'+
- '#pRunas .rmed{position:relative;width:330px;max-width:100%;margin:6px auto 10px}#pRunas .rmed>img{display:block;width:100%;image-rendering:pixelated}#pRunas .rsl2{position:absolute;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}#pRunas .rsl2:hover{outline:2px solid #ffffff55}#pRunas .rsl2 img{width:100%;height:100%;object-fit:contain}'+
+st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas .rleft{flex:0 0 calc(65% - 12px);min-width:0}#pRunas .rright{flex:0 0 calc(35% - 12px);min-width:0;position:sticky;align-self:flex-start;top:max(10px,calc(50vh - 230px));display:flex;flex-direction:column;align-items:center;justify-content:center}'+
+ '@media(max-width:820px){#pRunas .rwrap{flex-wrap:wrap}#pRunas .rleft,#pRunas .rright{flex:1 1 100%}#pRunas .rright{position:static;height:auto;max-height:none}}'+
+ '#pRunas .rmed{position:relative;width:100%;max-width:360px;margin:0 auto 14px}#pRunas .rmed>img{display:block;width:100%;image-rendering:pixelated}#pRunas .rsl2{position:absolute;transform:translate(-50%,-50%);cursor:pointer;border-radius:50%}#pRunas .rsl2:hover{outline:2px solid #ffffff55}#pRunas .rsl2 img{width:100%;height:100%;object-fit:contain}'+
  '#pRunas .rimg{image-rendering:pixelated;vertical-align:middle}#pRunas .rcard .nm{margin-left:6px}'+
  '#pRunas .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px}'+
  '#pRunas .rcard{border:1px solid var(--line);background:#0c1415;padding:10px;font-size:13px;line-height:1.35}#pRunas .rcard b{font-size:15px}#pRunas .rcard .gl{font-size:20px;margin-right:4px}#pRunas .rcard .rb{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}#pRunas .rcard.lk{opacity:.45;text-align:center;padding:14px 10px}'+
@@ -9991,8 +9992,7 @@ function build(){
     return '<h3 class="'+cls+'">'+title+' <small>'+seen+'/'+list.length+' descubiertas</small></h3><div class="rgrid">'+mine.map(function(k){return card(k,m.inv[k],true)}).join('')+lock.map(function(i){return '<div class="rcard lk"><b>'+im(i,34,';filter:grayscale(1) brightness(.5)')+'<span class="nm">???</span></b><div><small>'+RUNES[i].w+'</small></div></div>'}).join('')+'</div>';
   }
   h+='<div class="rwrap"><div class="rleft">'+sect(OFF,'ho','Runas ofensivas')+sect(DEF,'hd','Runas defensivas')+'</div>';
-  h+='<div class="rright"><h3>Equipadas en partida</h3><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><p style="text-align:center;margin:0 0 12px;font-size:13px">'+eqList()+'</p>'+
-   '<div><button class="btn sm" data-dev="1">+ Runa aleatoria (prueba)</button> <button class="btn sm" data-dev="2">+ 3 runas (prueba)</button><br><small style="color:var(--muted)">Runas conseguidas: '+(m.n||0)+' · garantizada tras '+Math.max(0,2-(m.pity||0))+' partida(s) sin runa</small></div></div></div>';
+  h+='<div class="rright"><div class="rmed"><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><button class="btn" data-dev="1">Conseguir runa (prueba)</button></div></div>';
   sec.innerHTML=h;
 }
 sec.addEventListener('click',function(e){
