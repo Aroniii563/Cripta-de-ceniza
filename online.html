@@ -10506,7 +10506,7 @@ window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv
   var qs_victory=victory;
   victory=function(){
     var was=state==='play',won=[];
-    if(was&&RUNHARD)QS.forEach(function(q){if(q.win!==undefined&&curMap===q.win&&meta.skins.indexOf(q.id)<0)won.push(q)});
+    if(was&&RUNHARD)QS.forEach(function(q){if(q.win!==undefined&&curMap===q.win&&(q.cls||'druid')===(P&&P.key)&&meta.skins.indexOf(q.id)<0)won.push(q)});
     hideMsg();
     qs_victory.apply(this,arguments);
     if(won.length){won.forEach(grant);saveMeta()}
