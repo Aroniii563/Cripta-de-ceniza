@@ -10484,6 +10484,9 @@ window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv
     {id:'druid_odin',name:'Odín',win:5,quest:'Bloqueado: derrota al Escritor en Difícil',msg:'¡Aspecto desbloqueado: Odín (Druida)!',src:'skins/druid_odin_retrato_v3.png',aw:255,ah:366},
     {id:'druid_micelio',name:'Micelio',kills:KILLS_MICELIO,quest:function(){return 'Bloqueado: consigue '+KILLS_MICELIO+' bajas con el Druida ('+Math.min(druidKills(),KILLS_MICELIO)+'/'+KILLS_MICELIO+')'},msg:'¡Aspecto desbloqueado: Micelio (Druida)!',src:'skins/druid_micelio_retrato.png',aw:225,ah:396}
   ];
+  /* orden en la pestaña de aspectos: 1.º bajas, 2.º superar un mapa en Difícil, 3.º derrotar al Escritor en Difícil */
+  function rk(q){return q.kills?0:(q.win===5?2:1)}
+  QS=QS.map(function(q,i){return [rk(q),i,q]}).sort(function(a,b){return a[0]-b[0]||a[1]-b[1]}).map(function(x){return x[2]});
   QS.forEach(function(q){
     if(!SKINCAT.some(function(c){return c.id===q.id}))SKINCAT.push({id:q.id,cls:q.cls||'druid',name:q.name,cost:-1,quest:q.quest});   /* coste -1: fuera de la tienda; solo se tiene si está en meta.skins */
     SKIN_SRC[q.id]={atlas:q.src,ax:0,aw:q.aw,ah:q.ah,aT:q.aw};
