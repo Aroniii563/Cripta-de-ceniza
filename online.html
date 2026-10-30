@@ -12721,7 +12721,9 @@ render=function(){
    FONDOS DEL MENÚ PRINCIPAL · selector + fondos animados
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
    Archivos: fondos/menu_cripta.webp (ya existe), fondos/menu_salon.webp, fondos/menu_salon_cielo.png,
-             fondos/menu_abismo.webp, fondos/menu_abismo_sprites.png
+             fondos/menu_abismo.webp, fondos/menu_abismo_sprites.png,
+             fondos/menu_pantano.webp, fondos/menu_pantano_sprites.png, fondos/menu_pantano_cielo.png,
+             fondos/menu_forja.webp, fondos/menu_forja_sprites.png
    - El fondo se pinta en un <canvas> dentro de #menu (debajo del contenido) a la resolución de la imagen,
      y encima se animan llamas, luces, brasas, nubes, estandartes, niebla, polvo y setas.
    - Botón «Fondo» abajo a la derecha del menú: abre un panel con todos los fondos; los bloqueados
@@ -12735,7 +12737,11 @@ var FONDOS_MENU = [
   {id: 'salon', nombre: 'Salón del Portal Sellado', src: 'fondos/menu_salon.webp', pos: 'center 45%', fx: 'salon',
    req: 'Derrota al jefe del primer mapa', ok: function () { return !!(meta.done && meta.done[0]); }},
   {id: 'abismo', nombre: 'Ruinas del Abismo', src: 'fondos/menu_abismo.webp', pos: 'center 45%', fx: 'abismo',
-   req: 'Derrota al jefe del Abismo azul', ok: function () { return !!(meta.done && meta.done[1]); }}
+   req: 'Derrota al jefe del Abismo azul', ok: function () { return !!(meta.done && meta.done[1]); }},
+  {id: 'pantano', nombre: 'Ciénaga de las Ruinas', src: 'fondos/menu_pantano.webp', pos: 'center 45%', fx: 'pantano',
+   req: 'Derrota al jefe del Pantano verde', ok: function () { return !!(meta.done && meta.done[2]); }},
+  {id: 'forja', nombre: 'Forja del Abismo Ardiente', src: 'fondos/menu_forja.webp', pos: 'center 45%', fx: 'forja',
+   req: 'Derrota al jefe de la Forja roja', ok: function () { return !!(meta.done && meta.done[3]); }}
 ];
 
 /* ---------- efectos de cada fondo (coordenadas en píxeles de la imagen) ---------- */
@@ -12829,6 +12835,150 @@ var FONDO_FX = {
       }
       c.globalAlpha = 1;
     }
+  },
+  pantano: {
+    w: 1672, h: 941, P: 3,
+    atlas: 'fondos/menu_pantano_sprites.png', cielo: 'fondos/menu_pantano_cielo.png',
+    spr: {"lib1":[[0,0,150,110,353,169]],"lib2":[[152,0,93,82,1355,507]]},
+    musgo: [[455, 0, 150, 128], [250, 0, 110, 90], [1440, 0, 200, 175]],
+    faroles: [[233, 338, 64], [1517, 440, 64], [1268, 400, 26], [1092, 578, 30], [1080, 584, 20]],
+    reflejo: [870, 640, 1075, 805],
+    agua: [520, 660, 1320, 905],
+    lucis: [140, 280, 1560, 820],
+    dibuja: function (c, t, dt, M, H) {
+      var P = this.P, i, img = M.img, S = this.spr, A = M.atlas, W = img.naturalWidth;
+      /* nubes verdosas en el cielo */
+      if (M.cielo) {
+        var g = M.ng, W3 = M.nube.width, H3 = M.nube.height; g.clearRect(0, 0, W3, H3); g.globalCompositeOperation = 'source-over';
+        for (i = 0; i < 8; i++) {
+          var sp = 3 + H.rnd(i) * 4, x0 = ((H.rnd(i + 9) * (W3 + 220) + t * sp) % (W3 + 220)) - 110, y0 = 6 + H.rnd(i + 3) * 120;
+          g.fillStyle = i % 3 ? 'rgba(20,34,22,.32)' : 'rgba(120,150,95,.18)';
+          for (var k = 0; k < 7; k++) { var w2 = 20 + H.rnd(i * 7 + k) * 30, h2 = 4 + H.rnd(i * 5 + k) * 6; g.fillRect(Math.round(x0 + k * 12 - w2 / 2), Math.round(y0 + Math.sin(k + i) * 4), Math.round(w2), Math.round(h2)); }
+        }
+        g.globalCompositeOperation = 'destination-in'; g.drawImage(M.cielo, 0, 0, W3, H3);
+        c.drawImage(M.nube, 0, 0, W, img.naturalHeight);
+      }
+      /* musgo colgante que se mece */
+      this.musgo.forEach(function (b, n) {
+        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round(Math.sin(t * .9 + y * .045 + n * 2.4) * 5 * k2 * k2 / P) * P;
+          if (off) c.drawImage(img, b[0], y, b[2], P, b[0] + off, y, b[2], P); }
+      });
+      /* bruma del horizonte (detrás de todo lo que flota) */
+      var N1 = M.n1 || (M.n1 = H.niebla(Math.ceil(W / 3), 70, 4, [150, 180, 140]));
+      var N2 = M.n2 || (M.n2 = H.niebla(Math.ceil(W / 3), 80, 8, [120, 150, 115]));
+      [[N1, 520, 210, 6, .7], [N2, 760, 240, -4, .75]].forEach(function (L) {
+        var off = ((t * L[3] * 3) % W + W) % W; c.globalAlpha = L[4];
+        c.drawImage(L[0], 0, 0, L[0].width, L[0].height, -off, L[1], W, L[2]); c.drawImage(L[0], 0, 0, L[0].width, L[0].height, W - off, L[1], W, L[2]);
+      });
+      c.globalAlpha = 1;
+      /* reflejo de luz temblando en el agua */
+      var Rf = this.reflejo; c.globalCompositeOperation = 'lighter';
+      for (i = 0; i < 34; i++) {
+        var ry = Rf[1] + H.rnd(i + 3) * (Rf[3] - Rf[1]), cxr = (Rf[0] + Rf[2]) / 2 + Math.sin(t * .8 + i) * 30, half = (Rf[2] - Rf[0]) / 2 * (1 - (ry - Rf[1]) / (Rf[3] - Rf[1]) * .5);
+        var rx = cxr + (H.rnd(i + 40) - .5) * 2 * half, len = (6 + H.rnd(i + 7) * 22) * (.6 + .4 * Math.sin(t * 2.2 + i * 1.3));
+        c.globalAlpha = .18 + .22 * (.5 + .5 * Math.sin(t * 3.1 + i * 2.7)); c.fillStyle = '#c8dc8a';
+        c.fillRect(Math.round((rx - len / 2) / P) * P, Math.round(ry / P) * P, Math.round(len / P) * P, P);
+      }
+      c.globalAlpha = 1;
+      /* faroles, ventanas y velas que parpadean */
+      this.faroles.forEach(function (q, n) { H.glow(c, q[0], q[1], q[2], '255,160,70', .38 * H.flick(t * .8, n + 5)); });
+      /* luciérnagas */
+      var Lb = this.lucis;
+      for (i = 0; i < 24; i++) {
+        var fx_ = Lb[0] + H.rnd(i) * (Lb[2] - Lb[0]) + Math.sin(t * (.25 + H.rnd(i + 1) * .3) + i) * 60 + Math.sin(t * 1.3 + i * 3) * 8;
+        var fy_ = Lb[1] + H.rnd(i + 30) * (Lb[3] - Lb[1]) + Math.cos(t * (.2 + H.rnd(i + 2) * .3) + i * 2) * 40;
+        var on = .5 + .5 * Math.sin(t * (1.2 + H.rnd(i + 8)) + i * 4); if (on < .15) continue;
+        H.glow(c, fx_, fy_, 16, '190,255,110', .3 * on);
+        c.globalCompositeOperation = 'source-over'; c.globalAlpha = Math.min(1, on * 1.3); c.fillStyle = on > .6 ? '#f2ffb0' : '#b8f070';
+        c.fillRect(Math.round(fx_ / P) * P, Math.round(fy_ / P) * P, P, P); c.globalAlpha = 1; c.globalCompositeOperation = 'lighter';
+      }
+      c.globalCompositeOperation = 'source-over';
+      /* ondas en el agua */
+      var Wa = this.agua, rp = M.ond || (M.ond = []);
+      if (rp.length < 7 && Math.random() < dt * 1.6) rp.push({x: Wa[0] + Math.random() * (Wa[2] - Wa[0]), y: Wa[1] + Math.random() * (Wa[3] - Wa[1]), v: 0});
+      for (i = rp.length - 1; i >= 0; i--) {
+        var o = rp[i]; o.v += dt; if (o.v > 2.4) { rp.splice(i, 1); continue; }
+        var rr = 4 + o.v * 16, a = (1 - o.v / 2.4) * .5; c.globalAlpha = a; c.fillStyle = '#9fb88a';
+        for (var q2 = 0; q2 < 18; q2++) { var an = q2 / 18 * Math.PI * 2; c.fillRect(Math.round((o.x + Math.cos(an) * rr) / P) * P, Math.round((o.y + Math.sin(an) * rr * .3) / P) * P, P, P); }
+      }
+      c.globalAlpha = 1;
+      /* libélulas revoloteando (zumbido: alas que vibran cada fotograma) */
+      if (A) {
+        var zz = Math.floor(t * 30) % 2;
+        var sp2 = function (q, dx, dy) { var hh = q[3] * (zz ? .9 : 1); c.drawImage(A, q[0], q[1], q[2], q[3], Math.round((q[4] + dx) / P) * P, Math.round((q[5] + dy + (q[3] - hh) / 2) / P) * P, q[2], Math.round(hh)); };
+        sp2(S.lib1[0], Math.sin(t * .5) * 34 + Math.sin(t * 2.3) * 5, Math.sin(t * .9) * 14 + Math.sin(t * 3.1) * 3);
+        sp2(S.lib2[0], Math.sin(t * .6 + 2) * 26 + Math.sin(t * 2.7) * 4, Math.sin(t * 1.2 + 1) * 10 + Math.sin(t * 3.7) * 2);
+      }
+    }
+  },
+  forja: {
+    w: 1672, h: 941, P: 3,
+    atlas: 'fondos/menu_forja_sprites.png',
+    spr: {"jaula":[[0,0,118,264,275,138,340,140]],"farol":[[120,0,83,132,1409,326,1447,328]]},
+    cascadas: [[118, 60, 38, 330, 70], [858, 292, 18, 186, 55], [850, 590, 26, 108, 60], [1003, 672, 12, 146, 50], [1131, 266, 12, 128, 45], [1118, 398, 18, 70, 55]],
+    rio: [760, 822, 1010, 900],
+    calor: [560, 430, 1200, 820],
+    fuegos: [[134, 568, 10, 15], [393, 690, 9, 13], [679, 801, 10, 15], [1246, 448, 10, 15], [1306, 663, 9, 13], [1363, 721, 13, 18], [1512, 508, 11, 15]],
+    ventanas: [[782, 280, 12, 100], [958, 280, 10, 100], [1205, 170, 8, 30]],
+    estandartes: [[448, 140, 52, 262], [1576, 112, 76, 285]],
+    dibuja: function (c, t, dt, M, H) {
+      var P = this.P, i, img = M.img, S = this.spr, A = M.atlas, W = img.naturalWidth;
+      /* aire caliente: filas desplazadas sobre la lava */
+      var Cz = this.calor;
+      for (var y = Cz[1]; y < Cz[3]; y += P) { var off = Math.round(Math.sin(t * 2.2 + y * .09) * 1.6 * Math.sin((y - Cz[1]) / (Cz[3] - Cz[1]) * Math.PI)); if (off) c.drawImage(img, Cz[0], y, Cz[2] - Cz[0], P, Cz[0] + off, y, Cz[2] - Cz[0], P); }
+      /* cascadas de lava que fluyen */
+      this.cascadas.forEach(function (q, n) {
+        var x = q[0], y0 = q[1], w = q[2], h = q[3], off = Math.round(((t * q[4]) % h) / P) * P;
+        if (off > 0) { c.drawImage(img, x, y0, w, h - off, x, y0 + off, w, h - off); c.drawImage(img, x, y0 + h - off, w, off, x, y0, w, off); }
+        for (var k = 0; k < Math.max(3, h / 30); k++) {
+          var yy = y0 + ((H.rnd(n * 13 + k) * h + t * q[4] * 1.4) % h), xx = x + H.rnd(n * 7 + k) * w;
+          c.fillStyle = k % 3 ? '#ffb040' : '#fff0a0'; c.fillRect(Math.round(xx / P) * P, Math.round(yy / P) * P, P, P * 2);
+        }
+      });
+      /* estandartes */
+      this.estandartes.forEach(function (b, n) {
+        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round(Math.sin(t * 1.4 + y * .03 + n * 2) * 4.5 * k2 * k2 / P) * P;
+          if (off) c.drawImage(img, b[0], b[1] + y, b[2], P, b[0] + off, b[1] + y, b[2], P); }
+      });
+      /* río de lava: rizos brillantes que se arrastran */
+      var Rv = this.rio;
+      for (i = 0; i < 40; i++) {
+        var rx = Rv[0] + ((H.rnd(i) * (Rv[2] - Rv[0]) + t * (8 + H.rnd(i + 3) * 10)) % (Rv[2] - Rv[0])), ry = Rv[1] + H.rnd(i + 20) * (Rv[3] - Rv[1]);
+        var a = .5 + .5 * Math.sin(t * 2 + i * 1.7); if (a < .3) continue;
+        c.globalAlpha = a; c.fillStyle = a > .8 ? '#ffe080' : '#ff8a20'; c.fillRect(Math.round(rx / P) * P, Math.round(ry / P) * P, P * (2 + i % 3), P);
+      }
+      c.globalAlpha = 1;
+      /* luces */
+      c.globalCompositeOperation = 'lighter';
+      this.cascadas.forEach(function (q, n) { H.glow(c, q[0] + q[2] / 2, q[1] + q[3] / 2, Math.max(q[3] * .55, 40), '255,90,30', .16 + .06 * Math.sin(t * 1.7 + n)); });
+      H.glow(c, (Rv[0] + Rv[2]) / 2, Rv[1] + 50, 260, '255,80,20', .22 + .07 * Math.sin(t * 1.1));
+      this.ventanas.forEach(function (q, n) { H.glow(c, q[0], q[1], q[3] * .7, '255,90,30', .18 + .12 * Math.sin(t * 1.5 + n * 2)); });
+      this.fuegos.forEach(function (q, n) { H.glow(c, q[0], q[1] - q[3] * .5, q[3] * 4, '255,120,40', .32 * H.flick(t, n + 3)); });
+      c.globalCompositeOperation = 'source-over';
+      this.fuegos.forEach(function (q, n) { H.llama(c, q[0], q[1], q[2], q[3], t, n, P); });
+      /* jaula y farol que se balancean */
+      if (A) {
+        var swing = function (q, ang) { c.save(); c.translate(q[6], q[7]); c.rotate(ang); c.drawImage(A, q[0], q[1], q[2], q[3], q[4] - q[6], q[5] - q[7], q[2], q[3]); c.restore(); };
+        var aj = Math.sin(t * .9) * .035, af = Math.sin(t * 1.3 + 1) * .06;
+        swing(S.jaula[0], aj); swing(S.farol[0], af);
+        var fq = S.farol[0], lx = fq[6] + Math.sin(af) * -(fq[5] + fq[3] * .62 - fq[7]) * -1, ly = fq[7] + Math.cos(af) * (fq[5] + fq[3] * .62 - fq[7]);
+        lx = fq[6] - Math.sin(af) * (fq[5] + fq[3] * .62 - fq[7]);
+        c.globalCompositeOperation = 'lighter'; H.glow(c, lx, ly, 70, '255,140,50', .4 * H.flick(t, 40)); c.globalCompositeOperation = 'source-over';
+      }
+      /* chispas que suben y ceniza que cae */
+      var pt = M.chis || (M.chis = []), src = this.fuegos.concat([[(Rv[0] + Rv[2]) / 2, Rv[1] + 20], [150, 470], [865, 690]]);
+      if (pt.length < 110 && Math.random() < dt * 45) { var s0 = src[Math.floor(Math.random() * src.length)], big = s0.length < 4; pt.push({x: s0[0] + (Math.random() - .5) * (big ? 260 : 16), y: s0[1] - (big ? 0 : 10), vx: (Math.random() - .5) * 14, vy: -30 - Math.random() * 45, v: 0, m: 1.5 + Math.random() * 2.2}); }
+      for (i = pt.length - 1; i >= 0; i--) {
+        var e = pt[i]; e.v += dt; e.x += (e.vx + Math.sin(e.v * 3 + i) * 10) * dt; e.y += e.vy * dt; if (e.v > e.m) { pt.splice(i, 1); continue; }
+        var a2 = 1 - e.v / e.m; c.globalAlpha = Math.min(1, a2 * 1.5); c.fillStyle = a2 > .6 ? '#ffe070' : (a2 > .3 ? '#ff8a20' : '#c03a0c');
+        c.fillRect(Math.round(e.x / P) * P, Math.round(e.y / P) * P, P, P);
+      }
+      for (i = 0; i < 30; i++) {
+        var ax = (H.rnd(i) * 1700 + Math.sin(t * .5 + i) * 20) % W, ay = (H.rnd(i + 70) * 941 + t * (10 + H.rnd(i + 5) * 10)) % 941;
+        c.globalAlpha = .3 + .3 * H.rnd(i + 11); c.fillStyle = i % 4 ? '#5a4a48' : '#8a6a60'; c.fillRect(Math.round(ax / P) * P, Math.round(ay / P) * P, P, P);
+      }
+      c.globalAlpha = 1;
+    }
   }
 };
 
@@ -12902,7 +13052,8 @@ var FONDO_FX = {
   function flick(t, s) { return .62 + .2 * Math.sin(t * 7.3 + s * 3.1) + .12 * Math.sin(t * 13.7 + s * 5.7) + .06 * Math.sin(t * 23.1 + s); }
   function carga(src) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
 
-  function nieblaTex(w, h, seed) {   // textura de niebla en baja resolución (1/3)
+  function nieblaTex(w, h, seed, col) {
+    col = col || [150, 160, 200];   // textura de niebla en baja resolución (1/3)
     var c = document.createElement('canvas'); c.width = w; c.height = h; var g = c.getContext('2d'), d = g.createImageData(w, h);
     var G = 8, gw = Math.ceil(w / G) + 2, gh = Math.ceil(h / G) + 2, grid = [];
     for (var i = 0; i < gw * gh; i++) grid.push(rnd(i + seed * 97));
@@ -12913,7 +13064,7 @@ var FONDO_FX = {
       var n = vn(x / G, y / G) * .65 + vn(x / G * 2.3, y / G * 2.3) * .35;
       var fade = Math.min(1, y / (h * .45)), a = Math.max(0, n - .42) * 2.2 * fade;
       var q = Math.round(a * 4) / 4, k = (y * w + x) * 4;   // cuantizado a 4 niveles: aspecto pixel art
-      d.data[k] = 150; d.data[k + 1] = 160; d.data[k + 2] = 200; d.data[k + 3] = Math.min(255, q * 120);
+      d.data[k] = col[0]; d.data[k + 1] = col[1]; d.data[k + 2] = col[2]; d.data[k + 3] = Math.min(255, q * 120);
     }
     g.putImageData(d, 0, 0); return c;
   }
@@ -12932,7 +13083,18 @@ var FONDO_FX = {
     }
     g.putImageData(d, 0, 0); return c;
   }
-  var AYUDA = {rnd: rnd, flick: flick, glow: function (c, x, y, r, col, a) { var gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(' + col + ',' + a + ')'); gr.addColorStop(.45, 'rgba(' + col + ',' + (a * .35) + ')'); gr.addColorStop(1, 'rgba(' + col + ',0)'); c.fillStyle = gr; c.fillRect(x - r, y - r, r * 2, r * 2); }};
+  var LLC = ['#a8300a', '#e05a10', '#f89a24', '#ffd25a', '#fff4c0'];
+  function llama(c, x, y, w, h0, t, n, P) {   // llama de píxel animada (base en x,y)
+    var h = h0 * (.85 + .2 * flick(t * 1.3, n + 7));
+    for (var yy = 0; yy < h; yy += P) {
+      var tt = yy / h, ww = w * Math.pow(1 - tt, .75) * (.75 + .25 * Math.sin(tt * 3 + t * 9 + n)), xo = Math.sin(t * 6 + yy * .18 + n * 1.7) * 2.2 * tt * (w / 10);
+      for (var xx = -ww / 2; xx < ww / 2; xx += P) {
+        var d = Math.abs(xx) / (ww / 2 + .01), lvl = Math.max(0, Math.min(4, Math.floor((1 - d) * 3.2 + (1 - tt) * 1.8 - .4 + rnd(Math.floor(t * 12) + xx + yy) * .7)));
+        c.fillStyle = LLC[lvl]; c.fillRect(Math.round((x + xx + xo) / P) * P, Math.round((y - yy - P) / P) * P, P, P);
+      }
+    }
+  }
+  var AYUDA = {rnd: rnd, flick: flick, llama: llama, niebla: function (w, h, s, col) { return nieblaTex(w, h, s, col); }, glow: function (c, x, y, r, col, a) { var gr = c.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, 'rgba(' + col + ',' + a + ')'); gr.addColorStop(.45, 'rgba(' + col + ',' + (a * .35) + ')'); gr.addColorStop(1, 'rgba(' + col + ',0)'); c.fillStyle = gr; c.fillRect(x - r, y - r, r * 2, r * 2); }};
 
   function Motor(f) {
     var fx = FONDO_FX[f.fx] || null, self = this; this.f = f; this.fx = fx; this.ok = false;
@@ -13060,13 +13222,13 @@ var FONDO_FX = {
 try {
   var _fmTr = {
     en: {'Fondos del menú': 'Menu backgrounds', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Choose the main screen background. They unlock as you progress.', 'Atrás': 'Back', 'Fondo': 'Background', 'Fondo del menú': 'Menu background', 'Animado': 'Animated', 'Bloqueado': 'Locked', 'Nuevo fondo de menú': 'New menu background',
-         'Cripta de Ceniza': 'Ash Crypt', 'Salón del Portal Sellado': 'Hall of the Sealed Gate', 'Derrota al jefe del primer mapa': 'Defeat the boss of the first map', 'Ruinas del Abismo': "Ruins of the Abyss", 'Derrota al jefe del Abismo azul': "Defeat the boss of the Blue Abyss"},
+         'Cripta de Ceniza': 'Ash Crypt', 'Salón del Portal Sellado': 'Hall of the Sealed Gate', 'Derrota al jefe del primer mapa': 'Defeat the boss of the first map', 'Ruinas del Abismo': "Ruins of the Abyss", 'Derrota al jefe del Abismo azul': "Defeat the boss of the Blue Abyss", 'Ciénaga de las Ruinas': "Swamp of the Ruins", 'Derrota al jefe del Pantano verde': "Defeat the boss of the Green Swamp", 'Forja del Abismo Ardiente': "Forge of the Burning Abyss", 'Derrota al jefe de la Forja roja': "Defeat the boss of the Red Forge"},
     pt: {'Fondos del menú': 'Fundos do menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Escolha o fundo da tela principal. Eles desbloqueiam conforme você progride.', 'Atrás': 'Voltar', 'Fondo': 'Fundo', 'Fondo del menú': 'Fundo do menu', 'Animado': 'Animado', 'Bloqueado': 'Bloqueado', 'Nuevo fondo de menú': 'Novo fundo de menu',
-         'Cripta de Ceniza': 'Cripta de Cinzas', 'Salón del Portal Sellado': 'Salão do Portal Selado', 'Derrota al jefe del primer mapa': 'Derrote o chefe do primeiro mapa', 'Ruinas del Abismo': "Ru\u00ednas do Abismo", 'Derrota al jefe del Abismo azul': "Derrote o chefe do Abismo azul"},
+         'Cripta de Ceniza': 'Cripta de Cinzas', 'Salón del Portal Sellado': 'Salão do Portal Selado', 'Derrota al jefe del primer mapa': 'Derrote o chefe do primeiro mapa', 'Ruinas del Abismo': "Ru\u00ednas do Abismo", 'Derrota al jefe del Abismo azul': "Derrote o chefe do Abismo azul", 'Ciénaga de las Ruinas': "P\u00e2ntano das Ru\u00ednas", 'Derrota al jefe del Pantano verde': "Derrote o chefe do P\u00e2ntano verde", 'Forja del Abismo Ardiente': "Forja do Abismo Ardente", 'Derrota al jefe de la Forja roja': "Derrote o chefe da Forja vermelha"},
     fr: {'Fondos del menú': 'Fonds du menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': "Choisis le fond de l'écran principal. Ils se débloquent en progressant.", 'Atrás': 'Retour', 'Fondo': 'Fond', 'Fondo del menú': 'Fond du menu', 'Animado': 'Animé', 'Bloqueado': 'Verrouillé', 'Nuevo fondo de menú': 'Nouveau fond de menu',
-         'Cripta de Ceniza': 'Crypte de Cendres', 'Salón del Portal Sellado': 'Salle du Portail Scellé', 'Derrota al jefe del primer mapa': 'Bats le boss de la première carte', 'Ruinas del Abismo': "Ruines de l'Ab\u00eeme", 'Derrota al jefe del Abismo azul': "Bats le boss de l'Ab\u00eeme bleu"},
-    ru: {'Fondos del menú': 'Фоны меню', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Выберите фон главного экрана. Они открываются по мере прохождения.', 'Atrás': 'Назад', 'Animado': 'Анимированный', 'Bloqueado': 'Закрыто', 'Nuevo fondo de menú': 'Новый фон меню', 'Cripta de Ceniza': 'Склеп Пепла', 'Salón del Portal Sellado': 'Зал Запечатанного портала', 'Derrota al jefe del primer mapa': 'Победите босса первой карты', 'Ruinas del Abismo': 'Руины Бездны', 'Derrota al jefe del Abismo azul': 'Победите босса Синей бездны'},
-    ja: {'Fondos del menú': 'メニュー背景', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'メインメニューの背景を選べます。進行に応じて解放されます。', 'Atrás': '戻る', 'Animado': 'アニメ', 'Bloqueado': 'ロック中', 'Nuevo fondo de menú': '新しいメニュー背景', 'Cripta de Ceniza': '灰の地下墓所', 'Salón del Portal Sellado': '封じられた門の間', 'Derrota al jefe del primer mapa': '最初のマップのボスを倒す', 'Ruinas del Abismo': '深淵の遺跡', 'Derrota al jefe del Abismo azul': '蒼の深淵のボスを倒す'}
+         'Cripta de Ceniza': 'Crypte de Cendres', 'Salón del Portal Sellado': 'Salle du Portail Scellé', 'Derrota al jefe del primer mapa': 'Bats le boss de la première carte', 'Ruinas del Abismo': "Ruines de l'Ab\u00eeme", 'Derrota al jefe del Abismo azul': "Bats le boss de l'Ab\u00eeme bleu", 'Ciénaga de las Ruinas': "Marais des Ruines", 'Derrota al jefe del Pantano verde': "Bats le boss du Marais vert", 'Forja del Abismo Ardiente': "Forge de l'Ab\u00eeme Ardent", 'Derrota al jefe de la Forja roja': "Bats le boss de la Forge rouge"},
+    ru: {'Fondos del menú': 'Фоны меню', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Выберите фон главного экрана. Они открываются по мере прохождения.', 'Atrás': 'Назад', 'Animado': 'Анимированный', 'Bloqueado': 'Закрыто', 'Nuevo fondo de menú': 'Новый фон меню', 'Cripta de Ceniza': 'Склеп Пепла', 'Salón del Portal Sellado': 'Зал Запечатанного портала', 'Derrota al jefe del primer mapa': 'Победите босса первой карты', 'Ruinas del Abismo': 'Руины Бездны', 'Derrota al jefe del Abismo azul': 'Победите босса Синей бездны', 'Ciénaga de las Ruinas': 'Болото руин', 'Derrota al jefe del Pantano verde': 'Победите босса Зелёного болота', 'Forja del Abismo Ardiente': 'Кузница Пылающей бездны', 'Derrota al jefe de la Forja roja': 'Победите босса Красной кузницы'},
+    ja: {'Fondos del menú': 'メニュー背景', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'メインメニューの背景を選べます。進行に応じて解放されます。', 'Atrás': '戻る', 'Animado': 'アニメ', 'Bloqueado': 'ロック中', 'Nuevo fondo de menú': '新しいメニュー背景', 'Cripta de Ceniza': '灰の地下墓所', 'Salón del Portal Sellado': '封じられた門の間', 'Derrota al jefe del primer mapa': '最初のマップのボスを倒す', 'Ruinas del Abismo': '深淵の遺跡', 'Derrota al jefe del Abismo azul': '蒼の深淵のボスを倒す', 'Ciénaga de las Ruinas': '遺跡の沼', 'Derrota al jefe del Pantano verde': '緑の沼のボスを倒す', 'Forja del Abismo Ardiente': '燃える深淵の鍛冶場', 'Derrota al jefe de la Forja roja': '赤い鍛冶場のボスを倒す'}
   };
   Object.keys(_fmTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_fmTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _fmTr[l][k]; }); });
   if (typeof i18nLoad === 'function') i18nLoad();
