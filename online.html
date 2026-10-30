@@ -631,8 +631,12 @@ var ETYPES={
   archer:{hp:9,speed:1.8,dmg:7,r:.3,xp:7,h:28,col:'#9d7fc8',name:'Arquero'},
   brute:{hp:70,speed:1.25,dmg:20,r:.55,xp:24,h:46,col:'#a8583f',name:'Bruto'}
 };
+/* El daño de las mejoras se suma al daño base del personaje (no al que tenga en ese momento) */
+function addDmg(p,x){if(p.dmgB==null){p.dmgB=p.dmg;p.dmgA=0}var o=1+p.dmgA;p.dmgA+=x;p.dmg*=(1+p.dmgA)/o}
+/* Alcance máximo: Bárbaro 8, Jinete 4,5 */
+function reachCap(p){var m={barb:8,jinete:4.5}[p.c.key];return m?m/p.c.range:1e9}
 var UPS=[
-  {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){P.dmg*=1.08}},
+  {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){addDmg(P,.08)}},
   {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',f:function(){P.rate*=1.12}},
   {n:'Ojo certero',ic:'icono_ojo_certero',c:'o',d:'+8% de crítico (daño x2, máx. 100%)',ok:function(){return P.crit<1-1e-9},f:function(){P.crit=Math.min(1,P.crit+.08)}},
   {n:'Descarga doble',ic:'icono_descarga_doble',c:'o',d:'+1 proyectil por ataque',ok:function(){return P.c.kind==='proj'&&!P.bounce&&!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN++}},
@@ -645,7 +649,7 @@ var UPS=[
   {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+25% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.25}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
-  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return P.c.kind==='melee'||P.c.kind==='rider'},f:function(){P.reach+=.18}},
+  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
   {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp*=1.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 85%)',ok:function(){return P.armor<.85-1e-9},f:function(){P.armor=Math.min(.85,P.armor+.07)}},
@@ -664,7 +668,7 @@ var SPECS=[
   {id:'soul',n:'Alma vengativa',c:'s',ic:'icono_alma_vengativa',d:'Cada enemigo que matas libera un proyectil que persigue a otro enemigo cualquiera',f:function(){}},
   {id:'exec',n:'Ejecutor',c:'s',ic:'icono_ejecutor',d:'Rematas al momento a los enemigos con menos de 20% de vida',f:function(){}},
   {id:'terr',n:'Territorio',c:'s',ic:'icono_territorio',d:'+35% de radio en tus zonas o tu aura, por encima de su límite normal',ok:function(){return P.c.kind==='zone'||P.c.kind==='aura'},f:function(){}},
-  {id:'pacto',n:'Pacto de ceniza',c:'s',ic:'icono_pacto_ceniza',d:'Pacto arriesgado: aparecen un 35% más de enemigos a la vez, pero haces un 30% más de daño y ganas un 30% más de experiencia',f:function(){P.dmg*=1.3;P.xpMul+=.3}}
+  {id:'pacto',n:'Pacto de ceniza',c:'s',ic:'icono_pacto_ceniza',d:'Pacto arriesgado: aparecen un 35% más de enemigos a la vez, pero haces un 30% más de daño y ganas un 30% más de experiencia',f:function(){addDmg(P,.3);P.xpMul+=.3}}
 ];
 function toast(m){var el=$('toast');el.textContent=m;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true},3200)}
 
@@ -1301,7 +1305,7 @@ function mkPlayer(key,idx){
     level:1,xp:0,need:xpNeed(1),atkCd:0,inv:0,pend:0,pendS:0,dead:false,reviveT:0,
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
   var L=function(k){return lvOf(key,k)};
-  p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.rate=c.rate*(1+.03*L('rate'));
+  p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.dmgB=p.dmg;p.dmgA=0;p.rate=c.rate*(1+.03*L('rate'));
   p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.85,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
   p.regen=.1*L('reg');p.steal=.0015*L('ls');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
   p.skinId=skinFor(key);
@@ -9263,7 +9267,7 @@ function evtTickOffer(dt){
       p.evGold=(p.evGold||0)+o.gold;p.maxHp*=(1-C.vidaMenos);p.hp=Math.min(p.hp,p.maxHp);
       evtToastTo(p,'Vendido: +'+o.gold+' de oro, −'+Math.round(C.vidaMenos*100)+' % de vida máxima');ring(o.v.x,o.v.y,1.2,.5,'#ffd25a');
     }else{
-      p.dmg*=(1+C.dañoMas);p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.2);
+      addDmg(p,C.dañoMas);p.hp=Math.min(p.maxHp,p.hp+p.maxHp*.2);
       evtToastTo(p,'Rechazado: +'+Math.round(C.dañoMas*100)+' % de daño');ring(o.r.x,o.r.y,1.2,.5,'#9ad0ff');
     }
   });
@@ -9902,7 +9906,7 @@ function pc(a){return a.map(function(x){return Math.round(x*100)})}
 var V={ /* valores por rareza [común, rara, épica, legendaria] */
  sowilo:{k:[6,6,5,4],n:[3,3,4,5],m:[.5,.7,.9,1.2]},
  thurisaz:{cd:[3,3,2.7,2.4],n:[5,5,5,5],m:[1.5,1.8,2.1,2.6]},
- inguz:{k:[15,13,11,9],m:[2,2.4,2.8,3.5],rad:[9,9,9,9]},
+ inguz:{k:[15,13,11,9],m:[4.5,4.5,4.5,4.5],rad:[9,9,9,9]},
  jera:{cd:[10,9,8,7],rad:[3,3.5,4,5],dps:[.5,.6,.75,1],dur:[4,4,5,6]},
  teiwaz:{cd:[3,3,3,3],loss:[.25,.22,.20,.18],per:[1,1.2,1.4,1.7],cap:[.55,.65,.8,1]},
  hagalaz:{cd:[5,5,4.5,4],m:[3.5,4.2,5,6.5],rad:[6,6.5,7,8]},
@@ -9910,7 +9914,7 @@ var V={ /* valores por rareza [común, rara, épica, legendaria] */
  gebo:{cd:[4,4,3.5,3],n:[2,2,3,4]},
  isa:{rad:[6,6.5,7,8],sl:['30%','50%','65%','65%'],pj:[.7,.5,.4,.4]},
  ansuz:{ch:[.25,.35,.45,.6]},
- fehu:{k:[200,180,160,140],dmg:[.02,.025,.03,.04]},
+ fehu:{k:[250,250,250,250],dmg:[.015,.015,.015,.015]},
  algiz:{ch:[.2,.24,.28,.35]},
  nauthiz:{dmg:[.5,.6,.75,1],rate:[.25,.3,.4,.5]},
  perthro:{fl:[.10,.15,.20,.30]},
@@ -10070,7 +10074,7 @@ function mimo(f){var r=lv('ansuz');if(r>=0&&!RUN.echo)RUN.q.push({t:.45,f:f})}
 var startRun_run=startRun;
 startRun=function(){
   var r=startRun_run.apply(this,arguments);
-  RUN.a=[];RUN.cd={};RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;RUN.ac=0;RUN.ovl=false;RUN.vg=false;RUN.sacB=0;RUN.scB=0;RUN.scT=0;RUN.cp=false;RUN.trail=[];RUN.trT=0;RUN.trA=null;ESTELA.list=[];RUN.pet=null;RUN.act={id:null,t:-9};
+  RUN.a=[];RUN.cd={};RUN.low=false;RUN.burnT=0;RUN.drop=null;RUN.pl=null;RUN.kc2=0;RUN.hits=0;RUN.paths=[];RUN.fx=[];RUN.cl=[];RUN.stepping=false;RUN.q=[];RUN.echo=false;RUN.snowT=0;RUN.snowR=0;RUN.ac=0;RUN.ovl=false;RUN.vg=false;RUN.sacB=0;RUN.scB=0;RUN.scT=0;RUN.cp=false;RUN.trail=[];RUN.trT=0;RUN.trA=null;ESTELA.list=[];RUN.pet=null;RUN.act={id:null,t:-9};
   if(on()&&PL&&PL[0]){
     var m=R();RUN.pl=PL[0];
     ['o','d'].forEach(function(tp){m.eq[tp].slice(0,SLOTS[tp]).forEach(function(k){if(k&&RUNES[parse(k).id])RUN.a.push(parse(k))})});
@@ -10105,20 +10109,54 @@ function doTerremoto(r){
     near({x:px,y:py},v.rad[r]).forEach(function(z){var dx=z.x-px,dy=z.y-py,dd=Math.hypot(dx,dy);dmg(z,v.m[r]*em,dx/(dd||1),dy/(dd||1),3)})}});
   return true;
 }
+/* Réplicas: cada sombra es una copia viva del personaje (sin vida ni control) que ejecuta su propio ataque de clase durante un instante */
+var CLIFE={proj:.25,melee:.25,zone:.25,aura:.25,rider:1.6,orbit:1.8,spears:2.4,urns:1.2,meteor:2.8,monks:2.6,spheres:2.6};
+function mkClone(p,gx,gy,em){
+  var c={},k,v;
+  for(k in p){v=p[k];c[k]=Array.isArray(v)?[]:v}
+  c.x=gx;c.y=gy;c.gx=gx;c.gy=gy;c.dmg=p.dmg*em;c.atkCd=0;c.inv=1e9;c.dead=false;c.cl=true;c.regen=0;c.moving=false;
+  c.life=CLIFE[p.c.kind]||.3;c.hp=c.maxHp=Math.max(1,p.maxHp);
+  var kd=p.c.kind;
+  if(kd==='orbit'){c.orbList=[];for(k=0;k<Math.min(12,p.orbMax||0);k++)c.orbList.push(1);c.orbT=999;c.launchT=0}
+  else if(kd==='urns'){c.angT=Math.max(0,angInterval(c)-.05)}
+  else if(kd==='spears'){c.amT=0;c.amCallInt=Math.min(p.amCallInt||4,1.2);c.amCallT=0}
+  else if(kd==='meteor'){c.mtT=0;c.mtOnce=false}
+  else if(kd==='monks'){c.monkMax=Math.min(p.monkMax||3,4)}
+  return c;
+}
+function stepClones(dt){
+  var i,c,sv=P,sk={},kk,md=mouse.down;
+  for(kk in keys){sk[kk]=keys[kk];keys[kk]=false}
+  mouse.down=false;RUN.stepping=true;
+  try{
+    for(i=RUN.cl.length-1;i>=0;i--){
+      c=RUN.cl[i];c.life-=dt;
+      if(c.life<=0){RUN.cl.splice(i,1);continue}
+      P=c;
+      try{
+        playerStep_run.call(null,dt);
+        if(c.mtL&&c.mtL.length&&!c.mtOnce){c.mtOnce=true;c.mtT=999}
+      }catch(er){RUN.cl.splice(i,1)}
+    }
+  }finally{P=sv;for(kk in sk)keys[kk]=sk[kk];mouse.down=md;RUN.stepping=false}
+}
 function doReplicas(r){
   var v=V.gebo;if(!near(P,10).length)return false;
   var em=mkem('gebo'),n=v.n[r],base=Math.random()*6.2832,i;
   for(i=0;i<n;i++){
     var a=base+i*6.2832/n,gx=P.x+Math.cos(a)*1.7,gy=P.y+Math.sin(a)*1.7;if(blocked(gx,gy,.3)){gx=P.x;gy=P.y}
-    var sv={x:P.x,y:P.y,ax:P.ax,ay:P.ay},tg=null,bd=12;
-    enemies.forEach(function(z){if(!z.dead){var d=Math.hypot(z.x-gx,z.y-gy);if(d<bd){bd=d;tg=z}}});
-    var n0=shots.length,z0=zones.length;
-    P.x=gx;P.y=gy;if(tg){P.ax=tg.x-gx;P.ay=tg.y-gy}
-    RUN.cp=true;P.dmg*=em;
-    try{doAttack(true)}finally{RUN.cp=false;P.dmg/=em;P.x=sv.x;P.y=sv.y;P.ax=sv.ax;P.ay=sv.ay}
-    var k;for(k=n0;k<shots.length;k++){if(!shots[k].own)shots[k].own=P;shots[k].mul=(shots[k].mul||1)*em}
-    for(k=z0;k<zones.length;k++){if(!zones[k].own)zones[k].own=P;zones[k].mul*=em}
-    RUN.fx.push({k:'gh',x:gx,y:gy,age:0});burst(gx,gy,'#9fe0ff',8);
+    if(P.c.kind==='dash'){
+      var sv={x:P.x,y:P.y,ax:P.ax,ay:P.ay},tg=null,bd=12;
+      enemies.forEach(function(z){if(!z.dead){var d=Math.hypot(z.x-gx,z.y-gy);if(d<bd){bd=d;tg=z}}});
+      var n0=shots.length,z0=zones.length;
+      P.x=gx;P.y=gy;if(tg){P.ax=tg.x-gx;P.ay=tg.y-gy}
+      RUN.cp=true;P.dmg*=em;
+      try{doAttack(true)}finally{RUN.cp=false;P.dmg/=em;P.x=sv.x;P.y=sv.y;P.ax=sv.ax;P.ay=sv.ay}
+      var k;for(k=n0;k<shots.length;k++){if(!shots[k].own)shots[k].own=P;shots[k].mul=(shots[k].mul||1)*em}
+      for(k=z0;k<zones.length;k++){if(!zones[k].own)zones[k].own=P;zones[k].mul*=em}
+      RUN.fx.push({k:'gh',x:gx,y:gy,age:0});
+    }else RUN.cl.push(mkClone(P,gx,gy,em));
+    burst(gx,gy,'#9fe0ff',8);
   }
   return true;
 }
@@ -10394,8 +10432,8 @@ playerStep=function(dt){
   r=lv('nauthiz');
   if(r>=0){
     v=V.nauthiz;var low=P.hp<P.maxHp*.4;
-    if(low&&!RUN.low){RUN.low=true;P.dmg*=1+v.dmg[r];P.rate*=1+v.rate[r];toast('Pánico')}
-    else if(!low&&RUN.low){RUN.low=false;P.dmg/=1+v.dmg[r];P.rate/=1+v.rate[r]}
+    if(low&&!RUN.low){RUN.low=true;addDmg(P,v.dmg[r]);P.rate*=1+v.rate[r];toast('Pánico')}
+    else if(!low&&RUN.low){RUN.low=false;addDmg(P,-v.dmg[r]);P.rate/=1+v.rate[r]}
   }
   /* Escarcha */
   r=lv('isa');
@@ -10432,7 +10470,7 @@ killEnemy=function(e){
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
   var x;
   x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');
-  x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;P.dmg*=1+V.fehu.dmg[x];addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
+  x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;addDmg(P,V.fehu.dmg[x]);addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
 };
 /* daño: bonificaciones de Sacrificio y Sobrecoste en todas las tiradas de daño */
 var roll_run=roll;
@@ -10491,6 +10529,20 @@ var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return
 var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
 var render_qk=render;render=function(){var sh=0;try{sh=qkShake()}catch(e){}if(sh){cam.x+=sh;cam.y-=sh}try{render_qk()}finally{if(sh){cam.x-=sh;cam.y+=sh}}};
 window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv:lv,ORDER:ORDER};
+
+/* Réplicas: las sombras actúan tras cada paso del jugador y se dibujan como copias del personaje */
+var playerStep_cl=playerStep;
+playerStep=function(dt){
+  playerStep_cl.apply(this,arguments);
+  if(RUN.cl&&RUN.cl.length&&!RUN.stepping&&P===RUN.pl&&state==='play')stepClones(dt);
+};
+var render_cl=render;
+render=function(){
+  var cl=RUN.cl;
+  if(!cl||!cl.length||state!=='play')return render_cl.apply(this,arguments);
+  var n=PL.length;PL.push.apply(PL,cl);
+  try{return render_cl.apply(this,arguments)}finally{PL.length=n}
+};
 })();
 
 /* (los aspectos remodelados del druida y la monja ya son los aspectos normales) */
