@@ -12288,6 +12288,55 @@ var ef_render=render;render=function(){ef_render();try{efHeatOverlay()}catch(e){
 var ef_startRun=startRun;startRun=function(key,mi){EF.fxl=[];EF.heat=0;return ef_startRun(key,mi)};
 
 /* ==========================================================================
+   TARJETAS DE MEJORA EN PIXEL ART (dentro de partida) · las 12 clases
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
+   Archivos: cartas/carta_<clase>.png (recortadas del diseño original, con su resplandor semitransparente).
+   Funciona sobre las tarjetas que ya genera el juego (<button class="up fr c-<clase>">): no toca
+   openLevelUp/openSpecial; añade la clase «pxc» a las tarjetas de las clases que tienen marco y coloca
+   icono (círculo), nombre (placa) y categoría + descripción + tecla (caja) según la geometría de cada marco.
+   Geometría en % del marco: ic=[centroX,centroY,ancho,alto], p=placa [x,y,ancho,alto], b=caja [x,y,ancho,alto].
+   ========================================================================== */
+var CARTAS_PX={
+  sorc:{"src":"cartas/carta_sorc.png","w":258,"h":344,"glow":"rgba(120,230,255,.5)","ic":[50.58,38.81,22.83,17.12],"p":[25.97,56.1,48.45,6.4],"b":[25.19,66.28,49.61,17.73]},
+  barb:{"src":"cartas/carta_barb.png","w":259,"h":346,"glow":"rgba(90,190,255,.45)","ic":[50.0,40.17,23.46,17.56],"p":[25.87,55.49,48.26,6.07],"b":[25.48,65.9,48.65,17.63]},
+  rogue:{"src":"cartas/carta_rogue.png","w":252,"h":343,"glow":"rgba(90,230,140,.45)","ic":[50.0,40.09,23.87,17.53],"p":[25.4,56.27,49.21,6.12],"b":[24.6,65.89,50.4,17.78]},
+  pal:{"src":"cartas/carta_pal.png","w":259,"h":347,"glow":"rgba(255,220,110,.5)","ic":[49.81,40.2,23.22,17.33],"p":[25.87,56.48,47.88,5.48],"b":[25.48,65.71,48.65,17.58]},
+  druid:{"src":"cartas/carta_druid.png","w":261,"h":334,"glow":"rgba(110,230,170,.45)","ic":[50.19,38.77,23.99,18.75],"p":[26.05,55.99,47.89,5.99],"b":[25.67,65.57,48.66,18.86]},
+  necro:{"src":"cartas/carta_necro.png","w":255,"h":345,"glow":"rgba(180,100,255,.5)","ic":[49.8,38.84,23.34,17.25],"p":[25.49,54.78,49.02,5.8],"b":[25.1,64.35,49.8,17.68]},
+  bruja:{"src":"cartas/carta_bruja.png","w":284,"h":334,"glow":"rgba(190,110,255,.5)","ic":[51.06,38.32,20.08,17.08],"p":[29.58,54.19,41.2,6.89],"b":[29.58,65.87,40.85,17.37]},
+  monja:{"src":"cartas/carta_monja.png","w":251,"h":338,"glow":"rgba(255,230,150,.5)","ic":[50.4,39.35,22.73,16.88],"p":[26.69,56.8,49.8,6.21],"b":[25.5,65.98,49.4,18.05]},
+  amazona:{"src":"cartas/carta_amazona.png","w":257,"h":341,"glow":"rgba(255,90,70,.45)","ic":[50.78,39.15,22.92,17.27],"p":[26.07,56.01,47.86,5.87],"b":[25.29,65.69,49.42,17.89]},
+  angel:{"src":"cartas/carta_angel.png","w":262,"h":337,"glow":"rgba(255,250,220,.55)","ic":[50.19,36.05,23.43,18.21],"p":[25.95,52.52,48.47,6.23],"b":[25.19,63.2,48.85,21.07]},
+  jinete:{"src":"cartas/carta_jinete.png","w":280,"h":335,"glow":"rgba(90,230,130,.45)","ic":[50.0,38.96,20.59,17.21],"p":[26.43,54.33,47.14,7.46],"b":[26.43,65.67,47.5,18.51]},
+  piro:{"src":"cartas/carta_piro.png","w":266,"h":343,"glow":"rgba(255,130,40,.55)","ic":[49.81,39.65,22.84,17.71],"p":[26.32,55.98,46.62,6.12],"b":[26.32,65.89,46.62,17.2]}
+};
+(function(){
+  var css=[
+  '.up.fr.pxc{position:relative;display:block;border:0;border-image:none;padding:0;background:transparent center/100% 100% no-repeat;aspect-ratio:var(--ar);width:100%;max-width:min(var(--mw),calc((100vh - 150px) * var(--ar)));min-height:0;justify-self:center;container-type:inline-size;filter:drop-shadow(0 6px 10px rgba(0,0,0,.55))}',
+  '.up.fr.pxc:hover,.up.fr.pxc:focus{background-color:transparent!important;border-color:transparent;filter:brightness(1.12) drop-shadow(0 0 12px var(--pxglow,rgba(120,230,255,.45)))}',
+  '.up.fr.pxc>*{position:absolute;margin:0;text-align:center}',
+  '.up.fr.pxc>.uic{left:var(--icx);top:var(--icy);width:var(--icw);height:var(--ich);object-fit:contain;transform:translate(-50%,-50%);image-rendering:pixelated}',
+  '.up.fr.pxc>.t{left:var(--px);top:var(--py);width:var(--pw);height:var(--ph);display:flex;align-items:center;justify-content:center;font-size:clamp(11px,6.2cqw,19px)!important;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000,0 0 4px #000}',
+  '.up.fr.pxc>.tag{left:var(--bx);width:var(--bw);top:var(--by);font-size:clamp(8px,3.8cqw,12px);letter-spacing:.08em;text-shadow:0 1px 0 #000}',
+  '.up.fr.pxc>.ds{left:var(--bx);width:var(--bw);top:calc(var(--by) + 4.6%);font-size:clamp(9px,4.5cqw,14px);line-height:1.18;color:#eef2f8;text-shadow:0 1px 0 #000,0 0 4px #000}',
+  '.up.fr.pxc>.k{left:var(--bx);width:var(--bw);top:calc(var(--by) + var(--bh) - 4.4%);font-size:clamp(8px,3.5cqw,11px);opacity:.75}',
+  '#lvlCards:has(.pxc){max-width:900px;gap:clamp(8px,2vw,22px);align-items:start}',
+  '@media (max-width:640px){#lvlCards:has(.pxc){display:flex;overflow-x:auto;scroll-snap-type:x mandatory;justify-content:flex-start;padding:4px 17vw 10px;gap:12px;scrollbar-width:none}#lvlCards:has(.pxc)::-webkit-scrollbar{display:none}.up.fr.pxc{flex:0 0 66vw;scroll-snap-align:center}}'
+  ].join('\n');
+  Object.keys(CARTAS_PX).forEach(function(k){var c=CARTAS_PX[k];
+    css+='\n.up.fr.pxc.c-'+k+'{background-image:url("'+c.src+'");--pxglow:'+c.glow+';--ar:'+c.w+'/'+c.h+';--mw:'+c.w+'px;'+
+      '--icx:'+c.ic[0]+'%;--icy:'+c.ic[1]+'%;--icw:'+c.ic[2]+'%;--ich:'+c.ic[3]+'%;'+
+      '--px:'+c.p[0]+'%;--py:'+c.p[1]+'%;--pw:'+c.p[2]+'%;--ph:'+c.p[3]+'%;'+
+      '--bx:'+c.b[0]+'%;--by:'+c.b[1]+'%;--bw:'+c.b[2]+'%;--bh:'+c.b[3]+'%}';
+    var im=new Image();im.src=c.src;});
+  var st=document.createElement('style');st.id='cartasPx';st.textContent=css;document.head.appendChild(st);
+  function marca(){var cs=document.querySelectorAll('#lvlCards .up.fr');for(var i=0;i<cs.length;i++){
+    var m=/(?:^|\s)c-([a-z0-9_]+)/.exec(cs[i].className);if(m&&CARTAS_PX[m[1]])cs[i].classList.add('pxc')}}
+  var box=document.getElementById('lvlCards');
+  if(box)new MutationObserver(marca).observe(box,{childList:true});
+})();
+
+/* ==========================================================================
    COFRES Y MÍMICOS (versión de prueba: solo en /online)
    · Cada cierto tiempo aparece un cofre cerca del jugador (máx. 3 a la vez).
      Se abre pulsando E junto a él y suelta experiencia según su color:
