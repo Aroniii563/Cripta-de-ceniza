@@ -12316,7 +12316,7 @@ var CARTAS_PX={
   '.up.fr.pxc:hover,.up.fr.pxc:focus{background-color:transparent!important;border-color:transparent;filter:brightness(1.12) drop-shadow(0 0 12px var(--pxglow,rgba(120,230,255,.45)))}',
   '.up.fr.pxc>*{position:absolute;margin:0;text-align:center}',
   '.up.fr.pxc>.uic{left:var(--icx);top:var(--icy);width:var(--icw);height:var(--ich);object-fit:contain;transform:translate(-50%,-50%);image-rendering:pixelated}',
-  '.up.fr.pxc>.t{left:var(--px);top:var(--py);width:var(--pw);height:var(--ph);display:flex;align-items:center;justify-content:center;font-size:clamp(11px,6.2cqw,32px)!important;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000,0 0 4px #000}',
+  '.up.fr.pxc>.t{left:var(--px);top:var(--py);width:var(--pw);height:var(--ph);display:flex;align-items:center;justify-content:center;font-size:clamp(10px,5.4cqw,28px)!important;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000,0 0 4px #000}',
   '.up.fr.pxc>.tag{left:var(--bx);width:var(--bw);top:var(--by);font-size:clamp(8px,3.8cqw,20px);letter-spacing:.08em;text-shadow:0 1px 0 #000}',
   '.up.fr.pxc>.ds{left:var(--bx);width:var(--bw);top:calc(var(--by) + 4.6%);font-size:clamp(9px,4.5cqw,24px);line-height:1.18;color:#eef2f8;text-shadow:0 1px 0 #000,0 0 4px #000}',
   '.up.fr.pxc>.k{left:var(--bx);width:var(--bw);top:calc(var(--by) + var(--bh) - 4.4%);font-size:clamp(8px,3.5cqw,18px);opacity:.75}',
@@ -12331,7 +12331,10 @@ var CARTAS_PX={
     var im=new Image();im.src=c.src;});
   var st=document.createElement('style');st.id='cartasPx';st.textContent=css;document.head.appendChild(st);
   function marca(){var cs=document.querySelectorAll('#lvlCards .up.fr');for(var i=0;i<cs.length;i++){
-    var m=/(?:^|\s)c-([a-z0-9_]+)/.exec(cs[i].className);if(m&&CARTAS_PX[m[1]])cs[i].classList.add('pxc')}}
+    var m=/(?:^|\s)c-([a-z0-9_]+)/.exec(cs[i].className);if(m&&CARTAS_PX[m[1]])cs[i].classList.add('pxc')}fit()}
+  function fit(){setTimeout(function(){var ts=document.querySelectorAll('#lvlCards .up.fr.pxc>.t');for(var i=0;i<ts.length;i++){var el=ts[i];el.style.removeProperty('font-size');var fs=parseFloat(getComputedStyle(el).fontSize)||14,n=0;while(el.scrollWidth>el.clientWidth+1&&fs>7&&n++<40){fs-=.5;el.style.setProperty('font-size',fs+'px','important')}}
+    var ds=document.querySelectorAll('#lvlCards .up.fr.pxc>.ds');for(var j=0;j<ds.length;j++){var d=ds[j],cd=d.parentNode,cst=getComputedStyle(cd),by=parseFloat(cst.getPropertyValue('--by')),bh=parseFloat(cst.getPropertyValue('--bh'));d.style.removeProperty('font-size');var f2=parseFloat(getComputedStyle(d).fontSize)||12,m=0,r0=cd.getBoundingClientRect(),lim=r0.top+r0.height*(by+bh-6.5)/100;while(d.getBoundingClientRect().bottom>lim&&f2>7&&m++<40){f2-=.5;d.style.setProperty('font-size',f2+'px','important')}}},60)}
+  window.addEventListener('resize',fit)
   var box=document.getElementById('lvlCards');
   if(box)new MutationObserver(marca).observe(box,{childList:true});
 })();
