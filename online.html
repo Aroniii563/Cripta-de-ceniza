@@ -203,16 +203,29 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 .pknm{font-family:var(--display);font-size:clamp(26px,3vw,64px);line-height:1.05}
 .pkrole{font-size:clamp(11px,.9vw,19px);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .pkinfo{font-size:clamp(11px,.9vw,19px);color:var(--gold)}
-.pkside{min-height:0;overflow:auto;padding:2px 6px 2px 2px}
+.pkside{min-height:0;overflow:auto;padding:12px 8px 8px 4px}
 #pickScene #classGrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(6px,.6vw,14px)}
-#pickScene #classGrid .card{padding:clamp(6px,.5vw,12px);gap:clamp(3px,.35vw,8px)}
-#pickScene #classGrid .card .nm{font-size:clamp(13px,.95vw,24px)!important}
-#pickScene #classGrid .card .role{font-size:clamp(8px,.58vw,13px)}
-#pickScene #classGrid .stats{font-size:clamp(9px,.66vw,15px);gap:2px 6px}
-#pickScene #classGrid .card p{font-size:clamp(9px,.66vw,15px);line-height:1.3}
-#pickScene #classGrid .best{font-size:clamp(8.5px,.6vw,13px)}
-#pickScene #classGrid .por{height:clamp(60px,5.6vw,130px)}
+#pickScene #classGrid .card:not(.cp){padding:clamp(6px,.5vw,12px);gap:clamp(3px,.35vw,8px)}
+#pickScene #classGrid .card:not(.cp) .nm{font-size:clamp(13px,.95vw,24px)!important}
+#pickScene #classGrid .card:not(.cp) .role{font-size:clamp(8px,.58vw,13px)}
+#pickScene #classGrid .card:not(.cp) .stats{font-size:clamp(9px,.66vw,15px);gap:2px 6px}
+#pickScene #classGrid .card:not(.cp) p{font-size:clamp(9px,.66vw,15px);line-height:1.3}
+#pickScene #classGrid .card:not(.cp) .best{font-size:clamp(8.5px,.6vw,13px)}
+#pickScene #classGrid .card:not(.cp) .por{height:clamp(60px,5.6vw,130px)}
 #classGrid .card.pksel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+#pickScene #classGrid.cpg{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:clamp(8px,1vw,20px)!important;justify-items:stretch}
+#pickScene #classGrid .card.cp{max-width:none;margin:0}
+#pickScene #classGrid .card.cp.pksel{filter:drop-shadow(0 0 7px var(--c)) drop-shadow(0 0 2px var(--c)) drop-shadow(0 10px 14px rgba(0,0,0,.75))}
+#pickScene #classGrid .cp>.nm{font-size:max(9px,7.6cqw)!important}
+#pickScene #classGrid .cp>.cp-hp{font-size:max(8px,5.6cqw)}
+#pickScene #classGrid .cp>.role{font-size:max(7px,5.2cqw)!important}
+#pickScene #classGrid .cp>.cp-txt{font-size:max(7px,5.3cqw)}
+#pickScene #classGrid .cp>.cp-spd{font-size:max(6px,4.4cqw)}
+#pickScene #classGrid .cp>.cp-pt{font-size:max(9px,7cqw)}
+.pkdesc{margin-top:6px;max-width:92%;font-size:clamp(11px,.85vw,18px);line-height:1.35;color:#e9e7df}
+.pkdesc em{font-style:normal;color:var(--gold);font-weight:700}
+.pkst{display:flex;gap:4px 14px;justify-content:center;flex-wrap:wrap;margin-top:6px;font-size:clamp(11px,.85vw,18px);color:var(--muted)}
+.pkst b{color:var(--gold)}
 .pkmh{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;margin-bottom:6px}
 .pkmh h2{margin:0;font-size:clamp(24px,2.2vw,48px)}
 #pkMapL{margin:0 0 12px;font-size:clamp(13px,1vw,21px)}
@@ -246,7 +259,7 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #pickScene.pk-enter #classGrid .card{animation:pkrise .38s ease-out backwards}
 #pickScene.pk-enter #classGrid .card:nth-child(1){animation-delay:.12s}#pickScene.pk-enter #classGrid .card:nth-child(2){animation-delay:.16s}#pickScene.pk-enter #classGrid .card:nth-child(3){animation-delay:.2s}#pickScene.pk-enter #classGrid .card:nth-child(4){animation-delay:.24s}#pickScene.pk-enter #classGrid .card:nth-child(5){animation-delay:.28s}#pickScene.pk-enter #classGrid .card:nth-child(6){animation-delay:.32s}#pickScene.pk-enter #classGrid .card:nth-child(n+7){animation-delay:.36s}
 @media (prefers-reduced-motion:reduce){.pkin .por,.pkfig.swap .pkin,.pk-out,#pkMaps.pk-in .mapc,#classGrid.pk-in .card,#pickScene.pk-enter .pkhero,#pickScene.pk-enter #classGrid .card{animation:none!important}}
-@media (max-width:800px){#pPlay.pk-on{height:auto;grid-template-rows:auto auto auto}#pickScene{height:auto}#pickScene{grid-template-columns:minmax(0,1fr)}.pkhero{height:min(300px,42vh)}.pkside{overflow:visible}#pkMaps .mapc{grid-template-columns:84px minmax(0,1fr)}#pickScene #classGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#pkMaps .mapc .ic{width:84px;height:84px}#pkMaps .mapc .mact{grid-column:1 / -1}#pkMaps .mapc .ic{grid-row:auto}}
+@media (max-width:800px){#pPlay.pk-on{height:auto;grid-template-rows:auto auto auto}#pickScene{height:auto}#pickScene{grid-template-columns:minmax(0,1fr)}#pickScene #classGrid.cpg{grid-template-columns:repeat(2,minmax(0,1fr))!important}.pkhero{height:min(300px,42vh)}.pkside{overflow:visible}#pkMaps .mapc{grid-template-columns:84px minmax(0,1fr)}#pickScene #classGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#pkMaps .mapc .ic{width:84px;height:84px}#pkMaps .mapc .mact{grid-column:1 / -1}#pkMaps .mapc .ic{grid-row:auto}}
 
 .audio{position:absolute;right:16px;top:calc(16px + env(safe-area-inset-top,0px));z-index:20;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 #hud:not([hidden]) ~ .audio{top:calc(78px + env(safe-area-inset-top,0px))}
@@ -485,7 +498,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
           <aside class="pkhero">
             <div class="pkoval"></div>
             <div class="pkfig" id="pkFig"></div>
-            <div class="pkcap"><span class="pknm" id="pkNm"></span><span class="pkrole" id="pkRole"></span><span class="pkinfo" id="pkInfo"></span></div>
+            <div class="pkcap"><span class="pknm" id="pkNm"></span><span class="pkrole" id="pkRole"></span><span class="pkinfo" id="pkInfo"></span><span class="pkst" id="pkSt"></span><span class="pkdesc" id="pkDesc"></span></div>
           </aside>
           <div class="pkside">
             <div class="grid" id="classGrid"></div>
@@ -13262,6 +13275,8 @@ try {
     fig.innerHTML='<span class="pkin'+(own?'':' lk')+'">'+portHtml(k==='pal'?'pal':skinFor(k),k)+'</span>';
     $('pkNm').textContent=c.name;$('pkNm').style.color=c.col;$('pkRole').textContent=c.role;
     $('pkInfo').textContent=own?(best?'Mejor: '+fmt(best.time)+' · nivel '+best.level+' · '+best.kills+' bajas':'Sin partidas todavía'):'Bloqueado · '+HERO_COST+' oro';
+    $('pkSt').innerHTML='<span>Vida <b>'+c.hp+'</b></span><span>Daño <b>'+c.dmg+'</b></span><span>Vel. <b>'+c.speed.toFixed(1)+'</b></span>';
+    $('pkDesc').innerHTML='<em>'+c.atk+'.</em> '+c.atkD;
     fig.classList.remove('swap');void fig.offsetWidth;fig.classList.add('swap');
   }
   function mark(){Array.prototype.forEach.call(cg.querySelectorAll('[data-k]'),function(b){b.classList.toggle('pksel',b.getAttribute('data-k')===sel)})}
@@ -13522,6 +13537,47 @@ try {
     ja: {"Modo principal": "メインモード", "Desafío": "チャレンジ", "5 mapas": "5マップ", "Jefe cada 5 min": "5分ごとにボス", "Hasta el minuto 20": "20分まで", "24 jefes seguidos": "24体のボスに連戦", "Mejora especial desde el inicio": "最初から特別強化", "Elegir personaje": "キャラを選ぶ", "Subir a la torre": "塔を登る", "Multijugador": "マルチプレイ", "Cada día": "毎日", "Se renuevan en {n} h {n} min": "あと{n}時間{n}分で更新", "Se renuevan en {n} min": "あと{n}分で更新"}
   };
   Object.keys(_tmTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_tmTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _tmTr[l][k]; }); });
+  if (typeof i18nLoad === 'function') i18nLoad();
+} catch (e) {}
+/* ==========================================================================
+   CARTAS DE PERSONAJE EN PIXEL ART (pestaña Jugar → elegir personaje)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen». Sustituye al bloque
+   anterior de cartas de personaje (bloque_cartas_pj.js de la versión sin pixel art).
+   Archivos: cartas_pj/carta_pj_<clase>.png (180x286, marco dibujado píxel a píxel por clase).
+   No toca la lógica: decora las tarjetas que genera buildMenu() en #classGrid y coloca encima
+   retrato, nombre, vida (rubí), rol, ataque, mejor partida, velocidad y daño/vida.
+   ========================================================================== */
+var CARTA_PJ = {"sorc": "#5b8fd1", "barb": "#e0793c", "rogue": "#a3d45e", "pal": "#e8c45a", "druid": "#4fa65a", "necro": "#9a6ad6", "bruja": "#d04aa6", "monja": "#eadfbe", "amazona": "#d6524a", "angel": "#a8f0ff", "jinete": "#3fb8a6", "piro": "#ff7a2a"};
+(function () {
+  var css = "#classGrid.cpg{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))!important;gap:18px 14px!important;justify-items:center;align-items:start}\n@media(max-width:560px){#classGrid.cpg{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}}\n#classGrid .card.cp{position:relative;display:block!important;width:100%;max-width:180px;aspect-ratio:180/286;padding:0!important;border:0!important;border-radius:0;min-width:0;text-align:left;color:#f7f5ee;container-type:inline-size;background:transparent center/100% 100% no-repeat!important;image-rendering:pixelated;box-shadow:none!important;filter:drop-shadow(0 10px 14px rgba(0,0,0,.75));transition:transform .2s ease,filter .2s ease}\n#classGrid .card.cp:hover{transform:translateY(-6px);filter:drop-shadow(0 0 10px var(--c)) drop-shadow(0 14px 18px rgba(0,0,0,.8)) brightness(1.06)}\n#classGrid .card.cp:focus-visible{outline:2px solid var(--c);outline-offset:3px}\n#classGrid .cp>*{position:absolute;margin:0!important;image-rendering:auto}\n#classGrid .cp>.nm{left:9.444%;top:3.147%;width:71.667%;height:6.993%;display:flex;align-items:center;font-size:clamp(10px,7.6cqw,14px)!important;line-height:1!important;color:#fff!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000,0 0 3px #000,1px 0 0 #000,-1px 0 0 #000}\n#classGrid .cp>.cp-hp{left:83.333%;top:3.497%;width:10.0%;height:6.294%;display:grid;place-items:center;font-size:clamp(8px,5.6cqw,10.5px);font-weight:800;color:#fff;text-shadow:0 1px 0 #000,0 0 3px #000}\n#classGrid .cp>.por{left:6.667%;top:12.937%;width:86.111%;height:31.818%;padding:0!important;border:0!important;background:none!important;display:flex;align-items:flex-end;justify-content:center;filter:drop-shadow(0 4px 4px rgba(0,0,0,.75))}\n#classGrid .cp>.por img,#classGrid .cp>.por .pa{height:100%!important;max-height:100%;width:auto!important;image-rendering:pixelated}\n#classGrid .cp>.role{left:9.444%;top:46.154%;width:72.778%;height:6.643%;display:flex;align-items:center;font-size:clamp(7px,5.2cqw,9.5px)!important;font-weight:700;letter-spacing:.02em!important;text-transform:none!important;color:#fff!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 0 #000,0 0 3px #000}\n#classGrid .cp>.cp-txt{left:9.444%;top:55.594%;width:80.556%;height:26.471%;overflow:hidden;font-size:clamp(7px,5.3cqw,9.6px);line-height:1.28;color:#24190c}\n#classGrid .cp>.cp-txt p{margin:0!important;font-size:inherit!important;line-height:inherit!important;color:#24190c!important;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden}\n#classGrid .cp>.cp-txt p em{color:#5a1408!important;font-weight:800;font-style:normal}\n#classGrid .cp>.cp-txt .best{display:block;margin-top:3px;padding-top:2px;border-top:1px solid rgba(60,40,10,.3);font-size:.9em!important;font-style:italic;color:#5a4628!important}\n#classGrid .cp>.cp-spd{left:9.5%;top:86%;font-size:clamp(6px,4.4cqw,8px);font-weight:800;color:#5a4628;letter-spacing:.05em}\n#classGrid .cp>.cp-pt{left:65.556%;top:87.413%;width:28.889%;height:7.692%;display:flex;align-items:center;justify-content:center;font-size:clamp(9px,7cqw,13px);font-weight:800;color:#fff;text-shadow:0 1px 0 #000,0 0 3px #000,1px 0 0 #000,-1px 0 0 #000}\n#classGrid .cp>.cp-pt small{font-size:.7em;margin:0 1px;opacity:.85}\n#classGrid .cp>.stats{display:none!important}\n#classGrid .card.cp[data-lock]{opacity:1!important;filter:saturate(.2) brightness(.62) drop-shadow(0 10px 14px rgba(0,0,0,.75))}\n#classGrid .card.cp[data-lock]:hover{filter:saturate(.5) brightness(.8) drop-shadow(0 14px 18px rgba(0,0,0,.8))}\n#classGrid .cp>.cp-lock{left:50%;top:28.147%;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:rgba(10,16,17,.88);border:1px solid #d3a94a;color:#f3e6c4;font-size:11px;font-weight:700;white-space:nowrap}\n#classGrid .cp>.cp-lock svg{width:18px;height:18px;color:#d3a94a}";
+  Object.keys(CARTA_PJ).forEach(function (k) { css += '\n#classGrid .card.cp[data-k="' + k + '"]{background-image:url("cartas_pj/carta_pj_' + k + '.png")!important;--c:' + CARTA_PJ[k] + '}'; var i = new Image(); i.src = 'cartas_pj/carta_pj_' + k + '.png'; });
+  var st = document.createElement('style'); st.id = 'cartasPj'; st.textContent = css; document.head.appendChild(st);
+  var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  function decora() {
+    var g = document.getElementById('classGrid'); if (!g) return;
+    g.classList.add('cpg');
+    [].forEach.call(g.querySelectorAll('.card[data-k]:not(.cp)'), function (c) {
+      var k = c.getAttribute('data-k'); if (!CARTA_PJ[k]) return;
+      var C = (typeof CLASSES !== 'undefined' && CLASSES[k]) || {}, lock = c.hasAttribute('data-lock');
+      var por = c.querySelector('.por'), nm = c.querySelector('.nm'), role = c.querySelector('.role'), p = c.querySelector('p'), best = c.querySelector('.best');
+      var lockTxt = lock && best ? best.textContent.replace(/^Bloqueado · /, '').replace(/ \(.*$/, '').replace(/ · pulsa.*$/, '') : '';
+      c.innerHTML = ''; c.classList.add('cp'); c.removeAttribute('style'); if (nm) nm.removeAttribute('style');
+      if (por) c.appendChild(por); if (nm) c.appendChild(nm);
+      c.insertAdjacentHTML('beforeend', '<span class="cp-hp" title="Vida">' + (C.hp || '') + '</span>');
+      if (role) c.appendChild(role);
+      var tx = document.createElement('span'); tx.className = 'cp-txt'; if (p) tx.appendChild(p); if (best && !lock) tx.appendChild(best); c.appendChild(tx);
+      c.insertAdjacentHTML('beforeend', '<span class="cp-spd">VEL. ' + (C.speed ? C.speed.toFixed(1) : '') + '</span><span class="cp-pt" title="Daño / Vida">' + (C.dmg || '') + '<small>/</small>' + (C.hp || '') + '</span>');
+      if (lock) c.insertAdjacentHTML('beforeend', '<span class="cp-lock">' + LOCK + '<span>' + lockTxt + '</span></span>');
+      c.title = (nm ? nm.textContent : '') + (p ? ' — ' + p.textContent : '');
+    });
+  }
+  var g = document.getElementById('classGrid');
+  if (g) new MutationObserver(decora).observe(g, {childList: true});
+  decora();
+})();
+try {
+  var _cpTr = {en: {'Vida': 'Health', 'Daño / Vida': 'Damage / Health'}, pt: {'Vida': 'Vida', 'Daño / Vida': 'Dano / Vida'}, fr: {'Vida': 'Vie', 'Daño / Vida': 'Dégâts / Vie'}, ru: {'Vida': 'Здоровье', 'Daño / Vida': 'Урон / Здоровье'}, ja: {'Vida': '体力', 'Daño / Vida': 'ダメージ / 体力'}};
+  Object.keys(_cpTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_cpTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _cpTr[l][k]; }); });
   if (typeof i18nLoad === 'function') i18nLoad();
 } catch (e) {}
 /* ---------- Música y volumen ---------- */
