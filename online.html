@@ -219,6 +219,13 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #pkMaps .mapc{grid-template-columns:clamp(84px,8vw,170px) minmax(0,1fr);gap:clamp(12px,1.2vw,26px);padding:clamp(10px,.9vw,20px)}
 #pkMaps .mapc .ic{width:clamp(84px,8vw,170px);height:clamp(84px,8vw,170px)}
 #pkMaps .mapc .ic{grid-row:1 / 3;align-self:start}
+#pkMaps .mapc[class*=mbg]{background-size:cover;background-position:center 45%;background-repeat:no-repeat;--sh:linear-gradient(90deg,rgba(4,8,12,.84),rgba(4,8,12,.5) 60%,rgba(4,8,12,.3))}
+#pkMaps .mapc.lockd[class*=mbg]{--sh:linear-gradient(rgba(4,8,12,.92),rgba(4,8,12,.92))}
+#pkMaps .mapc.mbg0{background-image:var(--sh),url(fondos/menu_salon.webp)}
+#pkMaps .mapc.mbg1{background-image:var(--sh),url(fondos/menu_abismo.webp)}
+#pkMaps .mapc.mbg2{background-image:var(--sh),url(fondos/menu_pantano.webp)}
+#pkMaps .mapc.mbg3{background-image:var(--sh),url(fondos/menu_forja.webp)}
+#pkMaps .mapc[class*=mbg] .nm,#pkMaps .mapc[class*=mbg] .ef{text-shadow:0 1px 6px rgba(0,0,0,.9)}
 #pkMaps .mapc .mact,#pkMaps .mapc>.btn{grid-column:2;justify-content:flex-start;flex-wrap:wrap}#pkMaps .mapc>.btn{width:auto;justify-self:start;padding-left:22px;padding-right:22px}
 #pkMaps .mapc .nm{font-size:clamp(22px,2vw,44px)!important}
 #pkMaps .mapc .ef{font-size:clamp(12.5px,.95vw,20px)}
@@ -2037,7 +2044,7 @@ function buildMaps(msg){
     if(st==='lock')note='Vence al jefe del minuto 20 del mapa '+i+' para poder comprarlo.';
     else if(last)note=(meta.infinite?'Escritor derrotado. Modo infinito desbloqueado en los demás mapas.':'Derrota al Escritor (minuto 20) para desbloquear el modo infinito en los demás mapas.')+(hardOk(i)?hardTxt:' Vence al Escritor para desbloquear Difícil.');
     else note=(meta.done[i]?'Mapa superado.'+hardTxt:hardOk(i)?hardTxt.trim():'Vence al jefe del minuto 20 para desbloquear el siguiente mapa y la dificultad Difícil.')+(meta.infinite?' Modo infinito disponible.':'');
-    return '<div class="mapc'+(st==='lock'?' lockd':'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
+    return '<div class="mapc'+(st==='lock'?' lockd':'')+(i<4?' mbg'+i:'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
       '<div class="mi"><span class="nm">'+m.n+'</span>'+
       '<span class="ef">Enemigos y jefes: daño x'+es(m.dmg)+'</span>'+
       '<span class="ef">'+note+'</span></div>'+(st==='own'?'<div class="mact">'+btn+'</div>':btn)+'</div>';
