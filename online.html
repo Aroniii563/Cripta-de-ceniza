@@ -13316,46 +13316,43 @@ try{
   if(typeof i18nLoad==='function')i18nLoad();
 }catch(e){}
 /* ==========================================================================
-   BOTONES MODERNOS · paleta del juego (negro de la cripta, pizarra abisal, piedra mineral,
-   latón ritual, sangre seca, azul de éter, musgo espectral)
+   BOTONES DE LA INTERFAZ · ESTILO VICTORIANO MINIMALISTA EN PIXEL ART
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
-   Cambia el aspecto de .btn sin tocar el HTML:
-     .btn        → relleno de latón ritual (acción principal)
-     .btn.alt    → cristal oscuro con borde fino (secundario / volver)
-     .btn.buy    → latón, compacto (compras y recompensas)
-   Variantes nuevas opcionales (añade la clase al botón):
-     .btn.peligro (sangre seca) · .btn.arcano (azul de éter) · .btn.musgo (musgo espectral)
+   Sustituye a bloque_botones.js (no uséis los dos a la vez). Recursos incrustados, sin archivos.
+   Cambia el aspecto sin tocar el HTML:
+     .btn        → marco de oro de píxel; al pasar el ratón se rellena de oro
+     .btn.alt    → marco de latón apagado (secundario / volver)
+     .btn.buy    → placa de oro rellena (compras y recompensas)
+     .btn.peligro · .btn.arcano · .btn.musgo → marcos rojo, azul y verde (opcionales)
+     .abtn       → botones cuadrados de pausa, idioma y sonido
    ========================================================================== */
 (function () {
+  var PX = {"base": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAa0lEQVR42mNkgIKTK6L+M+AB5hHLGBkYGBgYGRgYGD7cmPBfQKOAMdtPBqumqZueMMLUMJ5cEfXfPGIZIw8vH14bvnz+xHhyRdR/JgYGBgZcJiMDmBomBhLBsNEwddMTRkIKYWpIjzhSkwYAdFUy3nZgmAYAAAAASUVORK5CYII=", "base_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2SoQ3DMBRE31U2LzTIAJ0mi4RU3SGkyCAZoyQjFHYCDxAQaB7wS2LWWDLtw3e6r7svDnKKRoXr7S4AAdi+mXzQ0Hc/TfOyqmhcTtHkg2zfThMmMPmgnKI5gKHv7PN61C6ipF9o5B8MrvQM7+pw87JqfGLNw6n1Nb6tzDozaOLgZwAAAABJRU5ErkJggg==", "alt": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAXUlEQVR42mNkgIJsP5n/DHjA1E1PGOGcFV1e/xkYGBhsdIT+Y8PIahiz/WT+T930hJGHlw+vDV8+f2LM9pP5zwQzmYEAgKlhYiARDBsNR668YySkEEUNSRFHatIAAOl/NX4mfF1/AAAAAElFTkSuQmCC", "alt_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2RoRGEMBBF379JGkClCCSSCmLPXBHRV0QqSQVUQAkUgaIBxGKIg8xgeXr//p194qTkaDT4/ScBCMD21eSDxr67DM3LpjrjSo4mH2T72mow+aCSozmAse8sfYfWRdT2Dw95Q8DVPwNNcfOyKYE9FwdQpdxtT6c4gAMx6DWzUxGudAAAAABJRU5ErkJggg==", "peligro": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAa0lEQVR42mNkgIIDAV7/GfAAhw3bGBkYGBgYGRgYGD7MmvBfIK2AMUpKAqumZc9eMMLUMB4I8PrvsGEbIw8vH14bvnz+xHggwOs/EwMDAwMuk5EBTA0TA4lg2GhY9uwFIyGFMDWkRxypSQMA2QIybT88/OgAAAAASUVORK5CYII=", "peligro_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2RIRLDMAwE9zo2L9TkXyWBBcV9ilGAefOP0oI+I2NoHqCSmDWeCc1inU6jFRs1J6fD9fEUgAB8La5oGgf7G5qXojYTak6uaPK17Da8wBVNNScPAONg/r7dexfR2i8c5AyB0P7M59sVNy9FE/hxcQBNyt72aRMH8AO6RDqjwHU4bQAAAABJRU5ErkJggg==", "arcano": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAX0lEQVR42mNkgIL8WTf+M+ABE9M0GBkYGBgYGRgYGHZc+Pbfw4CLUckiDqumeycWMcLUwE3m4eX7jw/DXMHEwMDAgMtkZABTw8RAIhg2Gu6dWMRISCFMDckRx0hq0gAAvgk3AxdtYvoAAAAASUVORK5CYII=", "arcano_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAgUlEQVR42mNkgIIdF779Z8ADPAy4GBkYGBhYGBgYGP7/fvGfkZWLUckiDqumeycWMULUSDAy7rjw7b+HARfj/98v8NrAyCrBuOPCt/8sDAwMDEoWcf8L5n/Ap54BZjsTA4lgOGhggYXzZgYGvMF678QiRgaGGf8ZEREnQVzEkZo0AMDEONLUhK3jAAAAAElFTkSuQmCC", "musgo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAXklEQVR42mNkgIL6DfX/GfCAxoBGRgYGBgZGBgYGhgMPDvx3UHBg1PDSwarpxrYrjDA1cJN5ePn+48MwVzAxMDAw4DIZGcDUMDGQCIaNhhvbrjASUghTQ3LEMZKaNAC16DadGY/h2QAAAABJRU5ErkJggg==", "musgo_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAeUlEQVR42t2RoRHDMBAE9zJSD4KBBi7C2FWli9SQAmL8RRgYCroHgzOJWEYZ0yz+m7v5FR+ihukw3ScBCMDHbuWiYR6/hrZlVbtJUcPKRT72XoOVi6KGE8Awj368n71FtPYbF/mHQGp/fkFX3LasAnxdHECT8kscwAmf3zkJ7PgQHgAAAABJRU5ErkJggg==", "dis": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAXUlEQVR42mNkgAIbHaH/DHjAkSvvGOEcLyuF/wwMDAxyYlz/sWFkNYw2OkL/j1x5x8jDy4fXhi+fPzHa6Aj9Z4KZzEAAwNQwMZAIho2GR6++MRJSiKKGpIgjNWkAAIkCLvOLRkkhAAAAAElFTkSuQmCC", "dis_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAgElEQVR42t2RMQ6DMBAEZyO74QHIFXJBhWjSWuIDfnCewDsQFeIBNBSXInEXLNFm6tvb0434klM0KrzmRQACsHMz+aCubX6G1v1QmXE5RZMPsnOrNZh8UE7RHEDXNjY9h9pFlPYHN/mHgCt/Bqri1v3Q2GP3xQEUKVfbx/4jDuANp48ymCeJFzkAAAAASUVORK5CYII=", "buy": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2SoQ3DMBRE31U2LzTIAJ0mi4RU3SGkyCAZoyQjFHYCDxAQaB7wS2LWWDLtw3e6r7svDnKKRoXr7S4AAdi+mXzQ0Hc/TfOyqmhcTtHkg2zfThMmMPmgnKI5gKHv7PN61C6ipF9o5B8MrvQM7+pw87JqfGLNw6n1Nb6tzDozaOLgZwAAAABJRU5ErkJggg==", "buy_on": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAZ0lEQVR42t2SuQ2AMBAEZxHuwQE10QgRxdAIHVAKEoF7cLAkGAmJR06Z+PZupTlx4JzMCwpRAAKwbUka+u42NM2bysy52R+UFi3A0Hdel/GtEeV6QyV/CMg5WSE+Ori4yMnV4lT7GjtV/FlSBAJFhwAAAABJRU5ErkJggg=="};
+  function bi(u) { return 'border:6px solid transparent!important;border-image:url("' + u + '") 3 fill / 6px / 0 stretch!important;image-rendering:pixelated'; }
+  function sw(u) { return 'border-image-source:url("' + u + '")!important'; }
   var css = [
-    '.btn{--ac:211,169,74;position:relative;overflow:hidden;isolation:isolate;border-radius:10px;padding:11px 22px;font-weight:600;letter-spacing:.02em;line-height:1.15;' +
-      'color:#0a1011;border:1px solid rgba(255,236,180,.55)!important;' +
-      'background:linear-gradient(180deg,#e6c46e 0%,#d3a94a 55%,#b98d33 100%)!important;' +
-      'box-shadow:inset 0 1px 0 rgba(255,250,225,.55),inset 0 -2px 0 rgba(90,60,10,.35),0 6px 16px -8px rgba(0,0,0,.8)!important;' +
-      'text-shadow:0 1px 0 rgba(255,245,210,.35);transition:transform .14s ease-out,box-shadow .18s ease-out,border-color .18s ease-out,background .18s ease-out,color .18s ease-out}',
-    '.btn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.28) 46%,rgba(255,255,255,.06) 54%,transparent 70%);transform:translateX(-120%);transition:transform .55s ease}',
-    '.btn:not(:disabled):hover::after{transform:translateX(120%)}',
-    '.btn:not(:disabled):hover{transform:translateY(-2px);background:linear-gradient(180deg,#f0d283 0%,#ddb556 55%,#c39639 100%)!important;' +
-      'box-shadow:inset 0 1px 0 rgba(255,250,225,.65),inset 0 -2px 0 rgba(90,60,10,.35),0 0 0 3px rgba(var(--ac),.18),0 10px 26px -8px rgba(var(--ac),.55)!important}',
-    '.btn:not(:disabled):active{transform:translateY(0) scale(.98);box-shadow:inset 0 2px 6px rgba(60,40,0,.45),0 0 0 3px rgba(var(--ac),.14)!important}',
-    '.btn:focus-visible{outline:2px solid rgba(var(--ac),.95);outline-offset:3px}',
-    '.btn.alt{color:#e9e7df;text-shadow:none;border:1px solid rgba(233,231,223,.16)!important;' +
-      'background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)),rgba(18,27,28,.72)!important;' +
-      '-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 6px 16px -10px rgba(0,0,0,.9)!important}',
-    '.btn.alt::after{background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.1) 48%,transparent 66%)}',
-    '.btn.alt:not(:disabled):hover{color:#fff;border-color:rgba(var(--ac),.75)!important;background:linear-gradient(180deg,rgba(var(--ac),.14),rgba(var(--ac),.04)),rgba(24,38,42,.85)!important;' +
-      'box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 3px rgba(var(--ac),.12),0 10px 24px -10px rgba(var(--ac),.5)!important}',
-    '.btn.alt:not(:disabled):active{box-shadow:inset 0 2px 6px rgba(0,0,0,.5)!important}',
-    '.btn.buy{padding:8px 16px;border-radius:9px}',
-    '.btn.peligro,.btn.arcano,.btn.musgo{color:rgb(var(--tx));text-shadow:none;border:1px solid rgba(var(--ac),.55)!important;' +
-      'background:linear-gradient(180deg,rgba(var(--ac),.22),rgba(var(--ac),.08)),rgba(10,16,17,.75)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 16px -10px rgba(0,0,0,.9)!important}',
-    '.btn.peligro{--ac:184,54,63;--tx:248,214,216}', '.btn.arcano{--ac:91,143,209;--tx:222,234,250}', '.btn.musgo{--ac:120,162,125;--tx:222,240,224}',
-    '.btn.peligro::after,.btn.arcano::after,.btn.musgo::after{background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.12) 48%,transparent 66%)}',
-    '.btn.peligro:not(:disabled):hover,.btn.arcano:not(:disabled):hover,.btn.musgo:not(:disabled):hover{color:#fff;border-color:rgba(var(--ac),.95)!important;' +
-      'background:linear-gradient(180deg,rgba(var(--ac),.36),rgba(var(--ac),.14)),rgba(10,16,17,.75)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 0 3px rgba(var(--ac),.16),0 10px 24px -8px rgba(var(--ac),.6)!important}',
-    '.btn:disabled{opacity:1!important;cursor:not-allowed;color:rgba(233,231,223,.42)!important;text-shadow:none;border:1px solid rgba(233,231,223,.08)!important;' +
-      'background:rgba(18,27,28,.6)!important;box-shadow:none!important;transform:none!important}',
-    '.btn:disabled::after{display:none}'
+    '.btn{position:relative;border-radius:0!important;background:none!important;box-shadow:none!important;padding:6px 16px!important;' + bi(PX.base) + ';' +
+      'font-family:var(--display);font-weight:400!important;font-size:14px;letter-spacing:.16em;text-transform:uppercase;line-height:1.2;color:#c9a85a!important;text-shadow:1px 1px 0 #000!important;' +
+      'transition:color .1s,transform .1s steps(2)!important;transform:none!important}',
+    '.btn::before,.btn::after{display:none!important}',
+    '.btn:not(:disabled):hover{' + sw(PX.base_on) + ';color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important;transform:translateY(-2px)!important}',
+    '.btn:not(:disabled):active{transform:translateY(2px)!important}',
+    '.btn:focus-visible{outline:2px dashed #c9a85a;outline-offset:3px}',
+    '.btn.alt{' + sw(PX.alt) + ';color:rgba(232,225,208,.75)!important}',
+    '.btn.alt:not(:disabled):hover{' + sw(PX.base) + ';color:#c9a85a!important;text-shadow:1px 1px 0 #000!important}',
+    '.btn.buy{' + sw(PX.buy) + ';color:#2a1e08!important;text-shadow:1px 1px 0 rgba(255,240,200,.55)!important;padding:4px 14px!important;font-size:13px}',
+    '.btn.buy:not(:disabled):hover{' + sw(PX.buy_on) + ';color:#0c0d0e!important}',
+    '.btn.peligro{' + sw(PX.peligro) + ';color:#f09a90!important}', '.btn.peligro:not(:disabled):hover{' + sw(PX.peligro_on) + ';color:#1a0606!important;text-shadow:none!important}',
+    '.btn.arcano{' + sw(PX.arcano) + ';color:#b8d0f6!important}', '.btn.arcano:not(:disabled):hover{' + sw(PX.arcano_on) + ';color:#06101e!important;text-shadow:none!important}',
+    '.btn.musgo{' + sw(PX.musgo) + ';color:#c0e0c0!important}', '.btn.musgo:not(:disabled):hover{' + sw(PX.musgo_on) + ';color:#061006!important;text-shadow:none!important}',
+    '.btn:disabled{opacity:1!important;cursor:not-allowed;' + sw(PX.dis) + ';color:rgba(232,225,208,.28)!important;text-shadow:none!important;filter:none!important}',
+    /* botones cuadrados */
+    '.abtn{border-radius:0!important;background:none!important;box-shadow:none!important;' + bi(PX.base) + ';color:#c9a85a!important;font-family:var(--display);letter-spacing:.08em;text-shadow:1px 1px 0 #000;transition:transform .1s steps(2)!important}',
+    '.abtn:hover{' + sw(PX.base) + ';color:#f0d890!important;transform:translateY(-2px)}',
+    '.abtn:active{transform:translateY(2px)}',
+    '.abtn[aria-expanded="true"]{' + sw(PX.base_on) + ';color:#0c0d0e!important;text-shadow:none}',
+    '.abtn svg{filter:drop-shadow(1px 1px 0 #000)}', '.abtn[aria-expanded="true"] svg{filter:none}',
+    '.apanel{border-radius:0!important;background:#0c0d0e!important;box-shadow:none!important;' + bi(PX.base) + '}'
   ].join('\n');
   var st = document.getElementById('botonesRitual') || document.createElement('style');
   st.id = 'botonesRitual'; st.textContent = css; document.head.appendChild(st);
