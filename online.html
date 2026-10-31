@@ -14090,7 +14090,8 @@ try {
     '#metaList.mu .mu-plus{position:absolute;right:14px;top:22px;font-family:var(--display);font-size:22px;color:#f0d890;text-shadow:2px 2px 0 #000;pointer-events:none;animation:muUp .9s steps(6) forwards}',
     '@keyframes muUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-30px)}}',
     '@media (max-width:640px){#metaSec .mu-head{flex-wrap:wrap;justify-content:center;text-align:center}#metaSec .mu-kpi{justify-content:center}#metaSec .mu-bar{margin-left:auto;margin-right:auto}#metaSec .mu-head #refundBtn{margin-left:0;width:100%}#metaList.mu{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}}',
-    '@media (max-width:420px){#metaList.mu{grid-template-columns:minmax(0,1fr)!important}}'
+    '@media (max-width:420px){#metaList.mu{grid-template-columns:minmax(0,1fr)!important}}',
+    '@media (min-width:1800px){#metaList.mu{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:12px!important}#metaList.mu .mu-n{font-size:16px}#metaList.mu .mu-tot{font-size:26px}#metaList.mu .btn.buy{letter-spacing:.06em;font-size:11px}}'
   ].join('\n');
   var st = document.createElement('style'); st.id = 'mejorasVicPx'; st.textContent = css; document.head.appendChild(st);
 
