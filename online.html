@@ -14771,7 +14771,7 @@ try {
       h += '<div class="co-s' + (i === ON.me ? ' me' : '') + '" style="--c:' + rgb(k) + '">' + (i === 0 ? '<img class="px co-crown" alt="" src="' + PX.icons.crown + '">' : '') +
         '<span class="co-por">' + por(k) + '</span><span class="co-n">' + nm + (i === ON.me ? ' · ' + tr('tú') : '') + '</span><span class="co-c">' + (C.name || '') + '</span>' + stt + '</div>';
     }
-    if (ls._h !== h) { ls._h = h; ls.innerHTML = h; }
+    if (ls._h !== h || !ls.querySelector('.co-s')) { ls._h = h; ls.innerHTML = h; }
     rejilla();
   }
   function engancha() {
