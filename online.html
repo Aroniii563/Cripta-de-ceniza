@@ -10038,7 +10038,7 @@ var RUNES={
  teiwaz:{o:1,n:'Sacrificio',w:'Teiwaz',g:'ᛏ',d:function(r){var v=V.teiwaz;return 'Cada '+v.cd[r]+' s pierdes un '+pc(v.loss)[r]+'% de tu vida actual (nunca te mata) y ganas +'+v.per[r]+'% de daño por cada 1% de vida perdida (máx. +'+pc(v.cap)[r]+'%).'}},
  hagalaz:{o:1,n:'Terremoto',w:'Hagalaz',g:'ᚺ',d:function(r){var v=V.hagalaz;return 'Cada '+v.cd[r]+' s provoca un terremoto a tu alrededor (radio '+v.rad[r]+') que inflige un '+pc(v.m)[r]+'% de daño.'}},
  uruz:{o:1,n:'Desplazamiento',w:'Uruz',g:'ᚢ',d:function(r){var v=V.uruz;return 'Cada '+v.cd[r]+' s te teletransportas una corta distancia hacia una zona con enemigos y liberas una onda de '+pc(v.m)[r]+'% de daño (radio '+v.rad[r]+').'}},
- gebo:{o:1,n:'Réplicas',w:'Gebo',g:'ᚷ',d:function(r){var v=V.gebo;return 'Cada '+v.cd[r]+' s se crean '+v.n[r]+' copias de tu personaje que realizan un ataque.'}},
+ gebo:{o:1,n:'Réplicas',w:'Gebo',g:'ᚷ',d:function(r){var v=V.gebo;return 'Cada '+v.cd[r]+' s se crean '+v.n[r]+' copias de tu personaje que realizan un ataque. Con varios proyectiles o zonas, cada copia lanza la mitad (mín. 1).'}},
  /* defensivas */
  isa:{o:0,n:'Escarcha',w:'Isa',g:'ᛁ',d:function(r){var v=V.isa;return 'Nieve sobre ti en un radio de '+v.rad[r]+' casillas: los enemigos dentro van un '+v.sl[r]+' más lentos y los proyectiles enemigos se frenan.'}},
  ansuz:{o:0,n:'Mimo',w:'Ansuz',g:'ᚨ',d:function(r){return 'El efecto de tu runa ofensiva se repite siempre al instante.'}},
@@ -10209,6 +10209,7 @@ function doTerremoto(r){
   return true;
 }
 /* Réplicas: cada sombra es una copia viva del personaje (sin vida ni control) que ejecuta su propio ataque de clase durante un instante */
+var CLONE_N={proj:'projN',zone:'zoneN',orbit:'orbMax',spheres:'sphMax',spears:'amMax',urns:'angN',meteor:'mtN'};
 var CLIFE={proj:.25,melee:.25,zone:.25,aura:.25,rider:1.6,orbit:1.8,spears:2.4,urns:1.2,meteor:2.8,monks:2.6,spheres:2.6};
 function mkClone(p,gx,gy,em){
   var c={},k,v;
@@ -10216,7 +10217,9 @@ function mkClone(p,gx,gy,em){
   c.x=gx;c.y=gy;c.gx=gx;c.gy=gy;c.dmg=p.dmg*em;c.atkCd=0;c.inv=1e9;c.dead=false;c.cl=true;c.regen=0;c.moving=false;
   c.life=CLIFE[p.c.kind]||.3;c.hp=c.maxHp=Math.max(1,p.maxHp);
   var kd=p.c.kind;
-  if(kd==='orbit'){c.orbList=[];for(k=0;k<Math.min(12,p.orbMax||0);k++)c.orbList.push(1);c.orbT=999;c.launchT=0}
+  /* la copia lanza la mitad (redondeo hacia abajo, mínimo 1) de proyectiles / zonas / esferas / lanzas / urnas / meteoros */
+  var CF=CLONE_N[kd];if(CF&&p[CF]>0)c[CF]=Math.max(1,Math.floor(p[CF]/2));
+  if(kd==='orbit'){c.orbList=[];for(k=0;k<Math.min(12,c.orbMax||0);k++)c.orbList.push(1);c.orbT=999;c.launchT=0}
   else if(kd==='urns'){c.angT=Math.max(0,angInterval(c)-.05)}
   else if(kd==='spears'){c.amT=0;c.amCallInt=Math.min(p.amCallInt||4,1.2);c.amCallT=0}
   else if(kd==='meteor'){c.mtT=0;c.mtOnce=false}
