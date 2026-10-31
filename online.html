@@ -14382,7 +14382,9 @@ try {
     '.skc .tp-eq{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:2;padding:2px 10px;font-family:var(--display);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#0c0d0e;text-shadow:1px 1px 0 rgba(255,240,200,.5);' +
       'background:linear-gradient(#f0d890 0 2px,#c9a85a 2px);box-shadow:0 0 0 2px #0c0d0e,0 0 0 4px #c9a85a;white-space:nowrap}',
     /* bloqueado / comprado */
-    '.skc.tp-lock .por img,.skc.tp-lock .por .pa{filter:brightness(0) sepia(1) opacity(.55)!important}',
+    '.skc.tp-lock .por img,.skc.tp-lock .por .pa,.skc.tp-quest .por img:not(.tp-lk),.skc.tp-quest .por .pa{filter:brightness(0) sepia(1) opacity(.55)!important}',
+    '#skinList .skc .price.tp-q{display:block;margin:2px 0 6px;padding:0 4px;font-family:var(--body);font-style:italic;font-size:12.5px;line-height:1.4;letter-spacing:0;color:rgba(232,225,208,.8)!important;text-shadow:none;white-space:normal;text-align:center}',
+    '#skinList .skc .price.tp-q::before{content:"";display:block;width:60%;height:1px;margin:0 auto 6px;background:linear-gradient(90deg,transparent,#c9a85a,transparent)}',
     '.skc .tp-lk{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:36px;height:36px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #000)}',
     '.skc.tp-own .por::after{content:"";position:absolute;right:10px;top:10px;width:16px;height:16px;background:url("' + PX.don + '") 0 0/100% 100% no-repeat;image-rendering:pixelated}',
     '@media (max-width:640px){#skinList,#shopList{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}#skinList .skc .por,#shopList .skc .por{height:120px!important}#skinList .skc .nm,#shopList .skc .nm{font-size:14px!important}}'
@@ -14402,7 +14404,10 @@ try {
       c.classList.add('tp');
       var nm = c.querySelector('.nm'); if (nm) nm.removeAttribute('style');
       var pr = c.querySelector('.price'), po = c.querySelector('.por');
-      if (pr && /\d/.test(pr.textContent)) {
+      if (pr && !c.querySelector('[data-go]')) {   /* misión o evento: el texto explica cómo se desbloquea */
+        c.classList.add('tp-quest'); pr.classList.add('tp-q');
+        if (po) po.insertAdjacentHTML('beforeend', '<img class="tp-lk" alt="" src="' + PX.lock + '">');
+      } else if (pr && /\d/.test(pr.textContent)) {
         var v = pr.textContent.match(/(\d[\d.]*)/)[1];
         if (c.querySelector('[data-go]')) { c.classList.add('tp-lock'); pr.innerHTML = '<img class="tp-coin" alt="" src="' + PX.coin + '">' + v; if (po) po.insertAdjacentHTML('beforeend', '<img class="tp-lk" alt="" src="' + PX.lock + '">'); }
         else pr.innerHTML = '<img class="tp-coin" alt="" src="' + PX.coin + '">' + v;
