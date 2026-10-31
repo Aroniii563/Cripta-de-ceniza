@@ -13876,11 +13876,7 @@ try {
     '#pBest #bestBook .bk-nav{width:clamp(40px,3.4cqw,70px);height:clamp(40px,3.4cqw,70px)}#pBest #bestBook .bk-nav svg{width:55%;height:55%}',
     '#pBest #bestTabs.bk-tabs .tab{font-size:clamp(14px,1.35cqw,26px);padding:.55em .8em 1em!important}',
     '#pBest #bestBook .bk-c{width:clamp(30px,3cqw,60px);height:clamp(30px,3cqw,60px)}',
-    '@container (min-width:1000px){#pBest .bk-art .bsp{zoom:1.35}}',
-    '@container (min-width:1300px){#pBest .bk-art .bsp{zoom:1.8}}',
-    '@container (min-width:1650px){#pBest .bk-art .bsp{zoom:2.3}}',
-    '@container (min-width:2100px){#pBest .bk-art .bsp{zoom:3}}',
-    '@media (max-width:760px){#pBest .bk-art .bsp{zoom:1}#pBest .bk-page .bk-art{width:min(100%,300px)}}',
+    '@media (max-width:760px){#pBest .bk-page .bk-art{width:min(100%,300px)}}',
     '#pBest .lead{margin-bottom:6px}',
     /* marcapáginas */
     '#bestTabs.bk-tabs{display:flex;flex-wrap:wrap;gap:4px!important;justify-content:center;margin:12px auto -6px!important;max-width:1060px;padding:0 14px;position:relative;z-index:2}',
@@ -13973,7 +13969,18 @@ try {
       '<div class="bk-spread">' + h + '</div>' +
       '<button class="bk-nav p" type="button" aria-label="Página anterior"' + (p <= 0 ? ' disabled' : '') + '>' + CHEV(-1) + '</button>' +
       '<button class="bk-nav n" type="button" aria-label="Página siguiente"' + (p + n >= pages.length ? ' disabled' : '') + '>' + CHEV(1) + '</button>';
+    ajusta();
     if (dir) { var f = document.createElement('div'); f.className = 'bk-flip ' + (dir > 0 ? 'n' : 'p'); book.querySelector('.bk-spread').appendChild(f); setTimeout(function () { f.remove(); }, 600); }
+  }
+  function ajusta() {
+    [].forEach.call(book.querySelectorAll('.bk-art'), function (art) {
+      var sp = art.querySelector('.bsp'); if (!sp) return;
+      sp.style.zoom = '';
+      var w = parseFloat(sp.style.width) || sp.offsetWidth, h = parseFloat(sp.style.height) || sp.offsetHeight;
+      var cs = getComputedStyle(art), aw = art.clientWidth - 24, ah = art.clientHeight - 24;
+      if (!w || !h || ah <= 0 || aw <= 0) return;
+      var z = Math.max(.5, Math.min(ah / h, aw / w, 3)); sp.style.zoom = z.toFixed(3);
+    });
   }
   function pasa(d) {
     var n = porPliego(), p = pos[zKey] || 0, q = p + d * n;
