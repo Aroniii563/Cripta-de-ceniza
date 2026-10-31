@@ -12704,34 +12704,6 @@ render=function(){
   document.head.appendChild(st);
 })();
 
-/* ---------- Marco de esquinas también en pestañas del menú y fichas de personaje ---------- */
-(function(){
-  var st=document.createElement('style');st.id='mdFrameCss2';
-  function fr(sel,on,w,out,inn){
-    return sel+'{position:relative}'+
-    sel+'::before{content:"";position:absolute;inset:-'+out+'px;pointer-events:none;opacity:0;z-index:3;border:'+w+'px solid transparent;border-image:url("iconos/marco_modo.png") 48 / '+w+'px / 0 stretch;image-rendering:pixelated;transition:inset .2s cubic-bezier(.2,.8,.3,1.2),opacity .15s ease}'+
-    on+'{border-color:#4a3a1e}'+
-    on.split(',').map(function(x){return x+'::before'}).join(',')+'{inset:-'+inn+'px;opacity:1;animation:mdEmber 1.6s steps(2,end) .2s infinite}';
-  }
-  st.textContent=
-    fr('#classGrid .card','#classGrid .card:hover,#classGrid .card:focus-visible,#classGrid .card:active',30,22,8)+
-    '#classGrid .card:focus-visible{outline:none}'+
-    '@media (prefers-reduced-motion:reduce){#classGrid .card::before{transition:opacity .01s;animation:none!important}}';
-  document.head.appendChild(st);
-})();
-/* ---------- Marco de esquinas en cualquier botón (reglas de especificidad mínima: las de arriba mandan) ---------- */
-(function(){
-  var st=document.createElement('style');st.id='mdFrameCss3';
-  var S=':where(button,[role=button],.btn,.tab,.up,.card,.skc,.mapc):not(.mt)';
-  var ON=S+':not(:disabled):not([disabled]):not(.dis):not(.lock)';
-  st.textContent=
-    S+'{position:relative}'+
-    S+'::before{content:"";position:absolute;inset:-4px;pointer-events:none;opacity:0;z-index:3;border:16px solid transparent;border-image:url("iconos/marco_modo.png") 48 / 16px / 0 stretch;image-rendering:pixelated;transition:inset .18s cubic-bezier(.2,.8,.3,1.2),opacity .14s ease}'+
-    ON+':hover::before,'+ON+':focus-visible::before,'+ON+':active::before,'+ON+'[aria-pressed="true"]::before{inset:-2px;opacity:1;animation:mdEmber 1.6s steps(2,end) .2s infinite}'+
-    ':where(button,[role=button]):focus-visible{outline:none}'+
-    '@media (prefers-reduced-motion:reduce){'+S+'::before{transition:opacity .01s;animation:none!important}}';
-  document.head.appendChild(st);
-})();
 /* ==========================================================================
    FONDOS DEL MENÚ PRINCIPAL · selector + fondos animados
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
