@@ -12454,7 +12454,7 @@ var CARTAS_PX={
      se mueven a saltos y tienen la vida y el daño de un élite.
    · No aparecen en el cooperativo online (el anfitrión no sincroniza cofres) ni en la Torre.
    ========================================================================== */
-var COF_SRC={"cofre_comun": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_comun.png"}, "cofre_raro": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_raro.png"}, "cofre_legendario": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_legendario.png"}, "mimico": {"fw": 150, "fh": 140, "fx": 75.0, "fy": 95.9, "top": 64.9, "walk": 8, "attack": 6, "death": 8, "despertar": 6, "src": "enemigos/mimico.png"}};
+var COF_SRC={"cofre_comun": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_comun.png"}, "cofre_raro": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_raro.png"}, "cofre_legendario": {"fw": 150, "fh": 140, "n": 6, "fx": 75.0, "fy": 95.9, "src": "enemigos/cofre_legendario.png"}, "mimico": {"fw": 150, "fh": 140, "fx": 75.0, "fy": 95.9, "top": 64.9, "walk": 8, "attack": 6, "death": 8, "despertar": 6, "src": "enemigos/mimico.png"}, "cenotafio_espera": {"fw": 130, "fh": 163, "n": 8, "fx": 55.0, "fy": 123.5, "src": "enemigos/cenotafio_espera.png"}, "cenotafio_lectura": {"fw": 130, "fh": 163, "n": 8, "fx": 55.0, "fy": 123.5, "src": "enemigos/cenotafio_lectura.png"}, "cenotafio_guardado": {"fw": 130, "fh": 163, "n": 8, "fx": 55.0, "fy": 123.5, "src": "enemigos/cenotafio_guardado.png"}, "cenotafio_firmado": {"fw": 130, "fh": 163, "n": 8, "fx": 55.0, "fy": 123.5, "src": "enemigos/cenotafio_firmado.png"}, "cenotafio_quemado": {"fw": 130, "fh": 163, "n": 8, "fx": 55.0, "fy": 123.5, "src": "enemigos/cenotafio_quemado.png"}};
 var COF_CFG={
   first:25,min:35,max:60,   /* primera aparición ~25-40 s; luego cada 35-60 s */
   maxAlive:3,life:110,      /* cofres a la vez; segundos antes de desaparecer */
@@ -12774,6 +12774,7 @@ window.addEventListener('keydown',function(e){
   if(k==='e')altInteract(PL[0]);
   else if(k==='enter'&&coop&&!(typeof ON!=='undefined'&&ON.on))altInteract(PL[1]);
 });
+var cenoImg={};['espera','lectura','guardado','firmado','quemado'].forEach(function(k){try{var im=new Image();im.src=COF_SRC['cenotafio_'+k].src;cenoImg[k]=im}catch(e){}});
 var _altSR=startRun;
 startRun=function(){altars=[];altNext=-1;altCurse=null;return _altSR.apply(this,arguments)};
 var _altED=window.EXTRADRAW;
@@ -12786,22 +12787,11 @@ window.EXTRADRAW=function(list,seen){
       var fl=1+.15*Math.sin(t*9+a.ph),act=a.st===1;
       ctx.save();ctx.globalAlpha=al;
       shadow(p,26);
-      function dia(cx,cy,w,h,col,edge){ctx.fillStyle=col;ctx.strokeStyle=edge;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(cx,cy-h);ctx.lineTo(cx+w,cy);ctx.lineTo(cx,cy+h);ctx.lineTo(cx-w,cy);ctx.closePath();ctx.fill();ctx.stroke()}
-      dia(p.x,p.y,30,15,'#3b3946','#1b1a22');
-      ctx.fillStyle='#2b2933';ctx.fillRect(p.x-30,p.y,60,5);
-      dia(p.x,p.y-5,21,10.5,'#55526a','#24222e');
-      ctx.strokeStyle=act?'#ff6a4a':'#b58cff';ctx.globalAlpha=al*(.55+.35*Math.sin(t*3+a.ph));ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(p.x,p.y-12);ctx.lineTo(p.x+9,p.y-5);ctx.lineTo(p.x,p.y+2);ctx.lineTo(p.x-9,p.y-5);ctx.closePath();ctx.stroke();ctx.globalAlpha=al;
-      ctx.fillStyle='#2a2833';ctx.fillRect(p.x-5,p.y-26,10,20);ctx.fillStyle='#46435a';ctx.fillRect(p.x-5,p.y-26,3,20);
-      ctx.fillStyle='#1b1a22';ctx.fillRect(p.x-8,p.y-30,16,5);
-      var fc=act?'255,70,50':(a.st===2?'255,210,90':'181,140,255');
-      var g=ctx.createRadialGradient(p.x,p.y-38,0,p.x,p.y-38,(act?44:34)*fl);g.addColorStop(0,'rgba('+fc+',.6)');g.addColorStop(1,'rgba('+fc+',0)');
-      ctx.globalCompositeOperation='lighter';ctx.fillStyle=g;ctx.fillRect(p.x-50,p.y-90,100,100);ctx.globalCompositeOperation='source-over';
-      ctx.fillStyle='rgb('+fc+')';ctx.beginPath();ctx.moveTo(p.x-6,p.y-31);ctx.quadraticCurveTo(p.x-8,p.y-42*fl,p.x,p.y-(act?58:52)*fl);ctx.quadraticCurveTo(p.x+8,p.y-42*fl,p.x+6,p.y-31);ctx.closePath();ctx.fill();
-      ctx.fillStyle='#fff6d8';ctx.beginPath();ctx.moveTo(p.x-3,p.y-31);ctx.quadraticCurveTo(p.x-3,p.y-38*fl,p.x,p.y-43*fl);ctx.quadraticCurveTo(p.x+3,p.y-38*fl,p.x+3,p.y-31);ctx.closePath();ctx.fill();
+      var ck=a.st===1?'firmado':a.st===2?'guardado':a.st===3?'quemado':(a.near&&!altCurse?'lectura':'espera'),im=cenoImg[ck],d=COF_SRC['cenotafio_'+ck];
+      if(im&&im.complete&&im.naturalWidth){var fr=Math.floor(t*8+a.ph)%d.n;if(fr<0)fr+=d.n;ctx.drawImage(im,fr*d.fw,0,d.fw,d.fh,Math.round(p.x-d.fx/2),Math.round(p.y-d.fy/2),d.fw/2,d.fh/2)}
       ctx.globalAlpha=1;
       if(a.st===0&&a.near&&!altCurse){
-        var by=p.y-66+Math.sin(t*5)*2;
+        var by=p.y-76+Math.sin(t*5)*2;
         ctx.fillStyle='rgba(12,12,16,.85)';ctx.strokeStyle='#ff6a4a';ctx.lineWidth=2;ctx.beginPath();ctx.arc(p.x,by,11,0,6.283);ctx.fill();ctx.stroke();
         ctx.fillStyle='#fff';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('E',p.x,by+1);ctx.textBaseline='alphabetic';
       }
