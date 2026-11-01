@@ -719,7 +719,11 @@ var CLASSES={
    Jefes: BOSS_HITS golpes normales (tras armadura) x BOSS_K ("un 50% más"). */
 var PROJ_MAX=20;
 var HPF={zombie:1.3,archer:1,brute:8},HP_REF=18,HP_TIME=240,BOSS_BASE=1500,BOSS_HITS=10,BOSS_K=1.7;
-function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp*HM}
+/* Modo infinito: pasado el minuto 20 los enemigos y jefes ganan vida y daño extra cada minuto (x = minutos tras el 20) */
+function infX(){return (RUNINF&&!TW.on&&t>1200)?(t-1200)/60:0}
+function infH(){var x=infX();return x?1+.12*x+.003*x*x:1}
+function infD(){var x=infX();return x?1+.06*x+.0012*x*x:1}
+function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp*HM*infH()}
 function bossHf(n,armor){return BOSS_HITS*BOSS_K*(1+.6*(n-1))}
 var ETYPES={
   zombie:{hp:14,speed:1.9,dmg:8,r:.32,xp:5,h:30,col:'#7f9d6c',name:'Zombi'},
@@ -1540,8 +1544,8 @@ function spawnBoss(){
     var a=Math.random()*6.283,d=rnd(10,13),T=livePlayer(),x=T.x+Math.cos(a)*d,y=T.y+Math.sin(a)*d;
     if(blocked(x,y,.9))continue;
     bossN++;
-    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*HM*(1+tB()/1200)*tK()*coopHp();
-    var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:(curMap===0||curMap===5)?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg*HM,
+    var kind=bossKindOf(bossN),cf=BOSS_CFG[kind],bar=Math.min(.6,.3+.05*((bossN-1)%4)),hf=bossHp(bossN),hp=HP_REF*hf*MAPS[curMap].hp*HM*(1+tB()/1200)*tK()*coopHp()*infH();
+    var b={type:'boss',boss:true,bossN:bossN,kind:kind,name:(curMap===0||curMap===5)?BOSS_NAMES0[(bossN-1)%4]:curMap===1?ABYSS_NAMES[(bossN-1)%4]:curMap===2?SWAMP_NAMES[(bossN-1)%4]:curMap===3?FORGE_NAMES[(bossN-1)%4]:SANCT_NAMES[(bossN-1)%4],x:x,y:y,r:cf.r*(1+(bossKFor(kind)-1)*.5),hf:hf,hp:hp,maxHp:hp,speed:cf.speed,dmg:bossDmg(bossN)*MAPS[curMap].dmg*HM*infD(),
       xp:0,h:76,col:(curMap===0||curMap===5)?'#a89c78':curMap===1?'#4ea2b0':curMap===2?'#5a7a2a':curMap===3?'#8a2a1a':'#d0a032',armor:bar,elite:false,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:2.5,side:1,dead:false,ai:1.2,wind:-1,sc:0};
     b.born=t;enemies.push(b);bossAlive=b;S('bossRoar');toast(kind==='muerte'||kind==='cangrejo'||kind==='wendigo'||kind==='devorador'||kind==='papa'?'¡'+b.name+' ha llegado!':'Jefe: '+b.name);
     return true;
@@ -1652,7 +1656,7 @@ function spawnEnemy(){
     var typ='zombie',r=Math.random();
     if(tE()>90&&r<.14)typ='brute';else if(tE()>40&&r<.38)typ='archer';
     var def=ETYPES[typ],elite=tE()>60&&Math.random()<.07;
-    var hf=HPF[typ]*(elite?2.4:1),dm=(1+tE()/300)*(elite?1.3:1)*MAPS[curMap].dmg*HM;
+    var hf=HPF[typ]*(elite?2.4:1),dm=(1+tE()/300)*(elite?1.3:1)*MAPS[curMap].dmg*HM*infD();
     enemies.push({type:typ,x:x,y:y,r:def.r*(elite?1.2:1),hf:hf,hp:enemyHp(hf),maxHp:enemyHp(hf),speed:def.speed*(elite?1.1:1),dmg:def.dmg*dm,
       xp:def.xp*(elite?4:1)*MAPS[curMap].xp,h:def.h*(elite?1.2:1),col:curMap===0?'#a89c78':curMap===1?({zombie:'#b07c78',archer:'#4ea2b0',brute:'#6e4a30'})[typ]:curMap===2?({zombie:'#4a6a1c',archer:'#c4321c',brute:'#1e4a4a'})[typ]:curMap===3?({zombie:'#9c2816',archer:'#5a2a8a',brute:'#6e2416'})[typ]:curMap===4?({zombie:'#8a7a7a',archer:'#d6a62c',brute:'#dddbe2'})[typ]:def.col,elite:elite,kx:0,ky:0,flash:0,cd:0,slow:0,shoot:rnd(1,2.5),side:Math.random()<.5?1:-1,dead:false});
     return;
@@ -11259,7 +11263,7 @@ function mvAI(e,dt,d){
         var a3=j2*6.283/m+Math.random()*.5,sx=e.x+Math.cos(a3)*1.6,sy=e.y+Math.sin(a3)*1.6;
         if(blocked(sx,sy,.35))continue;
         var Z0=ETYPES.zombie,hp2=enemyHp(HPF.zombie)*1.6;
-        enemies.push({type:'zombie',zvSk:'zv_rastrero',x:sx,y:sy,r:Z0.r,hf:HPF.zombie,hp:hp2,maxHp:hp2,speed:Z0.speed*1.1,dmg:Z0.dmg*(1+tE()/300)*MAPS[curMap].dmg,
+        enemies.push({type:'zombie',zvSk:'zv_rastrero',x:sx,y:sy,r:Z0.r,hf:HPF.zombie,hp:hp2,maxHp:hp2,speed:Z0.speed*1.1,dmg:Z0.dmg*(1+tE()/300)*MAPS[curMap].dmg*infD(),
           xp:Z0.xp*MAPS[curMap].xp,h:Z0.h,col:'#a89c78',elite:false,kx:0,ky:0,flash:0,cd:.6,slow:0,shoot:2,side:Math.random()<.5?1:-1,dead:false});
         MV.fxl.push({k:'rise',x:sx,y:sy,t:0});burst(sx,sy,'#a89c78',8);
       }
@@ -12516,7 +12520,7 @@ function cofOpen(c){
   toast('Cofre '+COF_NAME[c.tier]+': +'+tot+' XP');
 }
 function cofWake(c){
-  var def=ETYPES.zombie,hf=HPF.zombie*2.4,mhp=cofHp(),dm=(1+tE()/300)*1.3*MAPS[curMap].dmg*HM;
+  var def=ETYPES.zombie,hf=HPF.zombie*2.4,mhp=cofHp(),dm=(1+tE()/300)*1.3*MAPS[curMap].dmg*HM*infD();
   var e={type:'mimic',mim:true,tier:c.tier,x:c.x,y:c.y,r:def.r*1.2,hf:hf,hp:mhp,maxHp:mhp,speed:def.speed*1.1,dmg:def.dmg*dm,
     xp:def.xp*4*MAPS[curMap].xp,h:def.h*1.2,col:'#8a5a2a',elite:true,kx:0,ky:0,flash:0,cd:.6,slow:0,shoot:1e9,side:1,dead:false,wake:COF_CFG.wake,wt:0,flip:false};
   enemies.push(e);
