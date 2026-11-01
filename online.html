@@ -2347,7 +2347,6 @@ function statRows(){
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
   if(k==='melee')a('Alcance',r1(c.range*P.reach));
   if(P.spec.barrier)a('Barrera','2 s · recarga '+r1(P.barCd)+' s');
-  if(P.spec.lightning)a('Relámpago','10 rayos cada 1,5 s');
   if(P.spec.crows)a('Cuervos','3');
   var sp=SPECS.filter(function(q){return P.spec[q.id]}).map(function(q){return q.n});
   return r.join('')+(sp.length?'<div class="sp">'+sp.join(' · ')+'</div>':'');
@@ -12686,7 +12685,7 @@ render=function(){
    · E junto a él activa una maldición de riesgo durante 50 s (una regla que complica la partida).
      Si sobrevives hasta el final, el altar suelta un gran botín: experiencia legendaria y polvo rúnico.
    ========================================================================== */
-var ALT_CFG={first:25,min:150,max:185,life:120,openR:1.6,dur:50,xp:1.6,dust:[30,50]};
+var ALT_CFG={first:25,min:150,max:185,life:120,openR:1.6,dur:50,xp:1.6,gold:[18,28],lv:6.5};
 var altars=[],altNext=-1,altId=0,altCurse=null;
 function altOn(){return RUNINF&&!TW.on&&t>=1200&&!(typeof ON!=='undefined'&&ON.on)}
 var ALT_CURSES=[
@@ -12723,10 +12722,12 @@ function altEnd(ok){
   enemies.forEach(function(e){if(e._cf){e.speed/=1.35;e._cf=0}});
   if(!ok){a.st=3;a.fin=0;return}
   a.st=2;a.fin=0;
-  var tot=cofReward(2,a.x,a.y,ALT_CFG.xp),dust=0;
-  try{dust=Math.round(rnd(ALT_CFG.dust[0],ALT_CFG.dust[1]));if(window.__RUN){var m=__RUN.R();m.dust=(m.dust||0)+dust;saveMeta()}else dust=0}catch(e){dust=0}
+  var lv=0;PL.forEach(function(z){lv+=z.level});lv=Math.round(lv/PL.length);
+  var need=0,k,w=ALT_CFG.lv;for(k=0;k<w;k++)need+=xpNeed(lv+k)*Math.min(1,w-k);
+  var tot=cofReward(2,a.x,a.y,need/(xpNeed(lv)*COF_CFG.xp[2])),gold=0;
+  try{gold=Math.round(rnd(ALT_CFG.gold[0],ALT_CFG.gold[1]));meta.gold=(meta.gold||0)+gold;saveMeta()}catch(e){gold=0}
   burst(a.x,a.y,'#ffd25a',30);ring(a.x,a.y,2.6,.7,'#ffd25a');try{S('level',a.x,a.y,0,.6)}catch(e){}
-  toast('Maldición superada: +'+tot+' XP'+(dust?' · +'+dust+' polvo rúnico':''));
+  toast('Maldición superada: +'+tot+' XP'+(gold?' · +'+gold+' oro':''));
 }
 var _altUE=updateEnemies;
 updateEnemies=function(dt){
@@ -12787,6 +12788,12 @@ window.EXTRADRAW=function(list,seen){
       var fl=1+.15*Math.sin(t*9+a.ph),act=a.st===1;
       ctx.save();ctx.globalAlpha=al;
       shadow(p,26);
+      (function(){var gc=a.st===1?'255,106,74':a.st===2?'255,210,90':a.st===3?'120,120,130':'190,140,255',pu=.75+.25*Math.sin(t*3+a.ph),ga=a.st===3?.35:1;
+        ctx.save();ctx.globalCompositeOperation='lighter';
+        var g=ctx.createRadialGradient(p.x,p.y-8,0,p.x,p.y-8,95*pu);g.addColorStop(0,'rgba('+gc+','+.55*ga+')');g.addColorStop(.5,'rgba('+gc+','+.2*ga+')');g.addColorStop(1,'rgba('+gc+',0)');
+        ctx.fillStyle=g;ctx.fillRect(p.x-100,p.y-105,200,200);
+        if(a.st!==3){var b=ctx.createLinearGradient(0,p.y-190,0,p.y-20);b.addColorStop(0,'rgba('+gc+',0)');b.addColorStop(1,'rgba('+gc+','+.4*pu+')');ctx.fillStyle=b;ctx.fillRect(p.x-9,p.y-190,18,170)}
+        ctx.restore()})();
       var ck=a.st===1?'firmado':a.st===2?'guardado':a.st===3?'quemado':(a.near&&!altCurse?'lectura':'espera'),im=cenoImg[ck],d=COF_SRC['cenotafio_'+ck];
       if(im&&im.complete&&im.naturalWidth){var fr=Math.floor(t*8+a.ph)%d.n;if(fr<0)fr+=d.n;ctx.drawImage(im,fr*d.fw,0,d.fw,d.fh,Math.round(p.x-d.fx/2),Math.round(p.y-d.fy/2),d.fw/2,d.fh/2)}
       ctx.globalAlpha=1;
