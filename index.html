@@ -737,8 +737,9 @@ var PROJ_MAX=20;
 var HPF={zombie:1.3,archer:1,brute:8},HP_REF=18,HP_TIME=240,BOSS_BASE=1500,BOSS_HITS=10,BOSS_K=1.7;
 /* Modo infinito: pasado el minuto 20 los enemigos y jefes ganan vida y daño extra cada minuto (x = minutos tras el 20) */
 function infX(){return (RUNINF&&!TW.on&&t>1200)?(t-1200)/60:0}
-function infH(){var x=infX();return x?1+.12*x+.003*x*x:1}
-function infD(){var x=infX();return x?1+.06*x+.0012*x*x:1}
+function infE(){return (RUNINF&&!TW.on)?Math.min(t,1200)/1200:0}
+function infH(){if(!RUNINF||TW.on)return 1;var x=infX();return (1+.3*infE())*(x?1+.2*x+.005*x*x:1)}
+function infD(){if(!RUNINF||TW.on)return 1;var x=infX();return (1+.15*infE())*(x?1+.1*x+.002*x*x:1)}
 function enemyHp(hf){return HP_REF*hf*(1+tE()/HP_TIME)*(1+tE()/1200)*MAPS[curMap].hp*HM*infH()}
 function bossHf(n,armor){return BOSS_HITS*BOSS_K*(1+.6*(n-1))}
 var ETYPES={
