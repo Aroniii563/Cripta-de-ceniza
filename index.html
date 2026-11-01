@@ -497,7 +497,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
           <button class="mt" type="button" data-m="rank" aria-pressed="false"><i></i>Ranking</button>
           <button class="mt" type="button" data-m="stats" aria-pressed="false"><i></i>Estadísticas</button>
         </div>
-        <div class="gold mgold"><span class="gl"><svg class="coin" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dc86"/><stop offset=".55" stop-color="#d3a94a"/><stop offset="1" stop-color="#a87a22"/></linearGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#cg)" stroke="#6b4a10" stroke-width="1.2"/><circle cx="12" cy="12" r="7.4" fill="none" stroke="#8a6218" stroke-width="1.2"/><path d="M12 7.2v9.6M9.6 9.4h3.6a1.7 1.7 0 0 1 0 3.4h-2.4a1.7 1.7 0 0 0 0 3.4h3.6" fill="none" stroke="#6b4a10" stroke-width="1.4" stroke-linecap="round"/><path d="M6.2 8.6a7.2 7.2 0 0 1 4-3" fill="none" stroke="#fff3c4" stroke-width="1.4" stroke-linecap="round" opacity=".85"/></svg>Oro</span><b id="goldTxt">0</b></div>
+        <div class="gold mgold"><span class="gl" role="img" aria-label="Oro"></span><b id="goldTxt">0</b></div>
       </nav>
       <main class="mmain cerrado">
       <button class="btn alt mback" id="menuBack" type="button">← Atrás</button>
@@ -1246,7 +1246,7 @@ function fitTitle(){
   var narrow=window.innerWidth<=800,avail=narrow?hr.width:Math.min(hr.width,tb.left-hr.left-20);
   t.style.setProperty('font-size','100px','important');t.style.maxWidth='none';
   var w=t.scrollWidth||t.offsetWidth;
-  if(w>0&&avail>0)t.style.setProperty('font-size',Math.max(30,Math.min(130,100*avail*(narrow?.84:.94)/w))+'px','important');
+  if(w>0&&avail>0)t.style.setProperty('font-size',Math.max(30,Math.min(130,100*avail*(narrow?.84:.78)/w))+'px','important');
 }
 (function(){
   var t=document.querySelector('.mhead h1');
@@ -13610,6 +13610,26 @@ try{
   var st = document.getElementById('botonesRitual') || document.createElement('style');
   st.id = 'botonesRitual'; st.textContent = css; document.head.appendChild(st);
 })();
+
+/* Apoyar y Parches: botón dorado y ventanas con el marco de píxel del resto; oro con moneda de píxel */
+(function () {
+  var BOX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAfElEQVR42mNkYGBgOLki6j8DGcA8YhkjI0yzc+qWN6Ro3jvbR4SBgYGBCVkzTJAYjTA9LMgS6gZmDHtnM4gsWnYIq+a4KDsGmBoMA5xTt7xBlsAGFu7fwoCuhglZAS6b8alhYqAQjBqAZkBclB1BDehqBj4hUZyZGCnNzgDPLVElrK41WwAAAABJRU5ErkJggg==", ON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2SoQ3DMBRE31U2LzTIAJ0mi4RU3SGkyCAZoyQjFHYCDxAQaB7wS2LWWDLtw3e6r7svDnKKRoXr7S4AAdi+mXzQ0Hc/TfOyqmhcTtHkg2zfThMmMPmgnKI5gKHv7PN61C6ipF9o5B8MrvQM7+pw87JqfGLNw6n1Nb6tzDozaOLgZwAAAABJRU5ErkJggg==", COIN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAPklEQVR42mNkYGBgyPaT+c8ABVM3PWFkyfaT+R8XZcegbmAGFe75z8SABG5eOMXAwMDAwIQuwMDAwMCIzUwAxOMR05dtKZoAAAAASUVORK5CYII=", G = '#c9a85a', INK = '#e8e1d0';
+  var css = [
+    '.abtn.tbtn.gold{border-image-source:url("' + ON + '")!important;color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important}',
+    '.abtn.tbtn.gold:hover{filter:brightness(1.1);color:#0c0d0e!important}',
+    '.mbox{border-radius:0!important;background:#0c0d0e!important;box-shadow:6px 6px 0 rgba(0,0,0,.55)!important;border:12px solid transparent!important;border-image:url("' + BOX + '") 6 fill / 12px / 0 stretch!important;image-rendering:pixelated;padding:14px 18px 10px!important}',
+    '.mbox>*{image-rendering:auto}',
+    '.mbox h2{font-family:var(--display);font-weight:400!important;font-size:20px;letter-spacing:.16em;text-transform:uppercase;color:' + G + ';text-shadow:2px 2px 0 #000;margin:0 0 14px}',
+    '.mbox p{color:' + INK + ';font-size:14px;line-height:1.6}',
+    '.mbox .soon{color:rgba(232,225,208,.55)}',
+    '.mgold .gl{display:inline-flex;align-items:center}',
+    '.mgold .gl img{width:30px;height:30px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #000)}',
+    '.mgold{align-items:center!important}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'apoyoPx'; st.textContent = css; document.head.appendChild(st);
+  document.querySelectorAll('.mgold .gl').forEach(function (e) { if (!e.firstChild) { var i = document.createElement('img'); i.alt = ''; i.src = COIN; e.appendChild(i); } });
+})();
+
 /* ==========================================================================
    TARJETAS DE MODO (pestaña Jugar) · ESTILO VICTORIANO MINIMALISTA EN PIXEL ART · Clásico, Torre de ceniza, Cooperativo y Misiones diarias
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen», DESPUÉS de los bloques
