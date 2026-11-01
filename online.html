@@ -1484,7 +1484,7 @@ $('classGrid').addEventListener('click',function(e){
 
 /* ---------- Combate ---------- */
 function roll(m){var crit=Math.random()<P.crit;return {d:P.dmg*m*rnd(.9,1.1)*(crit?2:1),crit:crit}}
-function addText(x,y,s,col,size){if(texts.length>60)return;texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
+function addText(x,y,s,col,size){if(texts.length>60)return;if((col==='#f1e7d0'||col==='#ffd25a')&&/^-?\d+!?$/.test(s)){var dn=Math.abs(parseInt(s,10));if(dn>9999)col='#b266ff';else if(dn>999)col='#ff3b3b'}texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
 function burst(x,y,col,n){if(parts.length>350)return;for(var i=0;i<n;i++){var a=Math.random()*6.28,v=rnd(1,3);parts.push({x:x,y:y,z:rnd(8,20),vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:rnd(20,70),life:rnd(.3,.6),t:0,col:col})}}
 function hitEnemy(e,r,kx,ky,kb,quiet){
   if(e.dead)return;
