@@ -2062,7 +2062,7 @@ function buildMaps(msg){
     if(st==='own'){
       var op=MAPOPT[i]||(MAPOPT[i]={hard:false,inf:false,mut:false});if(!hardOk(i)){op.hard=false;op.mut=false}if(!meta.infinite||last)op.inf=false;
       btn='<label class="mchk hard'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'+'+Math.round((HARDP[i]||.15)*100)+'% de vida, daño y enemigos':'Gana en este mapa para desbloquear Difícil')+'"><input type="checkbox" data-opt="hard" data-m="'+i+'"'+(op.hard?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Difícil</label>'+
-        '<label class="mchk mut'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.':'Gana en este mapa para desbloquear Mutaciones')+'"><input type="checkbox" data-opt="mut" data-m="'+i+'"'+(op.mut?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Mutaciones</label>'+
+        '<label class="mchk mut'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.':'Gana en este mapa para desbloquear Mutaciones')+'"><input type="checkbox" data-opt="mut" data-m="'+i+'"'+(op.mut?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Mutaciones</label>'+
         ((meta.infinite&&!last)?'<label class="mchk inf" title="La partida sigue tras el jefe del minuto 20"><input type="checkbox" data-opt="inf" data-m="'+i+'"'+(op.inf?' checked':'')+'><span class="bx"></span>Infinito</label>':'')+
         '<button class="btn" type="button" data-play="'+i+'">Jugar</button>';
     }
@@ -14376,14 +14376,14 @@ try{
 })();
 /* ==========================================================================
    MUTACIONES · dificultad opcional que se marca en cada mapa junto a «Difícil».
-   Cada 2 minutos (desde el minuto 2) se activa una mutación distinta a la anterior y la anterior termina.
+   Cada minuto (desde el minuto 1) se activa una mutación distinta a la anterior y la anterior termina.
    Núcleo: RUNMUT, MUT (modificadores), mutReset/mutUpdate/mutMove/mutGround. Ver los ganchos en startRun, update, playerStep, orbes y render.
    ========================================================================== */
 (function () {
   var LI = {es: 0, en: 1, pt: 2, fr: 3, ru: 4, ja: 5};
   function li() { try { return LI[LANG] || 0; } catch (e) { return 0; } }
   function T(a) { return a[li()] || a[0]; }
-  var DUR = 120, FIRST = 120, GOLD = 1.25;
+  var DUR = 60, FIRST = 60, GOLD = 1.25;
   var UI = {
     next: ['Primera mutación en {t}', 'First mutation in {t}', 'Primeira mutação em {t}', 'Première mutation dans {t}', 'Первая мутация через {t}', '最初の変異まで{t}'],
     left: ['Siguiente en {t}', 'Next in {t}', 'Próxima em {t}', 'Suivante dans {t}', 'Следующая через {t}', '次まで{t}'],
@@ -14711,11 +14711,11 @@ try{
 
   /* ---------- textos de la selección de mapa (traducción al vuelo) ---------- */
   var X = {
-    en: {'Mutaciones': 'Mutations', 'Cada 2 minutos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Every 2 minutes a new mutation appears. Same difficulty as Hard and not combinable with it. +25% gold.', 'Gana en este mapa para desbloquear Mutaciones': 'Win on this map to unlock Mutations', ' · Mutaciones': ' · Mutations'},
-    pt: {'Mutaciones': 'Mutações', 'Cada 2 minutos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'A cada 2 minutos surge uma nova mutação. Mesma dificuldade do Difícil e não se combina com ele. +25% de ouro.', 'Gana en este mapa para desbloquear Mutaciones': 'Vença neste mapa para desbloquear Mutações', ' · Mutaciones': ' · Mutações'},
-    fr: {'Mutaciones': 'Mutations', 'Cada 2 minutos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Toutes les 2 minutes, une nouvelle mutation apparaît. Même difficulté que Difficile, non cumulable. +25 % d\'or.', 'Gana en este mapa para desbloquear Mutaciones': 'Gagne sur cette carte pour débloquer les Mutations', ' · Mutaciones': ' · Mutations'},
-    ru: {'Mutaciones': 'Мутации', 'Cada 2 minutos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Каждые 2 минуты появляется новая мутация. Та же сложность, что и «Сложный», с ним не сочетается. +25% золота.', 'Gana en este mapa para desbloquear Mutaciones': 'Победите на этой карте, чтобы открыть Мутации', ' · Mutaciones': ' · Мутации'},
-    ja: {'Mutaciones': 'ミューテーション', 'Cada 2 minutos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': '2分ごとに新しい変異が発生。ハードと同じ難易度で、併用不可。ゴールド+25%。', 'Gana en este mapa para desbloquear Mutaciones': 'このマップで勝利するとミューテーションが解放されます', ' · Mutaciones': ' ・ミューテーション'}
+    en: {'Mutaciones': 'Mutations', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Every minute a new mutation appears. Same difficulty as Hard and not combinable with it. +25% gold.', 'Gana en este mapa para desbloquear Mutaciones': 'Win on this map to unlock Mutations', ' · Mutaciones': ' · Mutations'},
+    pt: {'Mutaciones': 'Mutações', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'A cada minuto surge uma nova mutação. Mesma dificuldade do Difícil e não se combina com ele. +25% de ouro.', 'Gana en este mapa para desbloquear Mutaciones': 'Vença neste mapa para desbloquear Mutações', ' · Mutaciones': ' · Mutações'},
+    fr: {'Mutaciones': 'Mutations', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Chaque minute, une nouvelle mutation apparaît. Même difficulté que Difficile, non cumulable. +25 % d\'or.', 'Gana en este mapa para desbloquear Mutaciones': 'Gagne sur cette carte pour débloquer les Mutations', ' · Mutaciones': ' · Mutations'},
+    ru: {'Mutaciones': 'Мутации', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Каждую минуту появляется новая мутация. Та же сложность, что и «Сложный», с ним не сочетается. +25% золота.', 'Gana en este mapa para desbloquear Mutaciones': 'Победите на этой карте, чтобы открыть Мутации', ' · Mutaciones': ' · Мутации'},
+    ja: {'Mutaciones': 'ミューテーション', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': '毎分、新しい変異が発生。ハードと同じ難易度で、併用不可。ゴールド+25%。', 'Gana en este mapa para desbloquear Mutaciones': 'このマップで勝利するとミューテーションが解放されます', ' · Mutaciones': ' ・ミューテーション'}
   };
   try {
     Object.keys(X).forEach(function (l) { if (I18N_DATA[l]) Object.keys(X[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = X[l][k]; }); });
