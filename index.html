@@ -13108,50 +13108,90 @@ var FONDO_FX = {
     puertas: [[775, 655, 40], [930, 650, 55], [1075, 655, 40]],
     estandartes: [[243, 213, 50, 225], [1552, 180, 64, 255], [102, 515, 46, 220], [1582, 555, 44, 180]],
     velas: [],
+    brillos: [[556, 540], [558, 540], [560, 564], [569, 540], [570, 577], [571, 565], [572, 565], [760, 411], [761, 403], [763, 407], [763, 410], [767, 376], [768, 410], [772, 413], [788, 406], [789, 402], [790, 416], [795, 439], [796, 428], [797, 411], [878, 415], [880, 383], [891, 425], [894, 264], [897, 279], [900, 291], [902, 278], [903, 259], [905, 282], [919, 338], [921, 277], [924, 283], [927, 390], [929, 262], [929, 272], [929, 392], [930, 281], [930, 290], [944, 262], [952, 271], [955, 284], [969, 438], [974, 383], [1054, 424], [1055, 407], [1056, 398], [1057, 402], [1058, 405], [1070, 355], [1081, 397], [1081, 401], [1085, 394], [1086, 382], [1088, 418], [1089, 419], [1090, 411], [1092, 419], [1204, 700], [1205, 629], [1207, 648], [1208, 621], [1208, 651], [1208, 660], [1209, 650], [1218, 647], [1218, 667], [1220, 660], [1222, 620], [1224, 644], [1226, 623], [770, 140], [790, 150], [1050, 140], [1080, 150], [1052, 172], [776, 172], [668, 445], [660, 430]],
     dibuja: function (c, t, dt, M, H) {
       var P = this.P, i, img = M.img, W = img.naturalWidth, Hh = img.naturalHeight, g = M.ng, W3 = M.nube.width, H3 = M.nube.height;
-      /* nubes violetas */
+      function px(x, y, w, h) { c.fillRect(Math.round(x / P) * P, Math.round(y / P) * P, (w || 1) * P, (h || 1) * P); }
+      var Rs = this.roseton, rayo = .5 + .5 * Math.sin(t * .35), viento = 1 + .6 * Math.sin(t * .23) + .3 * Math.sin(t * .9);
+      /* ---- cielo (a 1/3 y recortado con la máscara): tres capas de nubes, claro de luz y bandadas de pájaros ---- */
       g.clearRect(0, 0, W3, H3); g.globalCompositeOperation = 'source-over';
-      var C1 = M.c1 || (M.c1 = H.niebla(W3, Math.ceil(H3 * .7), 41, [40, 32, 58])), C2 = M.c2 || (M.c2 = H.niebla(W3, Math.ceil(H3 * .7), 57, [150, 136, 176]));
-      [[C1, 3, .8, -16], [C2, 6, .35, 4]].forEach(function (Lc) { var off = ((t * Lc[1]) % W3 + W3) % W3; g.globalAlpha = Lc[2]; g.drawImage(Lc[0], -off, Lc[3]); g.drawImage(Lc[0], W3 - off, Lc[3]); });
-      g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; g.drawImage(M.cielo, 0, 0, W3, H3);
+      var C1 = M.c1 || (M.c1 = H.niebla(W3, Math.ceil(H3 * .7), 41, [36, 28, 54])), C2 = M.c2 || (M.c2 = H.niebla(W3, Math.ceil(H3 * .7), 57, [150, 132, 180])), C3 = M.c3 || (M.c3 = H.niebla(W3, Math.ceil(H3 * .5), 83, [90, 74, 120]));
+      [[C1, 4, .8, -16], [C3, 9, .45, 20], [C2, 15, .3, 4]].forEach(function (Lc) { var off = ((t * Lc[1]) % W3 + W3) % W3; g.globalAlpha = Lc[2]; g.drawImage(Lc[0], -off, Lc[3]); g.drawImage(Lc[0], W3 - off, Lc[3]); });
+      g.globalAlpha = 1;
+      /* el claro entre las nubes por donde cae la luz */
+      var cx3 = Rs[0] / 3 + Math.sin(t * .2) * 6, gr = g.createRadialGradient(cx3, 0, 0, cx3, 0, 120);
+      gr.addColorStop(0, 'rgba(235,220,255,' + (.55 + .2 * rayo) + ')'); gr.addColorStop(.4, 'rgba(200,170,250,' + (.22 + .1 * rayo) + ')'); gr.addColorStop(1, 'rgba(160,120,220,0)');
+      g.globalCompositeOperation = 'lighter'; g.fillStyle = gr; g.fillRect(0, 0, W3, H3); g.globalCompositeOperation = 'source-over';
+      /* bandadas: forma de V, aleteo, de distintos tamaños según lo lejos que estén */
+      for (var f = 0; f < 3; f++) {
+        var per = 26 + f * 9, k = ((t + f * 11) % per) / per, dir = f === 1 ? -1 : 1, bx = dir > 0 ? -30 + k * (W3 + 60) : W3 + 30 - k * (W3 + 60), by = 18 + f * 22 + Math.sin(k * 7 + f) * 6, n = 6 + f * 2, esc = f === 2 ? 1 : 0;
+        g.fillStyle = f === 2 ? '#120c1a' : '#1c1426';
+        for (i = 0; i < n; i++) {
+          var row = Math.ceil(i / 2), side = i % 2 ? 1 : -1, x = Math.round(bx - dir * row * (4 + esc) + Math.sin(t * 2 + i) * .8), y = Math.round(by + side * row * (2 + esc) + Math.sin(t * 1.3 + i * 2));
+          var up = Math.floor(t * 6 + i * 1.7) % 2;
+          g.fillRect(x, y, 1, 1);
+          if (esc) { g.fillRect(x + 1, y, 1, 1); if (up) { g.fillRect(x - 2, y - 1, 2, 1); g.fillRect(x + 2, y - 1, 2, 1); } else { g.fillRect(x - 2, y + 1, 2, 1); g.fillRect(x + 2, y + 1, 2, 1); } }
+          else if (up) { g.fillRect(x - 1, y - 1, 1, 1); g.fillRect(x + 1, y - 1, 1, 1); } else { g.fillRect(x - 1, y, 1, 1); g.fillRect(x + 1, y, 1, 1); }
+        }
+      }
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(M.cielo, 0, 0, W3, H3);
       c.drawImage(M.nube, 0, 0, W, Hh);
-      /* estandartes */
+      /* ---- estandartes ondeando con el viento ---- */
       this.estandartes.forEach(function (b, n) {
-        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round(Math.sin(t * 1.5 + y * .035 + n * 2) * 5 * k2 * k2 / P) * P;
+        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round((Math.sin(t * 1.8 + y * .04 + n * 2) * 5 + Math.sin(t * 4.1 + y * .09 + n) * 2) * viento * k2 * k2 / P) * P;
           if (off) c.drawImage(img, b[0], b[1] + y, b[2], P, b[0] + off, b[1] + y, b[2], P); }
       });
-      /* cuervos */
-      for (i = 0; i < 5; i++) {
-        var sp = 26 + H.rnd(i + 70) * 22, bx = ((H.rnd(i + 71) * (W + 300) + t * sp) % (W + 300)) - 150, by = 60 + H.rnd(i + 72) * 200 + Math.sin(t * .8 + i) * 14;
-        var up = Math.floor(t * 5 + i * 1.7) % 2; c.fillStyle = '#16121c';
-        c.fillRect(Math.round(bx / P) * P, Math.round(by / P) * P, P * 2, P);
-        if (up) { c.fillRect(Math.round(bx / P) * P - P * 2, Math.round(by / P) * P - P, P * 2, P); c.fillRect(Math.round(bx / P) * P + P * 2, Math.round(by / P) * P - P, P * 2, P); }
-        else { c.fillRect(Math.round(bx / P) * P - P * 2, Math.round(by / P) * P + P, P * 2, P); c.fillRect(Math.round(bx / P) * P + P * 2, Math.round(by / P) * P + P, P * 2, P); }
-      }
-      /* vidrieras que laten, rosetón con brillo que gira y haces de luz hacia la plaza */
       c.globalCompositeOperation = 'lighter';
-      var Rs = this.roseton, pul = .5 + .5 * Math.sin(t * 1.1);
-      H.glow(c, Rs[0], Rs[1], Rs[2] * 1.7, '170,90,255', .34 + .2 * pul);
+      /* ---- haces de luz que caen del cielo sobre la catedral ---- */
+      var top = Rs[0] + Math.sin(t * .2) * 18;
+      for (i = 0; i < 6; i++) {
+        var a0 = -.2 + i * .08 + Math.sin(t * .3 + i * 1.7) * .02, wd = 26 + 18 * ((i * 7) % 3), al = (.07 + .05 * Math.sin(t * .8 + i * 2.3)) * (.6 + .4 * rayo), x0 = top + (i - 2.5) * 22, x1 = x0 + Math.tan(a0) * 760;
+        var lg = c.createLinearGradient(0, 0, 0, 780); lg.addColorStop(0, 'rgba(230,215,255,' + (al * 1.6).toFixed(3) + ')'); lg.addColorStop(.7, 'rgba(200,170,255,' + al.toFixed(3) + ')'); lg.addColorStop(1, 'rgba(200,170,255,0)');
+        c.fillStyle = lg; c.beginPath(); c.moveTo(x0 - wd * .3, 0); c.lineTo(x0 + wd * .3, 0); c.lineTo(x1 + wd * 1.6, 780); c.lineTo(x1 - wd * 1.6, 780); c.closePath(); c.fill();
+      }
+      /* la fachada iluminada y el reflejo en la plaza */
+      H.glow(c, Rs[0], 330, 330, '210,180,255', .1 + .06 * rayo);
+      H.glow(c, Rs[0], 840, 360, '200,170,255', .06 + .04 * rayo);
+      /* ---- rosetón, vidrieras y destellos en los cristales ---- */
+      var pul = .5 + .5 * Math.sin(t * 1.1);
+      H.glow(c, Rs[0], Rs[1], Rs[2] * 1.8, '170,90,255', .36 + .22 * pul);
       for (i = 0; i < 12; i++) { var a = t * .35 + i * Math.PI / 6, rx = Rs[0] + Math.cos(a) * Rs[2] * .62, ry = Rs[1] + Math.sin(a) * Rs[2] * .62, on = .5 + .5 * Math.sin(t * 2.4 + i * 1.3);
-        if (on > .55) H.glow(c, rx, ry, 10, '220,170,255', .35 * on); }
-      this.vidrieras.forEach(function (v, n) { H.glow(c, v[0], v[1], v[2] * 2.3, '160,80,240', .28 + .2 * (.5 + .5 * Math.sin(t * 1.3 + n * 1.9))); });
-      var hz = .09 + .05 * pul; c.globalAlpha = 1;
+        if (on > .55) H.glow(c, rx, ry, 10, '220,170,255', .4 * on); }
+      this.vidrieras.forEach(function (v, n) { H.glow(c, v[0], v[1], v[2] * 2.3, '160,80,240', .26 + .22 * (.5 + .5 * Math.sin(t * 1.3 + n * 1.9))); });
       this.puertas.forEach(function (d, n) { H.glow(c, d[0], d[1], d[2] * 1.6, '160,70,230', .18 + .1 * Math.sin(t * .9 + n * 2.2)); });
-      var lg = c.createLinearGradient(0, Rs[1], 0, 880); lg.addColorStop(0, 'rgba(180,110,255,' + hz + ')'); lg.addColorStop(1, 'rgba(180,110,255,0)');
-      c.fillStyle = lg; c.beginPath(); c.moveTo(Rs[0] - 40, Rs[1] + 20); c.lineTo(Rs[0] + 40, Rs[1] + 20); c.lineTo(Rs[0] + 280, 880); c.lineTo(Rs[0] - 280, 880); c.closePath(); c.fill();
-      this.velas.forEach(function (v, n) { H.glow(c, v[0], v[1], 22, '255,170,90', .3 * H.flick(t, n + 3)); });
+      var B = this.brillos;
+      for (i = 0; i < B.length; i++) {
+        var ph = (t * .45 + H.rnd(i + 300) * 9) % 3.2; if (ph > .5) continue;
+        var s = ph < .25 ? ph / .25 : (.5 - ph) / .25, q = B[i], len = Math.round(1 + s * 3);
+        H.glow(c, q[0], q[1], 10 + 8 * s, '230,180,255', .5 * s);
+        c.fillStyle = 'rgba(255,240,255,' + (.9 * s).toFixed(3) + ')';
+        c.fillRect(q[0] - len * 2, q[1], len * 4 + 1, 1); c.fillRect(q[0], q[1] - len * 2, 1, len * 4 + 1); c.fillRect(q[0] - 1, q[1] - 1, 3, 3);
+      }
       c.globalCompositeOperation = 'source-over';
-      /* motas violetas que caen flotando */
+      /* ---- motas de luz dentro de los haces ---- */
       for (i = 0; i < 40; i++) {
-        var px = (H.rnd(i) * W + Math.sin(t * .5 + i) * 30 + t * 6) % W, py = (H.rnd(i + 40) * Hh + t * (10 + H.rnd(i + 3) * 14)) % Hh, tw = .5 + .5 * Math.sin(t * 2 + i * 3);
-        c.globalAlpha = .35 + .5 * tw; c.fillStyle = i % 4 ? '#b48ae8' : '#f0dcff'; c.fillRect(Math.round(px / P) * P, Math.round(py / P) * P, P, P);
+        var mx = top - 160 + H.rnd(i) * 320 + Math.sin(t * .5 + i) * 20, my = (H.rnd(i + 40) * 760 + t * (8 + H.rnd(i + 3) * 10)) % 760, tw = .5 + .5 * Math.sin(t * 2 + i * 3);
+        mx += (my / 760) * (H.rnd(i + 5) - .5) * 300;
+        c.globalAlpha = .25 + .5 * tw; c.fillStyle = i % 4 ? '#d8c4ff' : '#ffffff'; px(mx, my);
       }
       c.globalAlpha = 1;
-      /* niebla violeta a ras del suelo */
-      var N1 = M.n1 || (M.n1 = H.niebla(Math.ceil(W / 3), 60, 8, [120, 100, 150]));
-      var off = ((t * 12) % W + W) % W; c.globalAlpha = .5;
-      c.drawImage(N1, 0, 0, N1.width, N1.height, -off, 745, W, 210); c.drawImage(N1, 0, 0, N1.width, N1.height, W - off, 745, W, 210);
+      /* ---- pétalos que arrastra el viento ---- */
+      var COLP = ['#b050e0', '#d080ff', '#e8b0ff', '#9038c0', '#f4d0ff'];
+      for (i = 0; i < 60; i++) {
+        var near = i % 5 === 0, spd = (90 + H.rnd(i + 500) * 110) * viento * (near ? 1.6 : 1), span = W + 200;
+        var pxp = ((H.rnd(i + 501) * span + t * spd) % span) - 100, pyp = (H.rnd(i + 502) * Hh + t * (18 + H.rnd(i + 503) * 26) + Math.sin(t * 1.7 + i) * 26 + Math.sin(pxp * .01 + i) * 30) % Hh;
+        var fr = Math.floor(t * (6 + H.rnd(i + 504) * 6) + i) % 4, sz = near ? 2 : 1;
+        c.globalAlpha = near ? 1 : .85; c.fillStyle = COLP[i % 5];
+        if (fr === 0) px(pxp, pyp, 2 * sz, sz); else if (fr === 1) px(pxp, pyp, sz, sz); else if (fr === 2) px(pxp, pyp, sz, 2 * sz); else { px(pxp, pyp, sz, sz); px(pxp + sz * P, pyp + sz * P, sz, sz); }
+        if (near) { c.fillStyle = '#f0c8ff'; px(pxp, pyp, 1, 1); }
+      }
+      c.globalAlpha = 1;
+      /* ---- niebla violeta a ras del suelo ---- */
+      var N1 = M.n1 || (M.n1 = H.niebla(Math.ceil(W / 3), 60, 8, [120, 100, 150])), N2 = M.n2 || (M.n2 = H.niebla(Math.ceil(W / 3), 50, 13, [150, 130, 180]));
+      [[N1, 745, 210, 4, .5], [N2, 820, 140, -7, .35]].forEach(function (Lr) {
+        var off = ((t * Lr[3] * 3) % W + W) % W; c.globalAlpha = Lr[4];
+        c.drawImage(Lr[0], 0, 0, Lr[0].width, Lr[0].height, -off, Lr[1], W, Lr[2]); c.drawImage(Lr[0], 0, 0, Lr[0].width, Lr[0].height, W - off, Lr[1], W, Lr[2]);
+      });
       c.globalAlpha = 1;
     }
   },
@@ -15676,6 +15716,16 @@ try {
     '#skinList .skc,#shopList .skc{position:relative;align-items:center;gap:8px!important;padding:8px 10px 8px!important;text-align:center;border-radius:0!important;background:none!important;box-shadow:none!important;' + bi(PX.card, 7, 14) + ';transition:filter .15s,transform .15s steps(2)!important}',
     '#skinList .skc:hover,#shopList .skc:hover{filter:brightness(1.12);transform:translateY(-2px)!important}',
     '#skinList .skc.on{border-image-source:url("' + PX.cardmax + '")!important}',
+    /* fondos del menú: mismas tarjetas pixel art que los aspectos */
+    '#fondoPanel .fl{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important;gap:14px!important}',
+    '#fondoPanel button{align-items:center;gap:8px!important;padding:8px 10px!important;text-align:center!important;border-radius:0!important;background:none!important;box-shadow:none!important;color:' + INK + '!important;' + bi(PX.card, 7, 14) + ';transition:filter .15s,transform .15s steps(2)!important}',
+    '#fondoPanel button:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-2px)!important}',
+    '#fondoPanel button[aria-pressed="true"]{border-image-source:url("' + PX.cardmax + '")!important;box-shadow:none!important}',
+    '#fondoPanel button img{width:100%;border:0!important;box-shadow:0 0 0 2px #6b4e1c,0 0 0 4px #0c0d0e,0 0 0 6px rgba(201,168,90,.35);margin:3px 0 4px;width:calc(100% - 12px)}',
+    '#fondoPanel button>span:not(.lk):not(.an){font-family:var(--display);font-size:16px;letter-spacing:.08em;text-transform:uppercase;line-height:1.15;color:' + INK + ';text-shadow:2px 2px 0 #000}',
+    '#fondoPanel button .an{font-family:var(--body);font-size:11px;letter-spacing:.14em;color:' + G + ';text-shadow:1px 1px 0 #000}',
+    '#fondoPanel button .lk{left:16px!important;right:16px!important;top:11px!important;width:auto;color:rgba(232,225,208,.85);text-shadow:1px 1px 0 #000;font-size:12px}',
+    '#fondoPanel button:disabled>span:not(.lk):not(.an){color:rgba(232,225,208,.5)}',
     '#skinList .skc .por,#shopList .skc .por{position:relative;width:100%;height:150px!important;padding:8px!important;border:0!important;border-radius:0!important;display:flex;align-items:flex-end;justify-content:center;' +
       'background:radial-gradient(ellipse at 50% 85%,rgba(201,168,90,.22),transparent 60%),repeating-linear-gradient(0deg,rgba(201,168,90,.05) 0 2px,transparent 2px 6px),#0c0d0e!important;box-shadow:inset 0 0 0 2px #6b4e1c,inset 0 0 0 4px #0c0d0e,inset 0 0 0 6px rgba(201,168,90,.35)}',
     '#skinList .skc .por img,#shopList .skc .por img,#skinList .skc .por .pa,#shopList .skc .por .pa{max-height:100%;image-rendering:pixelated;filter:drop-shadow(3px 3px 0 rgba(0,0,0,.6))}',
