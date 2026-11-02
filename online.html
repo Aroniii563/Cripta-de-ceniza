@@ -235,6 +235,9 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #pkMaps .mapc.mbg1{background-image:var(--sh),url(fondos/menu_abismo.webp)}
 #pkMaps .mapc.mbg2{background-image:var(--sh),url(fondos/menu_pantano.webp)}
 #pkMaps .mapc.mbg3{background-image:var(--sh),url(fondos/menu_forja.webp)}
+#pkMaps .mapc.mbg4{background-image:var(--sh),url(fondos/menu_catedral2.webp)}
+#pkMaps .mapc.mbg5{background-image:var(--sh),url(fondos/menu_biblioteca.webp)}
+#pkMaps .mapc.mbg6{background-image:var(--sh),url(fondos/menu_ruinas2.webp)}
 #pkMaps .mapc[class*=mbg] .nm,#pkMaps .mapc[class*=mbg] .ef{text-shadow:0 1px 6px rgba(0,0,0,.9)}
 #pkMaps .mapc .mact,#pkMaps .mapc>.btn{grid-column:2;justify-content:flex-start;flex-wrap:wrap}#pkMaps .mapc>.btn{width:auto;justify-self:start;padding-left:22px;padding-right:22px}
 #pkMaps .mapc .nm{font-size:clamp(22px,2vw,44px)!important}
@@ -2073,7 +2076,7 @@ function buildMaps(msg){
     if(st==='lock')note='Vence al jefe del minuto 20 del mapa '+i+' para desbloquearlo.';
     else if(last)note=(meta.infinite?'Escritor derrotado. Modo infinito desbloqueado en los demás mapas.':'Derrota al Escritor (minuto 20) para desbloquear el modo infinito en los demás mapas.')+(hardOk(i)?hardTxt:' Vence al Escritor para desbloquear Difícil.');
     else note=(meta.done[i]?'Mapa superado.'+hardTxt:hardOk(i)?hardTxt.trim():'Vence al jefe del minuto 20 para desbloquear el siguiente mapa y la dificultad Difícil.')+(meta.infinite?' Modo infinito disponible.':'');
-    return '<div class="mapc'+(st==='lock'?' lockd':'')+(i<4?' mbg'+i:'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
+    return '<div class="mapc'+(st==='lock'?' lockd':'')+(i<7?' mbg'+i:'')+'"><img class="ic" alt="" src="mapas/mapa'+(i+1)+'.png">'+
       '<div class="mi"><span class="nm">'+m.n+'</span>'+
       '<span class="ef">Enemigos y jefes: daño x'+es(m.dmg)+'</span>'+
       '<span class="ef">'+note+'</span></div>'+(st==='own'?'<div class="mact">'+btn+'</div>':btn)+'</div>';
