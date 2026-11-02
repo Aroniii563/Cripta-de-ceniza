@@ -14363,8 +14363,11 @@ try{
   function tr(s) { try { return LANG !== 'es' ? trStr(s) : s; } catch (e) { return s; } }
 
   var css = [
-    '#repBtn{position:fixed;right:16px;bottom:34px;z-index:5}',
-    '#repBtn .bt{margin-left:2px}',
+    '#repBtn{position:fixed;right:18px;bottom:36px;z-index:5;width:56px;height:56px;padding:0;margin:0;border:0;border-radius:0;box-shadow:none;display:grid;place-items:center;cursor:pointer;image-rendering:pixelated;background:transparent url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAABDUlEQVR4nO3WuwnDMBAGYEkDhGzjOrjNAMZNSJGpUgQ3xgOkNa69TfACThEkzqc7vU0g5Co/xP/pjLAkRWDNQ7u63ldNL0NyvIN8UCzMvoRQfXsGYeP97IXJhxqD0OV0cGLdtFgwhVoPMAahx/gisWt9tGAO3dxwGAdxsAs1FxQWClEwhyo4sAQmxOeL6K+DF5wSYrsifYsjpmCWNkyHcCY53VEZMFvt1R2VOQ/tqvCAEt25sixw7/qDPwjCH3FuUVkK/ljhFlOqYGbV9NJ0CDfPEl3CDJittEzNKLdwdwbEM+mmJatLanvS9b0N2Ie64OQjBodimKrkQxRGMeyq5GMiB4dU8kE4Fg496r8BD/OzLDCVzKMAAAAASUVORK5CYII=") center/100% 100% no-repeat;transition:transform .12s steps(2)}',
+    '#repBtn img{width:24px;height:24px;image-rendering:pixelated;filter:drop-shadow(1px 1px 0 #000);pointer-events:none}',
+    '#repBtn:hover,#repBtn:focus-visible{transform:translateY(-2px);background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAABFElEQVR4nO3Wuw3CMBAGYNsTZAAGyAJMkBaxAWX6VJQUlFTpKdkApWUCFsgADJANQoFsXc53fkdIiKvysP7PF1mxpQisaexn1/uq7mRIjneQD4qF2ZcQ2mxPQdjrefbC5EONQehx3Tmxph0smEKtBxiD0OF4J7HbZW/BHLq44TAO4mAXai4oLBSiYA5VcGAJTIjPF9FfBy84JcRyRfoWR0zBLG2YDuFMcrqjMmC2Wqs7KnMa+1nhASW6c2VZ4Nr1B38QhD/i3KKyFPyxwi2mVMHMqu6k6RBuniW6hBkwW2mZmlFu4e4MiGfStENWl9T2pOt7G7APdcHJRwwOxTBVyYcojGLYVcnHRA4OqeSDcCwcetR/A8QAsyzKI+mAAAAAAElFTkSuQmCC")}',
+    '#repBtn:active{transform:translateY(1px)}',
+    '#repBtn:focus-visible{outline:2px dashed #c9a85a;outline-offset:3px;border-radius:50%}',
     '#repOv{z-index:76}',
     '#repOv .mbox{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;scrollbar-width:thin}',
     '#repOv .sg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}',
@@ -14448,7 +14451,7 @@ try{
   /* botón en el menú (esquina inferior derecha) y en la pausa */
   var menu = document.getElementById('menu');
   if (menu) {
-    var b = document.createElement('button'); b.className = 'btn alt'; b.type = 'button'; b.id = 'repBtn'; b.textContent = 'Enviar reporte'; b.addEventListener('click', openRep);
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'repBtn'; b.title = 'Enviar reporte'; b.setAttribute('aria-label', 'Enviar reporte'); b.innerHTML = '<img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAd0lEQVR4nGNkgIKTK6L+M+AB5hHLGBkYGBgYYYrVDczgkjcvnMKpiRGbyYuWHWJgYGBgiIuyw9DEhM8Z2ADtNWD1A8k2LFp2CO5xDA2w8CUEFi07BAlWmAA+py1adohh6qYnjAwMDAws+CTxgpMrov5n+8kQDAAAsKcsBm4yyEoAAAAASUVORK5CYII=">'; b.addEventListener('click', openRep);
     menu.appendChild(b);
   }
   var pb = document.querySelector('#pauseOv .btns');
