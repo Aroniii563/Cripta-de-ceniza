@@ -2149,7 +2149,7 @@ function render(){
   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=BG;ctx.fillRect(0,0,cv.width,cv.height);
   if(!map)return;
   var cs=sp(cam.x,cam.y);
-  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z+(window.__noShake?0:MUT.sx)),DPR*(H/2-cs.y*Z+(window.__noShake?0:MUT.sy)));
+  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z+MUT.sx),DPR*(H/2-cs.y*Z+MUT.sy));
   var vl=cs.x-W/2/Z-80,vr=cs.x+W/2/Z+80,vt=cs.y-H/2/Z-140,vb=cs.y+H/2/Z+60;
   function seen(x,y){var q=sp(x,y);return q.x>vl&&q.x<vr&&q.y>vt&&q.y<vb}
   ctx.lineWidth=1;
@@ -14713,7 +14713,7 @@ try{
     else if (id === 'kami') kamikazes(dt);
     else if (id === 'pull') pull(dt);
     /* temblor de cámara (respeta el ajuste de sacudida de pantalla) */
-    if (id === 'quake' && !shakeOff()) { MUT.sx = Math.sin(t * 43) * 2.4 + Math.sin(t * 71) * 1.6; MUT.sy = Math.sin(t * 37 + 1) * 2.4 + Math.sin(t * 59) * 1.6; } else { MUT.sx = 0; MUT.sy = 0; }
+    if (id === 'quake') { MUT.sx = Math.sin(t * 43) * 2.4 + Math.sin(t * 71) * 1.6; MUT.sy = Math.sin(t * 37 + 1) * 2.4 + Math.sin(t * 59) * 1.6; } else { MUT.sx = 0; MUT.sy = 0; }
     /* élite perseguidor: velocidad y flecha de aviso (mientras siga vivo) */
     var h = St.hunter;
     if (h && !h.dead) {
