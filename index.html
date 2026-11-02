@@ -245,7 +245,7 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #pkMaps .mapc .ic{grid-row:1 / 3;align-self:start}
 #pkMaps .mapc[class*=mbg]{background-size:cover;background-position:center 45%;background-repeat:no-repeat;--sh:linear-gradient(90deg,rgba(4,8,12,.84),rgba(4,8,12,.5) 60%,rgba(4,8,12,.3))}
 #pkMaps .mapc.lockd[class*=mbg]{--sh:linear-gradient(rgba(4,8,12,.92),rgba(4,8,12,.92))}
-#pkMaps .mapc.mbg0{background-image:var(--sh),url(fondos/menu_salon.webp)}
+#pkMaps .mapc.mbg0{background-image:var(--sh),url(fondos/menu_santuario.webp)}
 #pkMaps .mapc.mbg1{background-image:var(--sh),url(fondos/menu_abismo.webp)}
 #pkMaps .mapc.mbg2{background-image:var(--sh),url(fondos/menu_pantano.webp)}
 #pkMaps .mapc.mbg3{background-image:var(--sh),url(fondos/menu_forja.webp)}
@@ -1500,7 +1500,7 @@ $('classGrid').addEventListener('click',function(e){
 
 /* ---------- Combate ---------- */
 function roll(m){var crit=Math.random()<P.crit;return {d:P.dmg*m*rnd(.9,1.1)*(crit?2:1),crit:crit}}
-function addText(x,y,s,col,size){if(texts.length>60)return;texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
+function addText(x,y,s,col,size){if(texts.length>60)return;if(col==='#ffd25a'&&/^\d+!$/.test(s)){var dn=Math.abs(parseInt(s,10));if(dn>9999)col='#b266ff';else if(dn>999)col='#ff3b3b'}texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
 function burst(x,y,col,n){if(parts.length>350)return;for(var i=0;i<n;i++){var a=Math.random()*6.28,v=rnd(1,3);parts.push({x:x,y:y,z:rnd(8,20),vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:rnd(20,70),life:rnd(.3,.6),t:0,col:col})}}
 function hitEnemy(e,r,kx,ky,kb,quiet){
   if(e.dead)return;
@@ -12756,7 +12756,7 @@ render=function(){
    ========================================================================== */
 var FONDOS_MENU = [
   {id: 'cementerio', nombre: 'Cementerio de los Cuervos', src: 'fondos/menu_cementerio.webp', pos: 'center 45%', fx: 'cementerio'},
-  {id: 'salon', nombre: 'Salón del Portal Sellado', src: 'fondos/menu_salon.webp', pos: 'center 45%', fx: 'salon',
+  {id: 'salon', nombre: 'Salón del Portal Sellado', src: 'fondos/menu_santuario.webp', pos: 'center 45%', fx: 'santuario',
    req: 'Derrota al jefe del primer mapa', ok: function () { return !!(meta.done && meta.done[0]); }},
   {id: 'abismo', nombre: 'Ruinas del Abismo', src: 'fondos/menu_abismo.webp', pos: 'center 45%', fx: 'abismo',
    req: 'Derrota al jefe del Abismo azul', ok: function () { return !!(meta.done && meta.done[1]); }},
@@ -12766,6 +12766,8 @@ var FONDOS_MENU = [
    req: 'Derrota al jefe de la Forja roja', ok: function () { return !!(meta.done && meta.done[3]); }},
   {id: 'catedral', nombre: 'Catedral Violeta', src: 'fondos/menu_catedral2.webp', pos: 'center 40%', fx: 'catedral',
    req: 'Derrota al jefe del Santuario púrpura', ok: function () { return !!(meta.done && meta.done[4]); }},
+  {id: 'biblioteca', nombre: 'Biblioteca del Escritor', src: 'fondos/menu_biblioteca.webp', pos: 'center 45%', fx: 'biblioteca',
+   req: 'Derrota al jefe de la Librería sepia', ok: function () { return !!(meta.done && meta.done[5]); }},
   {id: 'ruinas', nombre: 'Ruinas de la Tormenta', src: 'fondos/menu_ruinas2.webp', pos: 'center 40%', fx: 'ruinas',
    req: 'Gana una partida de Torre de ceniza', ok: function () { var r = []; try { r = loadRankTw(); } catch (e) {} return !!meta.torreWin || r.length > 0; }}
 ];
@@ -13212,6 +13214,177 @@ var FONDO_FX = {
       });
       c.globalAlpha = 1;
     }
+  },
+  santuario: {
+    w: 1672, h: 941, P: 3,
+    atlas: 'fondos/menu_santuario_verde.png',
+    // luces: [x0, y0, x1, y1] del fuego, [x, y] del centro de la luz, radio, pareja (las simétricas comparten ritmo), llama animada [base x, base y, ancho, alto] o null
+    luces: [
+      [[160, 232, 200, 286], [180, 262], 90, 0, null], [[1468, 232, 1512, 286], [1490, 260], 90, 0, null],
+      [[340, 312, 385, 356], [362, 334], 80, 1, null], [[1290, 306, 1335, 356], [1312, 331], 80, 1, null],
+      [[518, 515, 568, 570], [543, 548], 120, 2, [543, 566, 26, 34]], [[1116, 518, 1164, 570], [1140, 549], 120, 2, [1140, 566, 26, 34]],
+      [[680, 548, 722, 594], [701, 576], 90, 3, [701, 590, 20, 26]], [[962, 553, 1006, 594], [984, 578], 90, 3, [984, 590, 20, 26]],
+      [[346, 625, 420, 703], [383, 668], 140, 4, [383, 695, 40, 46]], [[1258, 632, 1316, 703], [1287, 670], 140, 4, [1287, 695, 36, 44]],
+      [[270, 380, 298, 414], [284, 398], 40, 5, null], [[1376, 380, 1404, 414], [1390, 396], 40, 5, null]
+    ],
+    velas: [[650, 622, 3], [1025, 622, 3], [632, 692, 3], [1055, 692, 3], [237, 684, 2], [1458, 684, 2]],
+    vidrieras: [[845, 50, 36], [669, 125, 24], [1010, 125, 24], [756, 150, 22], [930, 150, 22], [845, 130, 30]],
+    estandartes: [[422, 68, 78, 324], [1180, 68, 78, 324]],
+    puerta: [845, 455],
+    dibuja: function (c, t, dt, M, H) {
+      var P = this.P, i, img = M.img, W = img.naturalWidth, Hh = img.naturalHeight, A = M.atlas;
+      var MOR = ['#2a0e44', '#6a2ab0', '#a050ff', '#d8a8ff', '#f8eaff'], VER = ['#0a3018', '#1e8a3c', '#3cf070', '#b0ffc0', '#f0fff2'];
+      function mezcla(k) { var s = Math.sin(t * .55 + k * 1.9) + .45 * Math.sin(t * 4.7 + k * 3.1) + .25 * Math.sin(t * 11.3 + k * 5.3); return Math.max(0, Math.min(1, s * 2.4 + .5)); }
+      function rgb(m) { return Math.round(170 - 110 * m) + ',' + Math.round(90 + 150 * m) + ',' + Math.round(255 - 140 * m); }
+      function llama(x, y, w, h0, n, pal, al) {
+        var h = h0 * (.8 + .25 * H.flick(t * 1.4, n + 3)); c.globalAlpha = al;
+        for (var yy = 0; yy < h; yy += P) {
+          var tt = yy / h, ww = w * Math.pow(1 - tt, .8) * (.7 + .3 * Math.sin(tt * 3 + t * 9 + n)), xo = Math.sin(t * 7 + yy * .2 + n * 1.7) * 2.4 * tt * (w / 10);
+          for (var xx = -ww / 2; xx < ww / 2; xx += P) {
+            var d = Math.abs(xx) / (ww / 2 + .01), lv = Math.max(0, Math.min(4, Math.floor((1 - d) * 3.1 + (1 - tt) * 1.7 - .5 + H.rnd(Math.floor(t * 12) + xx + yy + n * 7) * .8)));
+            if (lv === 0) continue; c.fillStyle = pal[lv]; c.fillRect(Math.round((x + xx + xo) / P) * P, Math.round((y - yy - P) / P) * P, P, P);
+          }
+        }
+        c.globalAlpha = 1;
+      }
+      /* estandartes */
+      this.estandartes.forEach(function (b, n) {
+        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round(Math.sin(t * 1.4 + y * .03 + n * 2.3) * 5 * k2 * k2 / P) * P;
+          if (off) c.drawImage(img, b[0], b[1] + y, b[2], P, b[0] + off, b[1] + y, b[2], P); }
+      });
+      /* cada luz: color (morado ↔ verde) con parpadeo, llama animada y resplandor */
+      var mz = [], self = this;
+      this.luces.forEach(function (L, n) {
+        var m = mezcla(L[3]), R = L[0]; mz.push(m);
+        if (A && m > .02) { c.globalAlpha = m; c.drawImage(A, R[0], R[1], R[2] - R[0], R[3] - R[1], R[0], R[1], R[2] - R[0], R[3] - R[1]); c.globalAlpha = 1; }
+        if (L[4]) llama(L[4][0], L[4][1], L[4][2], L[4][3], n, m > .5 ? VER : MOR, .82);
+      });
+      c.globalCompositeOperation = 'lighter';
+      /* vidrieras que respiran y halo de la puerta */
+      var pul = .5 + .5 * Math.sin(t * .9);
+      this.vidrieras.forEach(function (v, n) { H.glow(c, v[0], v[1], v[2] * 2.2, '170,110,255', .14 + .1 * (.5 + .5 * Math.sin(t * 1.1 + n * 1.7))); });
+      var mg = (mz[4] + mz[5] + mz[8] + mz[9]) / 4;
+      H.glow(c, this.puerta[0], this.puerta[1], 60, rgb(mg), .16 + .08 * pul);
+      this.luces.forEach(function (L, n) {
+        var m = mz[n], f = H.flick(t * 1.6, n + 11), q = L[1];
+        H.glow(c, q[0], q[1], L[2] * (.85 + .15 * f), rgb(m), (.3 + .08 * L[2] / 140) * f);
+        if (L[4]) H.glow(c, q[0], q[1] + 120, L[2] * 1.3, rgb(m), .1 * f);   // charco de luz en el suelo
+      });
+      /* velas: llama blanca que tiembla, teñida por el brasero más cercano */
+      this.velas.forEach(function (v, n) {
+        var m = mz[n % 2 ? 7 : 6], f = H.flick(t * 2.2, n + 30);
+        H.glow(c, v[0], v[1], 26 * v[2] / 3, rgb(m), .26 * f);
+        if (f > .7) { c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(Math.round(v[0] / P) * P, Math.round((v[1] - 3) / P) * P, P, P); }
+      });
+      c.globalCompositeOperation = 'source-over';
+      /* chispas que suben de los braseros, del color de su fuego */
+      var pt = M.chis || (M.chis = []);
+      if (pt.length < 70 && Math.random() < dt * 30) {
+        var bs = this.luces.filter(function (L) { return L[4]; }), k = Math.floor(Math.random() * bs.length), L = bs[k], ix = this.luces.indexOf(L);
+        pt.push({x: L[4][0] + (Math.random() - .5) * L[4][2] * .6, y: L[4][1] - L[4][3] * .6, vx: (Math.random() - .5) * 10, vy: -26 - Math.random() * 26, v: 0, m: .8 + Math.random() * .9, g: mz[ix] > .5});
+      }
+      for (i = pt.length - 1; i >= 0; i--) {
+        var e = pt[i]; e.v += dt; e.x += (e.vx + Math.sin(e.v * 4 + i) * 8) * dt; e.y += e.vy * dt; if (e.v > e.m) { pt.splice(i, 1); continue; }
+        var a2 = 1 - e.v / e.m, pal = e.g ? VER : MOR; c.globalAlpha = Math.min(1, a2 * 1.6); c.fillStyle = pal[a2 > .6 ? 4 : a2 > .3 ? 3 : 2];
+        c.fillRect(Math.round(e.x / P) * P, Math.round(e.y / P) * P, P, P);
+      }
+      c.globalAlpha = 1;
+      /* polvo en la luz de las vidrieras */
+      for (i = 0; i < 34; i++) {
+        var px = 640 + (H.rnd(i) * 420 + Math.sin(t * .4 + i) * 20) % 420, py = (60 + H.rnd(i + 34) * 520 + t * (6 + H.rnd(i + 3) * 8)) % 600, tw = .5 + .5 * Math.sin(t * 2 + i * 3);
+        c.globalAlpha = .25 + .45 * tw; c.fillStyle = i % 4 ? '#b8a0e8' : '#f0e4ff'; c.fillRect(Math.round(px / P) * P, Math.round(py / P) * P, P, P);
+      }
+      c.globalAlpha = 1;
+      /* niebla violeta a ras del suelo */
+      var N1 = M.n1 || (M.n1 = H.niebla(Math.ceil(W / 3), 60, 19, [110, 90, 140])), N2 = M.n2 || (M.n2 = H.niebla(Math.ceil(W / 3), 50, 27, [90, 80, 120]));
+      [[N1, 700, 200, 4, .4], [N2, 800, 150, -6, .45]].forEach(function (Lr) {
+        var off = ((t * Lr[3] * 3) % W + W) % W; c.globalAlpha = Lr[4];
+        c.drawImage(Lr[0], 0, 0, Lr[0].width, Lr[0].height, -off, Lr[1], W, Lr[2]); c.drawImage(Lr[0], 0, 0, Lr[0].width, Lr[0].height, W - off, Lr[1], W, Lr[2]);
+      });
+      c.globalAlpha = 1;
+    }
+  },
+  biblioteca: {
+    w: 1672, h: 941, P: 3,
+    atlas: 'fondos/menu_biblioteca_escritor.png',   // el Escritor recortado, para la respiración
+    escritor: {x: 1040, y: 330, cabeza: 560, amp: 3, ciclo: 4.6},
+    // velas: centro x, base y de la llama, ancho, alto
+    velas: [[159, 495, 30, 48], [72, 562, 26, 42], [116, 531, 27, 44], [205, 538, 26, 42],
+            [467, 177, 17, 28], [446, 201, 13, 16], [488, 208, 12, 20],
+            [859, 458, 7, 8], [869, 457, 8, 16], [877, 460, 7, 8], [1118, 545, 7, 11], [1129, 541, 10, 18], [1139, 545, 7, 10], [1054, 582, 9, 14],
+            [1626, 630, 18, 35], [1587, 660, 17, 30], [1609, 652, 16, 25], [1650, 651, 17, 29],
+            [709, 771, 12, 18], [725, 759, 18, 30], [744, 756, 10, 19], [853, 790, 9, 12], [862, 785, 9, 17], [872, 789, 9, 10]],
+    ventana: [930, 160, 1000, 330],
+    esfera: [420, 522, 92, 52],
+    gafas: [[1328, 483, 16], [1377, 492, 11]],
+    ojo: [1316, 468, 18, 7],
+    estandartes: [[176, 342, 40, 170], [1622, 348, 44, 180]],
+    dibuja: function (c, t, dt, M, H) {
+      var P = this.P, i, img = M.img, W = img.naturalWidth, Hh = img.naturalHeight;
+      function px(x, y, w, h) { c.fillRect(Math.round(x / P) * P, Math.round(y / P) * P, (w || 1) * P, (h || 1) * P); }
+      /* estandartes */
+      this.estandartes.forEach(function (b, n) {
+        for (var y = 0; y < b[3]; y += P) { var k2 = y / b[3], off = Math.round(Math.sin(t * 1.3 + y * .035 + n * 2) * 4 * k2 * k2 / P) * P;
+          if (off) c.drawImage(img, b[0], b[1] + y, b[2], P, b[0] + off, b[1] + y, b[2], P); }
+      });
+      /* respiración del Escritor: el recorte se estira hacia arriba desde la cintura (los hombros y la cabeza suben al inspirar) */
+      var E0 = this.escritor, A = M.atlas, ins = .5 - .5 * Math.cos(t * 2 * Math.PI / E0.ciclo), sube = 0;
+      if (A) {
+        var aw = A.naturalWidth, ah = A.naturalHeight, ybase = E0.y + ah;
+        sube = Math.round(E0.amp * ins);
+        if (sube) for (var ry = 0; ry < ah; ry += 2) {
+          var yy = E0.y + ry, k = yy < E0.cabeza ? 1 : Math.max(0, (ybase - 60 - yy) / (ybase - 60 - E0.cabeza)), d = Math.round(E0.amp * ins * k);
+          if (d) c.drawImage(A, 0, ry, aw, 2, E0.x, yy - d, aw, 2);
+        }
+      }
+      /* velas: la llama original se mece por filas y crece o encoge un poco */
+      this.velas.forEach(function (v, n) {
+        var w = v[2] + 6, h = v[3], x0 = v[0] - w / 2, y0 = v[1] - h, f = H.flick(t, n);
+        var st = Math.max(1, Math.round(h / 14));
+        for (var y = 0; y < h; y += st) {
+          var k = 1 - y / h, off = Math.round(Math.sin(t * 7 + n * 1.9 + y * .25) * k * k * Math.max(1, w * .12));
+          var sy = y0 + y, dy = Math.round((f - .62) * h * .18 * k);
+          if (off || dy) c.drawImage(img, x0, sy, w, st, x0 + off, sy - dy, w, st);
+        }
+      });
+      c.globalCompositeOperation = 'lighter';
+      /* luz de la vidriera: resplandor que respira y haz hacia el suelo */
+      var V = this.ventana, pul = .5 + .5 * Math.sin(t * .6);
+      H.glow(c, (V[0] + V[2]) / 2, (V[1] + V[3]) / 2, 210, '255,190,90', .16 + .08 * pul);
+      var lg = c.createLinearGradient(0, V[3], 0, 900); lg.addColorStop(0, 'rgba(255,200,110,' + (.09 + .04 * pul) + ')'); lg.addColorStop(1, 'rgba(255,200,110,0)');
+      c.fillStyle = lg; c.beginPath(); c.moveTo(V[0] - 40, V[3]); c.lineTo(V[2] + 40, V[3]); c.lineTo(V[2] + 160, 900); c.lineTo(V[0] - 260, 900); c.closePath(); c.fill();
+      /* resplandor de cada vela */
+      this.velas.forEach(function (v, n) { var f = H.flick(t, n); H.glow(c, v[0], v[1] - v[3] * .45, v[3] * 2.4 + 14, '255,170,70', (.18 + .1 * Math.min(1, v[3] / 40)) * f); });
+      /* luz cálida de las velas de la derecha en la cara del Escritor */
+      var fr = (H.flick(t, 14) + H.flick(t, 15)) / 2; H.glow(c, 1380, 520, 150, '255,150,60', .08 * fr);
+      /* brillo que recorre los aros de la esfera armilar, como si girara */
+      var E = this.esfera;
+      for (i = 0; i < 3; i++) {
+        var a = t * (.7 + i * .25) + i * 2.1, ex = E[0] + Math.cos(a) * E[2] * (i === 1 ? .55 : 1), ey = E[1] + Math.sin(a) * E[3] * (i === 2 ? 1.2 : 1) * (i === 1 ? 1.6 : 1) - (i === 0 ? Math.cos(a) * 18 : 0);
+        if (Math.sin(a) > -.2) { H.glow(c, ex, ey, 14, '255,220,140', .45); c.fillStyle = '#fff2c0'; px(ex, ey); }
+      }
+      /* destello que cruza las gafas de vez en cuando */
+      var gl = (t % 7.5) / .7;
+      if (gl < 1) this.gafas.forEach(function (g) { var gx = g[0] - g[2] + gl * g[2] * 2, gy = g[1] - sube; c.fillStyle = 'rgba(255,245,210,.55)'; c.fillRect(Math.round(gx), gy - g[2] + 4, 2, g[2] * 2 - 8); H.glow(c, gx, gy, g[2], '255,240,200', .3 * (1 - Math.abs(gl - .5) * 2)); });
+      c.globalCompositeOperation = 'source-over';
+      /* parpadeo del Escritor */
+      var O = this.ojo.slice(); O[1] -= sube; if ((t + 1.3) % 5.7 < .14) { if (!M.piel) { try { var q = document.createElement('canvas'); q.width = q.height = 1; var qg = q.getContext('2d'); qg.drawImage(img, O[0] + 6, O[1] - 7, 1, 1, 0, 0, 1, 1); var dd = qg.getImageData(0, 0, 1, 1).data; M.piel = 'rgb(' + dd[0] + ',' + dd[1] + ',' + dd[2] + ')'; } catch (e) { M.piel = '#7a4a34'; } }
+        c.fillStyle = M.piel; c.fillRect(O[0], O[1], O[2], O[3]); c.fillStyle = 'rgba(40,20,14,.8)'; c.fillRect(O[0] + 2, O[1] + O[3] - 2, O[2] - 4, 2); }
+      /* páginas sueltas que caen despacio desde las galerías */
+      for (i = 0; i < 6; i++) {
+        var dur = 14 + H.rnd(i + 50) * 8, ph = ((t + H.rnd(i + 51) * dur) % dur) / dur, x = 120 + H.rnd(i + 52) * 1100 + Math.sin(ph * 9 + i) * 40, y = -20 + ph * 900;
+        var fl = Math.floor(t * 3 + i) % 4, w = [6, 4, 2, 4][fl], hh = [4, 5, 5, 3][fl];
+        c.globalAlpha = Math.min(1, (1 - ph) * 4) * .9; c.fillStyle = fl === 2 ? '#c8a878' : '#f0dcb0'; px(x, y, w, hh / 1.5);
+        c.fillStyle = '#9a7a50'; px(x, y + (hh / 1.5 - 1) * P, w, 1);
+      }
+      c.globalAlpha = 1;
+      /* motas de polvo dorado en el haz de luz y por la sala */
+      for (i = 0; i < 50; i++) {
+        var inb = i < 30, mx = inb ? (V[0] - 120 + H.rnd(i) * 300 + (H.rnd(i + 9) * 600 + t * 5) % 600 * .25) : (H.rnd(i) * W), my = ((inb ? V[3] : 0) + H.rnd(i + 50) * (inb ? 560 : Hh) + t * (4 + H.rnd(i + 3) * 6)) % Hh, tw = .5 + .5 * Math.sin(t * 2.2 + i * 3);
+        c.globalAlpha = (inb ? .35 : .2) + .45 * tw; c.fillStyle = i % 4 ? '#ffd890' : '#fff4d0'; px(mx + Math.sin(t * .5 + i) * 12, my);
+      }
+      c.globalAlpha = 1;
+    }
   }
 };
 
@@ -13461,14 +13634,14 @@ var FONDO_FX = {
 })();
 try {
   var _fmTr = {
-    en: {'Fondos del menú': 'Menu backgrounds', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Choose the main screen background. They unlock as you progress.', 'Atrás': 'Back', 'Fondo': 'Background', 'Fondo del menú': 'Menu background', 'Animado': 'Animated', 'Bloqueado': 'Locked', 'Nuevo fondo de menú': 'New menu background',
+    en: {'Biblioteca del Escritor': "Writer's Library", 'Derrota al jefe de la Librería sepia': 'Defeat the boss of the Sepia Library', 'Fondos del menú': 'Menu backgrounds', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Choose the main screen background. They unlock as you progress.', 'Atrás': 'Back', 'Fondo': 'Background', 'Fondo del menú': 'Menu background', 'Animado': 'Animated', 'Bloqueado': 'Locked', 'Nuevo fondo de menú': 'New menu background',
          'Cripta de Ceniza': 'Ash Crypt', 'Salón del Portal Sellado': 'Hall of the Sealed Gate', 'Derrota al jefe del primer mapa': 'Defeat the boss of the first map', 'Ruinas del Abismo': "Ruins of the Abyss", 'Derrota al jefe del Abismo azul': "Defeat the boss of the Blue Abyss", 'Ciénaga de las Ruinas': "Swamp of the Ruins", 'Derrota al jefe del Pantano verde': "Defeat the boss of the Green Swamp", 'Forja del Abismo Ardiente': "Forge of the Burning Abyss", 'Derrota al jefe de la Forja roja': "Defeat the boss of the Red Forge", 'Ruinas de la Tormenta': "Ruins of the Storm", 'Derrota al jefe del Santuario púrpura': "Defeat the boss of the Purple Sanctuary", 'Catedral Violeta': "Violet Cathedral", 'Gana una partida de Torre de ceniza': 'Win a run of the Ash Tower', 'Derrota al Escritor': "Defeat the Writer"},
-    pt: {'Fondos del menú': 'Fundos do menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Escolha o fundo da tela principal. Eles desbloqueiam conforme você progride.', 'Atrás': 'Voltar', 'Fondo': 'Fundo', 'Fondo del menú': 'Fundo do menu', 'Animado': 'Animado', 'Bloqueado': 'Bloqueado', 'Nuevo fondo de menú': 'Novo fundo de menu',
+    pt: {'Biblioteca del Escritor': 'Biblioteca do Escritor', 'Derrota al jefe de la Librería sepia': 'Derrote o chefe da Biblioteca sépia', 'Fondos del menú': 'Fundos do menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Escolha o fundo da tela principal. Eles desbloqueiam conforme você progride.', 'Atrás': 'Voltar', 'Fondo': 'Fundo', 'Fondo del menú': 'Fundo do menu', 'Animado': 'Animado', 'Bloqueado': 'Bloqueado', 'Nuevo fondo de menú': 'Novo fundo de menu',
          'Cripta de Ceniza': 'Cripta de Cinzas', 'Salón del Portal Sellado': 'Salão do Portal Selado', 'Derrota al jefe del primer mapa': 'Derrote o chefe do primeiro mapa', 'Ruinas del Abismo': "Ru\u00ednas do Abismo", 'Derrota al jefe del Abismo azul': "Derrote o chefe do Abismo azul", 'Ciénaga de las Ruinas': "P\u00e2ntano das Ru\u00ednas", 'Derrota al jefe del Pantano verde': "Derrote o chefe do P\u00e2ntano verde", 'Forja del Abismo Ardiente': "Forja do Abismo Ardente", 'Derrota al jefe de la Forja roja': "Derrote o chefe da Forja vermelha", 'Ruinas de la Tormenta': "Ru\u00ednas da Tempestade", 'Derrota al jefe del Santuario púrpura': "Derrote o chefe do Santu\u00e1rio roxo", 'Catedral Violeta': "Catedral Violeta", 'Gana una partida de Torre de ceniza': 'Vença uma partida da Torre de Cinzas', 'Derrota al Escritor': "Derrote o Escritor"},
-    fr: {'Fondos del menú': 'Fonds du menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': "Choisis le fond de l'écran principal. Ils se débloquent en progressant.", 'Atrás': 'Retour', 'Fondo': 'Fond', 'Fondo del menú': 'Fond du menu', 'Animado': 'Animé', 'Bloqueado': 'Verrouillé', 'Nuevo fondo de menú': 'Nouveau fond de menu',
+    fr: {'Biblioteca del Escritor': "Bibliothèque de l'Écrivain", 'Derrota al jefe de la Librería sepia': 'Bats le boss de la Bibliothèque sépia', 'Fondos del menú': 'Fonds du menu', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': "Choisis le fond de l'écran principal. Ils se débloquent en progressant.", 'Atrás': 'Retour', 'Fondo': 'Fond', 'Fondo del menú': 'Fond du menu', 'Animado': 'Animé', 'Bloqueado': 'Verrouillé', 'Nuevo fondo de menú': 'Nouveau fond de menu',
          'Cripta de Ceniza': 'Crypte de Cendres', 'Salón del Portal Sellado': 'Salle du Portail Scellé', 'Derrota al jefe del primer mapa': 'Bats le boss de la première carte', 'Ruinas del Abismo': "Ruines de l'Ab\u00eeme", 'Derrota al jefe del Abismo azul': "Bats le boss de l'Ab\u00eeme bleu", 'Ciénaga de las Ruinas': "Marais des Ruines", 'Derrota al jefe del Pantano verde': "Bats le boss du Marais vert", 'Forja del Abismo Ardiente': "Forge de l'Ab\u00eeme Ardent", 'Derrota al jefe de la Forja roja': "Bats le boss de la Forge rouge", 'Ruinas de la Tormenta': "Ruines de la Temp\u00eate", 'Derrota al jefe del Santuario púrpura': "Bats le boss du Sanctuaire violet", 'Catedral Violeta': "Cath\u00e9drale Violette", 'Gana una partida de Torre de ceniza': 'Gagne une partie de la Tour de Cendres', 'Derrota al Escritor': "Bats l'Écrivain"},
-    ru: {'Fondos del menú': 'Фоны меню', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Выберите фон главного экрана. Они открываются по мере прохождения.', 'Atrás': 'Назад', 'Animado': 'Анимированный', 'Bloqueado': 'Закрыто', 'Nuevo fondo de menú': 'Новый фон меню', 'Cripta de Ceniza': 'Склеп Пепла', 'Salón del Portal Sellado': 'Зал Запечатанного портала', 'Derrota al jefe del primer mapa': 'Победите босса первой карты', 'Ruinas del Abismo': 'Руины Бездны', 'Derrota al jefe del Abismo azul': 'Победите босса Синей бездны', 'Ciénaga de las Ruinas': 'Болото руин', 'Derrota al jefe del Pantano verde': 'Победите босса Зелёного болота', 'Forja del Abismo Ardiente': 'Кузница Пылающей бездны', 'Derrota al jefe de la Forja roja': 'Победите босса Красной кузницы', 'Ruinas de la Tormenta': 'Руины бури', 'Catedral Violeta': 'Фиолетовый собор', 'Derrota al jefe del Santuario púrpura': 'Победите босса Пурпурного святилища', 'Gana una partida de Torre de ceniza': 'Победите в Башне пепла', 'Derrota al Escritor': 'Победите Писателя'},
-    ja: {'Fondos del menú': 'メニュー背景', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'メインメニューの背景を選べます。進行に応じて解放されます。', 'Atrás': '戻る', 'Animado': 'アニメ', 'Bloqueado': 'ロック中', 'Nuevo fondo de menú': '新しいメニュー背景', 'Cripta de Ceniza': '灰の地下墓所', 'Salón del Portal Sellado': '封じられた門の間', 'Derrota al jefe del primer mapa': '最初のマップのボスを倒す', 'Ruinas del Abismo': '深淵の遺跡', 'Derrota al jefe del Abismo azul': '蒼の深淵のボスを倒す', 'Ciénaga de las Ruinas': '遺跡の沼', 'Derrota al jefe del Pantano verde': '緑の沼のボスを倒す', 'Forja del Abismo Ardiente': '燃える深淵の鍛冶場', 'Derrota al jefe de la Forja roja': '赤い鍛冶場のボスを倒す', 'Ruinas de la Tormenta': '嵐の廃墟', 'Catedral Violeta': '紫の大聖堂', 'Derrota al jefe del Santuario púrpura': '紫の聖域のボスを倒す', 'Gana una partida de Torre de ceniza': '灰の塔でクリアする', 'Derrota al Escritor': '作家を倒す'}
+    ru: {'Biblioteca del Escritor': 'Библиотека Писателя', 'Derrota al jefe de la Librería sepia': 'Победите босса Сепиевой библиотеки', 'Fondos del menú': 'Фоны меню', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'Выберите фон главного экрана. Они открываются по мере прохождения.', 'Atrás': 'Назад', 'Animado': 'Анимированный', 'Bloqueado': 'Закрыто', 'Nuevo fondo de menú': 'Новый фон меню', 'Cripta de Ceniza': 'Склеп Пепла', 'Salón del Portal Sellado': 'Зал Запечатанного портала', 'Derrota al jefe del primer mapa': 'Победите босса первой карты', 'Ruinas del Abismo': 'Руины Бездны', 'Derrota al jefe del Abismo azul': 'Победите босса Синей бездны', 'Ciénaga de las Ruinas': 'Болото руин', 'Derrota al jefe del Pantano verde': 'Победите босса Зелёного болота', 'Forja del Abismo Ardiente': 'Кузница Пылающей бездны', 'Derrota al jefe de la Forja roja': 'Победите босса Красной кузницы', 'Ruinas de la Tormenta': 'Руины бури', 'Catedral Violeta': 'Фиолетовый собор', 'Derrota al jefe del Santuario púrpura': 'Победите босса Пурпурного святилища', 'Gana una partida de Torre de ceniza': 'Победите в Башне пепла', 'Derrota al Escritor': 'Победите Писателя'},
+    ja: {'Biblioteca del Escritor': '作家の図書館', 'Derrota al jefe de la Librería sepia': 'セピアの書庫のボスを倒す', 'Fondos del menú': 'メニュー背景', 'Elige el fondo de la pantalla principal. Se desbloquean al progresar.': 'メインメニューの背景を選べます。進行に応じて解放されます。', 'Atrás': '戻る', 'Animado': 'アニメ', 'Bloqueado': 'ロック中', 'Nuevo fondo de menú': '新しいメニュー背景', 'Cripta de Ceniza': '灰の地下墓所', 'Salón del Portal Sellado': '封じられた門の間', 'Derrota al jefe del primer mapa': '最初のマップのボスを倒す', 'Ruinas del Abismo': '深淵の遺跡', 'Derrota al jefe del Abismo azul': '蒼の深淵のボスを倒す', 'Ciénaga de las Ruinas': '遺跡の沼', 'Derrota al jefe del Pantano verde': '緑の沼のボスを倒す', 'Forja del Abismo Ardiente': '燃える深淵の鍛冶場', 'Derrota al jefe de la Forja roja': '赤い鍛冶場のボスを倒す', 'Ruinas de la Tormenta': '嵐の廃墟', 'Catedral Violeta': '紫の大聖堂', 'Derrota al jefe del Santuario púrpura': '紫の聖域のボスを倒す', 'Gana una partida de Torre de ceniza': '灰の塔でクリアする', 'Derrota al Escritor': '作家を倒す'}
   };
   Object.keys(_fmTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_fmTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _fmTr[l][k]; }); });
   if (typeof i18nLoad === 'function') i18nLoad();
