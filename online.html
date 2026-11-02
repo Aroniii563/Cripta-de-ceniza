@@ -14324,6 +14324,139 @@ try{
   } catch (e) {}
 })();
 /* ==========================================================================
+   REPORTES Y SUGERENCIAS · botón abajo a la derecha del menú (y en la pausa)
+   · En la web alojada con sesión iniciada se envía a la nube (CriptaCloud.sendReport → colección «reports»).
+   · Si no hay nube disponible, se muestra el informe para copiarlo.
+   ========================================================================== */
+(function () {
+  var TR = {
+    en: {'Enviar reporte': 'Send feedback', 'Reportes y sugerencias': 'Reports and suggestions', '¿Qué quieres enviar?': 'What would you like to send?', 'Error': 'Bug', 'Sugerencia': 'Suggestion', 'Otro': 'Other',
+      'Cuéntanos qué ha pasado o qué mejorarías…': 'Tell us what happened or what you would improve…', 'Incluir datos técnicos (versión, idioma, dispositivo y partida actual)': 'Include technical info (version, language, device and current run)',
+      'Enviar': 'Send', 'Cancelar': 'Cancel', 'Escribe al menos 10 caracteres.': 'Write at least 10 characters.', 'Enviando…': 'Sending…', '¡Gracias! Hemos recibido tu mensaje.': 'Thank you! We received your message.',
+      'Espera un momento antes de enviar otro mensaje.': 'Please wait a moment before sending another message.', 'No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.': 'It could not be sent from here. Copy the report and share it with the game\'s creator.',
+      'Copiar informe': 'Copy report', 'Copiado.': 'Copied.', 'Cerrar': 'Close'},
+    pt: {'Enviar reporte': 'Enviar feedback', 'Reportes y sugerencias': 'Relatórios e sugestões', '¿Qué quieres enviar?': 'O que você quer enviar?', 'Error': 'Erro', 'Sugerencia': 'Sugestão', 'Otro': 'Outro',
+      'Cuéntanos qué ha pasado o qué mejorarías…': 'Conte o que aconteceu ou o que você melhoraria…', 'Incluir datos técnicos (versión, idioma, dispositivo y partida actual)': 'Incluir dados técnicos (versão, idioma, dispositivo e partida atual)',
+      'Enviar': 'Enviar', 'Cancelar': 'Cancelar', 'Escribe al menos 10 caracteres.': 'Escreva pelo menos 10 caracteres.', 'Enviando…': 'Enviando…', '¡Gracias! Hemos recibido tu mensaje.': 'Obrigado! Recebemos a sua mensagem.',
+      'Espera un momento antes de enviar otro mensaje.': 'Aguarde um momento antes de enviar outra mensagem.', 'No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.': 'Não foi possível enviar daqui. Copie o relatório e compartilhe com o criador do jogo.',
+      'Copiar informe': 'Copiar relatório', 'Copiado.': 'Copiado.', 'Cerrar': 'Fechar'},
+    fr: {'Enviar reporte': 'Envoyer un retour', 'Reportes y sugerencias': 'Signalements et suggestions', '¿Qué quieres enviar?': 'Que veux-tu envoyer ?', 'Error': 'Bug', 'Sugerencia': 'Suggestion', 'Otro': 'Autre',
+      'Cuéntanos qué ha pasado o qué mejorarías…': 'Dis-nous ce qui s\'est passé ou ce que tu améliorerais…', 'Incluir datos técnicos (versión, idioma, dispositivo y partida actual)': 'Inclure les infos techniques (version, langue, appareil et partie en cours)',
+      'Enviar': 'Envoyer', 'Cancelar': 'Annuler', 'Escribe al menos 10 caracteres.': 'Écris au moins 10 caractères.', 'Enviando…': 'Envoi…', '¡Gracias! Hemos recibido tu mensaje.': 'Merci ! Nous avons reçu ton message.',
+      'Espera un momento antes de enviar otro mensaje.': 'Patiente un instant avant d\'envoyer un autre message.', 'No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.': 'Envoi impossible d\'ici. Copie le rapport et partage-le avec le créateur du jeu.',
+      'Copiar informe': 'Copier le rapport', 'Copiado.': 'Copié.', 'Cerrar': 'Fermer'},
+    ru: {'Enviar reporte': 'Отправить отзыв', 'Reportes y sugerencias': 'Отчёты и предложения', '¿Qué quieres enviar?': 'Что вы хотите отправить?', 'Error': 'Ошибка', 'Sugerencia': 'Предложение', 'Otro': 'Другое',
+      'Cuéntanos qué ha pasado o qué mejorarías…': 'Расскажите, что случилось или что стоит улучшить…', 'Incluir datos técnicos (versión, idioma, dispositivo y partida actual)': 'Приложить технические данные (версия, язык, устройство и текущая партия)',
+      'Enviar': 'Отправить', 'Cancelar': 'Отмена', 'Escribe al menos 10 caracteres.': 'Напишите не менее 10 символов.', 'Enviando…': 'Отправка…', '¡Gracias! Hemos recibido tu mensaje.': 'Спасибо! Мы получили ваше сообщение.',
+      'Espera un momento antes de enviar otro mensaje.': 'Подождите немного перед отправкой следующего сообщения.', 'No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.': 'Отсюда отправить не удалось. Скопируйте отчёт и отправьте его создателю игры.',
+      'Copiar informe': 'Скопировать отчёт', 'Copiado.': 'Скопировано.', 'Cerrar': 'Закрыть'},
+    ja: {'Enviar reporte': 'フィードバックを送る', 'Reportes y sugerencias': '不具合報告と提案', '¿Qué quieres enviar?': '送る内容を選んでください', 'Error': '不具合', 'Sugerencia': '提案', 'Otro': 'その他',
+      'Cuéntanos qué ha pasado o qué mejorarías…': '何があったか、どこを改善したいか教えてください…', 'Incluir datos técnicos (versión, idioma, dispositivo y partida actual)': '技術情報を含める（バージョン・言語・端末・現在のラン）',
+      'Enviar': '送信', 'Cancelar': 'キャンセル', 'Escribe al menos 10 caracteres.': '10文字以上入力してください。', 'Enviando…': '送信中…', '¡Gracias! Hemos recibido tu mensaje.': 'ありがとうございます！メッセージを受け取りました。',
+      'Espera un momento antes de enviar otro mensaje.': '次のメッセージを送る前に少しお待ちください。', 'No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.': 'ここからは送信できませんでした。レポートをコピーして、ゲームの制作者に共有してください。',
+      'Copiar informe': 'レポートをコピー', 'Copiado.': 'コピーしました。', 'Cerrar': '閉じる'}
+  };
+  try {
+    Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); });
+    if (typeof i18nLoad === 'function') i18nLoad();
+  } catch (e) {}
+  function tr(s) { try { return LANG !== 'es' ? trStr(s) : s; } catch (e) { return s; } }
+
+  var css = [
+    '#repBtn{position:fixed;right:16px;bottom:34px;z-index:5}',
+    '#repBtn .bt{margin-left:2px}',
+    '#repOv{z-index:76}',
+    '#repOv .mbox{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;scrollbar-width:thin}',
+    '#repOv .sg{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}',
+    '#repOv .sg .btn{padding:3px 12px!important;font-size:12px!important;min-width:0}',
+    '#repOv .sg .btn[aria-pressed="true"]{border-image-source:url("' + (window.__PXON || '') + '")!important;color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important}',
+    '#repOv .q{font-size:13px;color:#e8e1d0}',
+    '#repOv textarea{width:100%;min-height:140px;resize:vertical;box-sizing:border-box;padding:10px;background:#07080a;color:#e8e1d0;border:0;box-shadow:0 0 0 2px #6b4e1c,4px 4px 0 #000;font:inherit;font-size:14px;line-height:1.45;-webkit-user-select:text;user-select:text}',
+    '#repOv textarea:focus{outline:2px dashed #c9a85a;outline-offset:3px}',
+    '#repOv .cnt{text-align:right;font-size:11px;color:rgba(232,225,208,.45);margin:4px 2px 8px}',
+    '#repOv label.ck{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:rgba(232,225,208,.7);margin:6px 0 12px;cursor:pointer}',
+    '#repOv label.ck input{margin-top:2px;accent-color:#c9a85a}',
+    '#repOv .msg{min-height:18px;font-size:13px;color:#f09a90;margin:4px 0 8px}',
+    '#repOv .msg.ok{color:#8fd49b}',
+    '#repOv .foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;flex-wrap:wrap}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'reportesPx'; st.textContent = css; document.head.appendChild(st);
+
+  var ov = document.createElement('div'); ov.className = 'ov center mdl'; ov.id = 'repOv'; ov.hidden = true;
+  ov.innerHTML = '<div class="mbox" role="dialog" aria-modal="true" aria-labelledby="repH"><h2 id="repH">Reportes y sugerencias</h2>' +
+    '<div class="q">¿Qué quieres enviar?</div>' +
+    '<div class="sg" id="repKind"><button class="btn alt" type="button" data-k="bug" aria-pressed="true">Error</button><button class="btn alt" type="button" data-k="idea" aria-pressed="false">Sugerencia</button><button class="btn alt" type="button" data-k="other" aria-pressed="false">Otro</button></div>' +
+    '<textarea id="repTxt" maxlength="1500" placeholder="Cuéntanos qué ha pasado o qué mejorarías…"></textarea>' +
+    '<div class="cnt" id="repCnt" data-nt="1">0 / 1500</div>' +
+    '<label class="ck"><input type="checkbox" id="repCtx" checked><span>Incluir datos técnicos (versión, idioma, dispositivo y partida actual)</span></label>' +
+    '<div class="msg" id="repMsg" role="status"></div>' +
+    '<div class="foot"><button class="btn alt" type="button" id="repCopy" hidden>Copiar informe</button><button class="btn alt" type="button" id="repCancel">Cancelar</button><button class="btn" type="button" id="repSend">Enviar</button></div></div>';
+  document.body.appendChild(ov);
+
+  var kind = 'bug', busy = false, T = document.getElementById('repTxt');
+  function $r(id) { return document.getElementById(id); }
+  function ctxText() {
+    var c = [];
+    try { c.push('v' + GAME_VERSION); } catch (e) {}
+    try { c.push('lang=' + LANG); } catch (e) {}
+    try { c.push('screen=' + innerWidth + 'x' + innerHeight + (window.devicePixelRatio ? '@' + window.devicePixelRatio : '')); } catch (e) {}
+    try { c.push(COARSE ? 'touch' : 'desktop'); } catch (e) {}
+    try { c.push('ua=' + String(navigator.userAgent).slice(0, 140)); } catch (e) {}
+    try { if (typeof state !== 'undefined' && (state === 'play' || state === 'pause' || state === 'levelup') && typeof P !== 'undefined' && P) c.push('run=' + P.key + ',map' + curMap + ',t=' + Math.floor(t) + ',lv=' + P.level + (RUNHARD ? ',hard' : '') + (RUNINF ? ',inf' : '') + (typeof ON !== 'undefined' && ON.on ? ',online' : '') + (coop ? ',coop' : '')); } catch (e) {}
+    return c.join(' | ').slice(0, 580);
+  }
+  function setMsg(s, ok) { var m = $r('repMsg'); m.textContent = s ? tr(s) : ''; m.className = 'msg' + (ok ? ' ok' : ''); }
+  function paintKind() { Array.prototype.forEach.call($r('repKind').children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-k') === kind)); }); }
+  $r('repKind').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; kind = b.getAttribute('data-k'); paintKind(); });
+  T.addEventListener('input', function () { $r('repCnt').textContent = T.value.length + ' / 1500'; });
+  function openRep() { document.body.classList.add('setOpen'); setMsg(''); $r('repCopy').hidden = true; $r('repSend').disabled = false; paintKind(); ov.hidden = false; setTimeout(function () { try { T.focus(); } catch (e) {} }, 40); }
+  function closeRep() { document.body.classList.remove('setOpen'); ov.hidden = true; }
+  $r('repCancel').addEventListener('click', closeRep);
+  ov.addEventListener('click', function (e) { if (e.target === ov) closeRep(); });
+  window.addEventListener('keydown', function (e) {
+    if (ov.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); closeRep(); return; }
+    e.stopPropagation(); /* que las teclas de juego (P, C, 1, 2, 3…) no actúen mientras se escribe */
+  }, true);
+  window.addEventListener('keyup', function (e) { if (!ov.hidden) e.stopPropagation(); }, true);
+
+  function reportText() {
+    var k = {bug: 'ERROR', idea: 'SUGERENCIA', other: 'OTRO'}[kind];
+    return '[' + k + '] ' + T.value.trim() + ($r('repCtx').checked ? '\n---\n' + ctxText() : '');
+  }
+  function lastT() { try { return +localStorage.getItem('cripta_rep_t') || 0; } catch (e) { return 0; } }
+  $r('repCopy').addEventListener('click', function () {
+    var txt = reportText(), done = function () { setMsg('Copiado.', true); };
+    try { navigator.clipboard.writeText(txt).then(done, function () { T.value = txt; T.select(); document.execCommand('copy'); done(); }); }
+    catch (e) { try { T.value = txt; T.select(); document.execCommand('copy'); done(); } catch (x) {} }
+  });
+  $r('repSend').addEventListener('click', function () {
+    if (busy) return;
+    if (T.value.trim().length < 10) { setMsg('Escribe al menos 10 caracteres.'); return; }
+    if (Date.now() - lastT() < 30000) { setMsg('Espera un momento antes de enviar otro mensaje.'); return; }
+    var cl = window.CriptaCloud, payload = {kind: kind, text: T.value.trim().slice(0, 1500), ctx: $r('repCtx').checked ? ctxText() : '', lang: (typeof LANG !== 'undefined' ? LANG : 'es')};
+    var fail = function () { setMsg('No se pudo enviar desde aquí. Copia el informe y compártelo con el creador del juego.'); $r('repCopy').hidden = false; busy = false; $r('repSend').disabled = false; };
+    if (!cl || !cl.user || typeof cl.sendReport !== 'function') { fail(); return; }
+    busy = true; $r('repSend').disabled = true; setMsg('Enviando…', true);
+    cl.sendReport(payload).then(function () {
+      try { localStorage.setItem('cripta_rep_t', String(Date.now())); } catch (e) {}
+      T.value = ''; $r('repCnt').textContent = '0 / 1500'; setMsg('¡Gracias! Hemos recibido tu mensaje.', true); busy = false;
+      setTimeout(function () { if (!ov.hidden) closeRep(); }, 1800);
+    }, fail);
+  });
+
+  /* botón en el menú (esquina inferior derecha) y en la pausa */
+  var menu = document.getElementById('menu');
+  if (menu) {
+    var b = document.createElement('button'); b.className = 'btn alt'; b.type = 'button'; b.id = 'repBtn'; b.textContent = 'Enviar reporte'; b.addEventListener('click', openRep);
+    menu.appendChild(b);
+  }
+  var pb = document.querySelector('#pauseOv .btns');
+  if (pb) { var b2 = document.createElement('button'); b2.className = 'btn alt'; b2.type = 'button'; b2.id = 'repPauseBtn'; b2.textContent = 'Enviar reporte'; b2.addEventListener('click', openRep); pb.appendChild(b2); }
+  try { if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply(); } catch (e) {}
+  window.abrirReporte = openRep;
+})();
+/* ==========================================================================
    LOGROS · pestaña «Logros» dentro del Diario (junto a «Páginas»)
    · Los logros que dependen de datos ya guardados (aspectos, mejoras, bajas, bestiario…) se calculan solos;
      el resto se cuentan con contadores propios en meta.ach.
