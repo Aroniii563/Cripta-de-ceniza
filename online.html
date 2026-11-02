@@ -1347,7 +1347,7 @@ var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],par
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
 var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
-var RUNHARD=false,RUNINF=false,RUNMUT=false,MUT={id:null,spawn:1,hp:1,xp:1,rep:false,slip:false},NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.42,.35,.28,.22,.15,.15];
+var RUNHARD=false,RUNINF=false,RUNMUT=false,MUT={id:null,spawn:1,hp:1,xp:1,rep:false,slip:false,inv:false,dir:1,sx:0,sy:0},NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.42,.35,.28,.22,.15,.15];
 var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
 /* Cooperativo local: PL = jugadores; P apunta al jugador "actual" mientras se procesa su lógica (P=PL[0] el resto del tiempo). */
@@ -1759,6 +1759,7 @@ function updateEnemies(dt){
     if(!e.los){var gd=fieldDir(e.x,e.y,T.idx);if(gd){ax=gd.x;ay=gd.y}}
     e.mt=null;
     if(MKL.length&&!e.boss&&e.type!=='archer'){var mt=nearestMonk(e,Math.min(3.5,d-.01),MKL);if(mt){e.mt=mt;dx=mt.x-e.x;dy=mt.y-e.y;d=Math.hypot(dx,dy)||1;ax=dx/d;ay=dy/d}}
+    if(MUT.dir<0&&!e.boss&&!e.hunt&&e.type!=='archer'){ax=-ax;ay=-ay}
     if(e.type==='archer'){
       if(e.los){if(d<5){ax=-ax;ay=-ay}else if(d<7.5){s=0}}
       e.shoot-=dt;
@@ -1768,6 +1769,7 @@ function updateEnemies(dt){
         shots.push({x:e.x,y:e.y,vx:dx/d*4.2,vy:dy/d*4.2,life:2.5,friendly:false,dmg:e.dmg,col:curMap===1?'#4a8a3a':curMap===2?'#e04a1a':curMap===3?'#a050ff':curMap===4?'#a8d0ff':'#c79bff',r:.18,spr:curMap===1?'alga':curMap===2?'moho':curMap===3?'llama':curMap===4?'aguab':undefined});
       }
     }
+    if(MUT.dir<0&&e.type==='archer'&&!e.boss){ax=-dx/d;ay=-dy/d;s=e.speed}
     if(e.boss){var bm=bossAI(e,dt,d);var bw=e.wind>=0;if(e._bw&&!bw){S(bossSfxName(e),e.x,e.y);monkBossStrike(e)}e._bw=bw;if(MKL.length)monkBossContact(e,dt);s*=bm.s;if(bm.rev){ax=-ax;ay=-ay}}
     var bx=e.x,by=e.y;
     moveEnt(e,(ax*s+e.kx)*dt,(ay*s+e.ky)*dt);
@@ -2062,7 +2064,7 @@ function buildMaps(msg){
     if(st==='own'){
       var op=MAPOPT[i]||(MAPOPT[i]={hard:false,inf:false,mut:false});if(!hardOk(i)){op.hard=false;op.mut=false}if(!meta.infinite||last)op.inf=false;
       btn='<label class="mchk hard'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'+'+Math.round((HARDP[i]||.15)*100)+'% de vida, daño y enemigos':'Gana en este mapa para desbloquear Difícil')+'"><input type="checkbox" data-opt="hard" data-m="'+i+'"'+(op.hard?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Difícil</label>'+
-        '<label class="mchk mut'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.':'Gana en este mapa para desbloquear Mutaciones')+'"><input type="checkbox" data-opt="mut" data-m="'+i+'"'+(op.mut?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Mutaciones</label>'+
+        '<label class="mchk mut'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.':'Gana en este mapa para desbloquear Mutaciones')+'"><input type="checkbox" data-opt="mut" data-m="'+i+'"'+(op.mut?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Mutaciones</label>'+
         ((meta.infinite&&!last)?'<label class="mchk inf" title="La partida sigue tras el jefe del minuto 20"><input type="checkbox" data-opt="inf" data-m="'+i+'"'+(op.inf?' checked':'')+'><span class="bx"></span>Infinito</label>':'')+
         '<button class="btn" type="button" data-play="'+i+'">Jugar</button>';
     }
@@ -2147,7 +2149,7 @@ function render(){
   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=BG;ctx.fillRect(0,0,cv.width,cv.height);
   if(!map)return;
   var cs=sp(cam.x,cam.y);
-  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z),DPR*(H/2-cs.y*Z));
+  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z+MUT.sx),DPR*(H/2-cs.y*Z+MUT.sy));
   var vl=cs.x-W/2/Z-80,vr=cs.x+W/2/Z+80,vt=cs.y-H/2/Z-140,vb=cs.y+H/2/Z+60;
   function seen(x,y){var q=sp(x,y);return q.x>vl&&q.x<vr&&q.y>vt&&q.y<vb}
   ctx.lineWidth=1;
@@ -14376,20 +14378,21 @@ try{
 })();
 /* ==========================================================================
    MUTACIONES · dificultad opcional que se marca en cada mapa junto a «Difícil».
-   Cada minuto (desde el minuto 1) se activa una mutación distinta a la anterior y la anterior termina.
+   Primera mutación en el minuto 1 y una nueva cada 30 s, elegida al azar (distinta de la anterior); la anterior termina.
    Núcleo: RUNMUT, MUT (modificadores), mutReset/mutUpdate/mutMove/mutGround. Ver los ganchos en startRun, update, playerStep, orbes y render.
    ========================================================================== */
 (function () {
   var LI = {es: 0, en: 1, pt: 2, fr: 3, ru: 4, ja: 5};
   function li() { try { return LI[LANG] || 0; } catch (e) { return 0; } }
   function T(a) { return a[li()] || a[0]; }
-  var DUR = 60, FIRST = 60, GOLD = 1.25;
+  var DUR = 30, FIRST = 60, GOLD = 1.25;
   var UI = {
     next: ['Primera mutación en {t}', 'First mutation in {t}', 'Primeira mutação em {t}', 'Première mutation dans {t}', 'Первая мутация через {t}', '最初の変異まで{t}'],
     left: ['Siguiente en {t}', 'Next in {t}', 'Próxima em {t}', 'Suivante dans {t}', 'Следующая через {t}', '次まで{t}'],
     mut: ['MUTACIÓN', 'MUTATION', 'MUTAÇÃO', 'MUTATION', 'МУТАЦИЯ', '変異'],
     hunted: ['¡Cacería! Un élite marcado te persigue.', 'Hunt! A marked elite is chasing you.', 'Caçada! Um elite marcado persegue você.', 'Chasse ! Un élite marqué te poursuit.', 'Охота! Помеченный элитный враг преследует вас.', '狩り！印のついたエリートが追ってくる。'],
     prize: ['Cacería superada: ¡cofre!', 'Hunt complete: a chest!', 'Caçada concluída: um baú!', 'Chasse réussie : un coffre !', 'Охота завершена: сундук!', '狩り達成：宝箱！'],
+    vuln: ['El élite ya es vulnerable: ¡acaba con él!', 'The elite is vulnerable now: finish it!', 'O elite já é vulnerável: acabe com ele!', 'L\'élite est vulnérable : achève-le !', 'Элитный враг уязвим: добейте его!', 'エリートが倒せるようになった。仕留めろ！'],
     gone: ['El élite se ha desvanecido.', 'The elite vanished.', 'O elite desapareceu.', 'L\'élite s\'est évanoui.', 'Элитный враг исчез.', 'エリートは消えた。']
   };
   var DEFS = [
@@ -14408,7 +14411,21 @@ try{
     {id: 'magnet', n: ['Imán invertido', 'Inverted magnet', 'Ímã invertido', 'Aimant inversé', 'Обратный магнит', '逆磁石'],
       d: ['Las almas huyen de ti. Persíguelas.', 'Souls run away from you. Chase them.', 'As almas fogem de você. Persiga-as.', 'Les âmes te fuient. Poursuis-les.', 'Души убегают от вас. Догоняйте их.', '魂が逃げていく。追いかけろ。']},
     {id: 'hunt', n: ['Cacería', 'The Hunt', 'Caçada', 'La Chasse', 'Охота', '狩り'],
-      d: ['Un élite marcado te persigue sin parar. Si lo matas, suelta un cofre.', 'A marked elite chases you relentlessly. Kill it and it drops a chest.', 'Um elite marcado persegue você sem parar. Se o matar, solta um baú.', 'Un élite marqué te poursuit sans relâche. Tue-le et il lâche un coffre.', 'Помеченный элитный враг неустанно преследует вас. Убейте его, и выпадет сундук.', '印のついたエリートが執拗に追ってくる。倒すと宝箱を落とす。']}
+      d: ['Un élite marcado e inmortal te persigue sin parar. Al acabar el tiempo ya se le puede matar, y suelta un cofre.', 'A marked, immortal elite chases you relentlessly. When time runs out it can be killed, and it drops a chest.', 'Um elite marcado e imortal persegue você sem parar. Quando o tempo acaba, ele pode ser morto e solta um baú.', 'Un élite marqué et immortel te poursuit sans relâche. Quand le temps est écoulé, on peut le tuer et il lâche un coffre.', 'Помеченный бессмертный элитный враг неустанно преследует вас. Когда время выйдет, его можно убить, и выпадет сундук.', '印のついた不死のエリートが執拗に追ってくる。時間が切れると倒せるようになり、宝箱を落とす。']},
+    {id: 'giant', n: ['Gigantismo', 'Gigantism', 'Gigantismo', 'Gigantisme', 'Гигантизм', '巨大化'],
+      d: ['Los enemigos son el triple de grandes y un 5% más rápidos.', 'Enemies are three times bigger and 5% faster.', 'Os inimigos são três vezes maiores e 5% mais rápidos.', 'Les ennemis sont trois fois plus grands et 5 % plus rapides.', 'Враги втрое крупнее и на 5% быстрее.', '敵が3倍の大きさになり、速度が5%上がる。']},
+    {id: 'elite', n: ['Guardia de élite', 'Elite Guard', 'Guarda de Elite', 'Garde d\'élite', 'Элитная гвардия', '精鋭部隊'],
+      d: ['Todos los enemigos son élite.', 'Every enemy is an elite.', 'Todos os inimigos são elites.', 'Tous les ennemis sont des élites.', 'Все враги — элитные.', '全ての敵がエリートになる。']},
+    {id: 'invert', n: ['Mundo del revés', 'Upside Down', 'Mundo ao Avesso', 'Monde à l\'envers', 'Мир наоборот', 'あべこべ'],
+      d: ['Controles invertidos: la D hace de A y la S hace de W (y al revés).', 'Inverted controls: D works as A and S works as W (and vice versa).', 'Controles invertidos: o D faz o papel de A e o S o de W (e vice-versa).', 'Commandes inversées : D fait office de Q/A et S de Z/W (et inversement).', 'Управление инвертировано: D работает как A, S — как W (и наоборот).', '操作が反転：DがA、SがWとして働く（逆も同様）。']},
+    {id: 'quake', n: ['Temblor', 'Tremor', 'Tremor', 'Tremblement', 'Дрожь', '震動'],
+      d: ['La cámara tiembla ligeramente.', 'The camera shakes slightly.', 'A câmera treme levemente.', 'La caméra tremble légèrement.', 'Камера слегка дрожит.', 'カメラが少し揺れる。']},
+    {id: 'kami', n: ['Kamikazes', 'Kamikazes', 'Kamikazes', 'Kamikazes', 'Камикадзе', '特攻兵'],
+      d: ['Los enemigos son más rápidos y explotan al llegar a una casilla de ti. Hacen poco daño.', 'Enemies are faster and explode when they get within one tile of you. They deal little damage.', 'Os inimigos são mais rápidos e explodem a uma casa de você. Causam pouco dano.', 'Les ennemis sont plus rapides et explosent à une case de toi. Ils font peu de dégâts.', 'Враги быстрее и взрываются в одной клетке от вас. Урон невелик.', '敵は速くなり、1マス以内に来ると爆発する。ダメージは小さい。']},
+    {id: 'flee', n: ['Desbandada', 'Scattered', 'Debandada', 'Débandade', 'Бегство', '総崩れ'],
+      d: ['Los enemigos huyen de ti.', 'Enemies run away from you.', 'Os inimigos fogem de você.', 'Les ennemis te fuient.', 'Враги убегают от вас.', '敵があなたから逃げる。']},
+    {id: 'pull', n: ['Atracción fatal', 'Fatal Attraction', 'Atração Fatal', 'Attraction fatale', 'Роковое влечение', '宿命の引力'],
+      d: ['Los enemigos son atraídos hacia ti.', 'Enemies are pulled toward you.', 'Os inimigos são atraídos para você.', 'Les ennemis sont attirés vers toi.', 'Врагов притягивает к вам.', '敵があなたに引き寄せられる。']}
   ];
   var BYID = {}; DEFS.forEach(function (d) { BYID[d.id] = d; });
   function mmss(s) { s = Math.max(0, Math.ceil(s)); var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
@@ -14422,7 +14439,7 @@ try{
 
   /* ---------- estado ---------- */
   var St = {slot: 0, bag: [], last: null, strikes: [], bolts: [], pits: [], stT: 1.5, pitT: 0, hunter: null, shootT: 0, arrow: null};
-  function plain() { MUT.id = null; MUT.spawn = 1; MUT.hp = 1; MUT.xp = 1; MUT.rep = false; MUT.slip = false; }
+  function plain() { MUT.id = null; MUT.spawn = 1; MUT.hp = 1; MUT.xp = 1; MUT.rep = false; MUT.slip = false; MUT.inv = false; MUT.dir = 1; MUT.sx = 0; MUT.sy = 0; }
 
   /* ---------- HUD ---------- */
   var hud = document.getElementById('hud');
@@ -14460,24 +14477,30 @@ try{
 
   /* ---------- ciclo de mutaciones ---------- */
   function nextId() {
-    if (!St.bag.length) {
-      St.bag = DEFS.map(function (d) { return d.id; });
-      for (var i = St.bag.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = St.bag[i]; St.bag[i] = St.bag[j]; St.bag[j] = x; }
-      if (St.bag[0] === St.last) { var y = St.bag.shift(); St.bag.push(y); }
-    }
-    var id = St.bag.shift(); St.last = id; return id;
+    var l = DEFS.filter(function (d) { return d.id !== MUT.id; });
+    return l[Math.floor(Math.random() * l.length)].id;
   }
-  function clearHunter(silent) {
-    var h = St.hunter;
-    if (h && !h.dead) { h.dead = true; try { burst(h.x, h.y, '#d6524a', 18); } catch (e) {} if (!silent) try { toast(T(UI.gone)); } catch (e) {} }
-    St.hunter = null; elA.hidden = true;
+  function undeco(e) {
+    if (e._g) { e._g = 0; e.r /= 3; e.gk = 1; e.speed /= 1.05; }
+    if (e._el) { e._el = 0; e.elite = false; e.r /= 1.2; e.h /= 1.2; e.hp /= 2.4; e.maxHp /= 2.4; e.dmg /= 1.3; e.speed /= 1.1; e.xp /= 2; }
+    if (e._kz) { e._kz = 0; e.speed /= 1.35; }
+  }
+  function deco(e) {
+    if (!e || e.dead || e.boss || e.mim || e.hunt) return;
+    var id = MUT.id;
+    if (id === 'giant' && !e._g) { e._g = 1; e.r *= 3; e.gk = 3; e.speed *= 1.05; }
+    else if (id === 'elite' && !e._el && !e.elite) { e._el = 1; e.elite = true; e.r *= 1.2; e.h *= 1.2; e.hp *= 2.4; e.maxHp *= 2.4; e.dmg *= 1.3; e.speed *= 1.1; e.xp *= 2; }
+    else if (id === 'kami' && !e._kz) { e._kz = 1; e.speed *= 1.35; }
   }
   function endCur() {
     var id = MUT.id;
     if (id === 'noheal') PL.forEach(function (p) { if (p._rg !== undefined) { p.regen = p._rg; p.steal = p._st; p._rg = undefined; p._st = undefined; } p._mh = undefined; });
     if (id === 'slip') PL.forEach(function (p) { p.sv = null; });
+    if (id === 'giant' || id === 'elite' || id === 'kami') enemies.forEach(undeco);
     St.strikes = []; St.pits = []; St.bolts = [];
-    clearHunter(false);
+    /* el élite de la Cacería deja de ser inmortal, pero sigue ahí hasta que lo maten */
+    var h = St.hunter;
+    if (id === 'hunt' && h && !h.dead) { h.immune = false; try { toast(T(UI.vuln)); } catch (e) {} }
     plain();
   }
   function startMut(id) {
@@ -14493,6 +14516,9 @@ try{
     else if (id === 'storm') St.stT = 1.2;
     else if (id === 'pits') { St.pitT = 0; fillPits(true); }
     else if (id === 'hunt') spawnHunter();
+    else if (id === 'invert') MUT.inv = true;
+    else if (id === 'flee') MUT.dir = -1;
+    if (id === 'giant' || id === 'elite' || id === 'kami') enemies.forEach(deco);
     banner(BYID[id]);
     try { S('level'); } catch (e) {}
   }
@@ -14521,11 +14547,12 @@ try{
   var _se = spawnEnemy;
   spawnEnemy = function () {
     var n = enemies.length; _se.apply(this, arguments);
-    if (MUT.hp !== 1) for (var i = n; i < enemies.length; i++) { enemies[i].hp *= MUT.hp; enemies[i].maxHp *= MUT.hp; }
+    for (var i = n; i < enemies.length; i++) { if (MUT.hp !== 1) { enemies[i].hp *= MUT.hp; enemies[i].maxHp *= MUT.hp; } deco(enemies[i]); }
   };
 
   /* ---------- cacería ---------- */
   function spawnHunter() {
+    if (St.hunter && !St.hunter.dead) { St.hunter.immune = true; try { toast(T(UI.hunted)); } catch (x) {} return; }
     var n0 = enemies.length, e = null, k;
     for (k = 0; k < 14 && !e; k++) {
       spawnEnemy();
@@ -14539,7 +14566,7 @@ try{
     e.dmg *= 1.3; e.xp *= 4;
     var T0 = livePl()[0] || PL[0];
     e.speed = Math.max(e.speed, (T0.speed || 4) * .93);
-    St.hunter = e;
+    e.immune = true; St.hunter = e;
     try { toast(T(UI.hunted)); } catch (x) {}
   }
   var _kill = killEnemy;
@@ -14556,6 +14583,13 @@ try{
       }
     } catch (x) {}
     return r;
+  };
+
+  /* ---------- élite inmortal (Cacería): recibe los golpes pero no pierde vida ---------- */
+  var _he = hitEnemy;
+  hitEnemy = function (e) {
+    if (e && e.immune && !e.dead) { e.hp = 1e15; var r = _he.apply(this, arguments); if (!e.dead) e.hp = e.maxHp; return r; }
+    return _he.apply(this, arguments);
   };
 
   /* ---------- XP doble ---------- */
@@ -14603,17 +14637,45 @@ try{
     }
   }
 
+  /* ---------- kamikazes: explotan a una casilla del jugador ---------- */
+  function kamikazes(dt) {
+    St.kT = (St.kT || 0) - dt;
+    for (var i = 0; i < enemies.length; i++) {
+      var e = enemies[i];
+      if (e.dead || e.boss || e.mim || e.hunt || !e.tg || e.tg.dead) continue;
+      if (Math.hypot(e.tg.x - e.x, e.tg.y - e.y) > 1.05) continue;
+      e.dead = true;
+      try {
+        hitPlayersAt(e.x, e.y, 1.6, e.dmg * .4);
+        if (BFX.explosion && haz.length < 90) haz.push({k: 'boom', x: e.x, y: e.y, t: 0, dur: .5, s: .7}); else ring(e.x, e.y, 1.4, .3, '#ff9d4d');
+        burst(e.x, e.y, '#ff9d4d', 8);
+        if (St.kT <= 0) { St.kT = .12; S('smash', e.x, e.y, 0, .5); }
+      } catch (x) {}
+    }
+  }
+  /* ---------- atracción: los enemigos son arrastrados hacia el jugador ---------- */
+  function pull(dt) {
+    for (var i = 0; i < enemies.length; i++) {
+      var e = enemies[i];
+      if (e.dead || e.boss || e.mim || !e.tg || e.tg.dead) continue;
+      var dx = e.tg.x - e.x, dy = e.tg.y - e.y, d = Math.hypot(dx, dy);
+      if (d < 1.2 || d > 22) continue;
+      moveEnt(e, dx / d * 2.6 * dt, dy / d * 2.6 * dt);
+    }
+  }
+
   /* ---------- API usada por el núcleo ---------- */
   window.mutReset = function () {
-    plain(); St.slot = 0; St.bag = []; St.last = null; St.strikes = []; St.bolts = []; St.pits = []; St.hunter = null;
+    plain(); St.slot = -1; St.bag = []; St.last = null; St.strikes = []; St.bolts = []; St.pits = []; St.hunter = null;
     elA.hidden = true; elB.classList.remove('on'); clearTimeout(banT);
     elH.hidden = !RUNMUT;
+    if (typeof sprScale === 'function' && !sprScale.__mut) { var _ss = sprScale; sprScale = function (e) { return _ss(e) * (e.gk || 1); }; sprScale.__mut = 1; }
     PL.forEach(function (p) { p.sv = null; p._rg = undefined; p._st = undefined; p._mh = undefined; });
   };
   window.mutUpdate = function (dt) {
     if (TW.on) return;
-    var slot = Math.floor(t / DUR);
-    if (slot >= 1 && slot !== St.slot) { St.slot = slot; startMut(nextId()); }
+    var slot = t >= FIRST ? Math.floor((t - FIRST) / DUR) : -1;
+    if (slot >= 0 && slot !== St.slot) { St.slot = slot; startMut(nextId()); }
     var id = MUT.id;
     /* panel superior */
     elH.hidden = false;
@@ -14621,7 +14683,7 @@ try{
       hB.textContent = T(UI.mut); hS.textContent = fill(T(UI.next), {t: mmss(FIRST - t)});
       hI.style.transform = 'scaleX(' + Math.max(0, Math.min(1, t / FIRST)) + ')';
     } else {
-      var left = (St.slot + 1) * DUR - t;
+      var left = FIRST + (St.slot + 1) * DUR - t;
       hB.textContent = T(BYID[id].n); hS.textContent = fill(T(UI.left), {t: mmss(left)});
       hI.style.transform = 'scaleX(' + Math.max(0, Math.min(1, left / DUR)) + ')';
     }
@@ -14640,21 +14702,25 @@ try{
         if (p.hp > p._mh) p.hp = p._mh; else p._mh = p.hp;
       });
     }
-    else if (id === 'hunt') {
-      var h = St.hunter;
-      if (h && !h.dead) {
-        var q = livePl()[0] || PL[0], cs = sp(cam.x, cam.y), pp = sp(h.x, h.y), sx = (pp.x - cs.x) * Z + W / 2, sy = (pp.y - cs.y) * Z + H / 2;
-        var m = 34;
-        if (sx < m || sx > W - m || sy < m + 60 || sy > H - m) {
-          var ang = Math.atan2(sy - H / 2, sx - W / 2), rx = W / 2 - m, ry = H / 2 - m - 40, k = 1 / Math.max(Math.abs(Math.cos(ang)) / rx, Math.abs(Math.sin(ang)) / ry);
-          elA.hidden = false; elA.style.left = (W / 2 + Math.cos(ang) * k - 11) + 'px'; elA.style.top = (H / 2 + Math.sin(ang) * k - 11) + 'px'; elA.style.transform = 'rotate(' + (ang + Math.PI / 2) + 'rad)';
-        } else elA.hidden = true;
-        h.speed = Math.max(h.speed, (q.speed || 4) * .93);
-      } else if (St.hunter) { St.hunter = null; elA.hidden = true; }
-    }
+    else if (id === 'kami') kamikazes(dt);
+    else if (id === 'pull') pull(dt);
+    /* temblor de cámara (respeta el ajuste de sacudida de pantalla) */
+    if (id === 'quake' && !window.__noShake) { MUT.sx = Math.sin(t * 43) * 2.4 + Math.sin(t * 71) * 1.6; MUT.sy = Math.sin(t * 37 + 1) * 2.4 + Math.sin(t * 59) * 1.6; } else { MUT.sx = 0; MUT.sy = 0; }
+    /* élite perseguidor: velocidad y flecha de aviso (mientras siga vivo) */
+    var h = St.hunter;
+    if (h && !h.dead) {
+      var q = livePl()[0] || PL[0], cs = sp(cam.x, cam.y), pp = sp(h.x, h.y), sx = (pp.x - cs.x) * Z + W / 2, sy = (pp.y - cs.y) * Z + H / 2;
+      var mg = 34;
+      if (sx < mg || sx > W - mg || sy < mg + 60 || sy > H - mg) {
+        var ang = Math.atan2(sy - H / 2, sx - W / 2), rx = W / 2 - mg, ry = H / 2 - mg - 40, k = 1 / Math.max(Math.abs(Math.cos(ang)) / rx, Math.abs(Math.sin(ang)) / ry);
+        elA.hidden = false; elA.style.left = (W / 2 + Math.cos(ang) * k - 11) + 'px'; elA.style.top = (H / 2 + Math.sin(ang) * k - 11) + 'px'; elA.style.transform = 'rotate(' + (ang + Math.PI / 2) + 'rad)';
+      } else elA.hidden = true;
+      h.speed = Math.max(h.speed, (q.speed || 4) * .93);
+    } else if (St.hunter) { St.hunter = null; elA.hidden = true; }
   };
   /* movimiento del jugador: suelo resbaladizo y pozos de ceniza. Devuelve true si lo ha movido ya. */
   window.mutMove = function (p, mx, my, dt) {
+    if (MUT.inv) { mx = -mx; my = -my; }
     var slow = (MUT.id === 'pits' && inPit(p)) ? .5 : 1, spd = p.speed * slow;
     if (MUT.slip) {
       p.sv = p.sv || {x: 0, y: 0};
@@ -14666,7 +14732,7 @@ try{
       if (want > 1e-6 && mv < want * .5) { p.sv.x *= .55; p.sv.y *= .55; }
       return true;
     }
-    if (slow !== 1) { movePl(p, mx * spd * dt, my * spd * dt); return true; }
+    if (slow !== 1 || MUT.inv) { movePl(p, mx * spd * dt, my * spd * dt); return true; }
     return false;
   };
   window.mutGround = function () {
@@ -14711,11 +14777,11 @@ try{
 
   /* ---------- textos de la selección de mapa (traducción al vuelo) ---------- */
   var X = {
-    en: {'Mutaciones': 'Mutations', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Every minute a new mutation appears. Same difficulty as Hard and not combinable with it. +25% gold.', 'Gana en este mapa para desbloquear Mutaciones': 'Win on this map to unlock Mutations', ' · Mutaciones': ' · Mutations'},
-    pt: {'Mutaciones': 'Mutações', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'A cada minuto surge uma nova mutação. Mesma dificuldade do Difícil e não se combina com ele. +25% de ouro.', 'Gana en este mapa para desbloquear Mutaciones': 'Vença neste mapa para desbloquear Mutações', ' · Mutaciones': ' · Mutações'},
-    fr: {'Mutaciones': 'Mutations', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Chaque minute, une nouvelle mutation apparaît. Même difficulté que Difficile, non cumulable. +25 % d\'or.', 'Gana en este mapa para desbloquear Mutaciones': 'Gagne sur cette carte pour débloquer les Mutations', ' · Mutaciones': ' · Mutations'},
-    ru: {'Mutaciones': 'Мутации', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Каждую минуту появляется новая мутация. Та же сложность, что и «Сложный», с ним не сочетается. +25% золота.', 'Gana en este mapa para desbloquear Mutaciones': 'Победите на этой карте, чтобы открыть Мутации', ' · Mutaciones': ' · Мутации'},
-    ja: {'Mutaciones': 'ミューテーション', 'Cada minuto aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': '毎分、新しい変異が発生。ハードと同じ難易度で、併用不可。ゴールド+25%。', 'Gana en este mapa para desbloquear Mutaciones': 'このマップで勝利するとミューテーションが解放されます', ' · Mutaciones': ' ・ミューテーション'}
+    en: {'Mutaciones': 'Mutations', 'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Every 30 seconds a new mutation appears. Same difficulty as Hard and not combinable with it. +25% gold.', 'Gana en este mapa para desbloquear Mutaciones': 'Win on this map to unlock Mutations', ' · Mutaciones': ' · Mutations'},
+    pt: {'Mutaciones': 'Mutações', 'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'A cada 30 segundos surge uma nova mutação. Mesma dificuldade do Difícil e não se combina com ele. +25% de ouro.', 'Gana en este mapa para desbloquear Mutaciones': 'Vença neste mapa para desbloquear Mutações', ' · Mutaciones': ' · Mutações'},
+    fr: {'Mutaciones': 'Mutations', 'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Toutes les 30 secondes, une nouvelle mutation apparaît. Même difficulté que Difficile, non cumulable. +25 % d\'or.', 'Gana en este mapa para desbloquear Mutaciones': 'Gagne sur cette carte pour débloquer les Mutations', ' · Mutaciones': ' · Mutations'},
+    ru: {'Mutaciones': 'Мутации', 'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': 'Каждые 30 секунд появляется новая мутация. Та же сложность, что и «Сложный», с ним не сочетается. +25% золота.', 'Gana en este mapa para desbloquear Mutaciones': 'Победите на этой карте, чтобы открыть Мутации', ' · Mutaciones': ' · Мутации'},
+    ja: {'Mutaciones': 'ミューテーション', 'Cada 30 segundos aparece una mutación nueva. Misma dificultad que Difícil y no se combina con él. +25% de oro.': '30秒ごとに新しい変異が発生。ハードと同じ難易度で、併用不可。ゴールド+25%。', 'Gana en este mapa para desbloquear Mutaciones': 'このマップで勝利するとミューテーションが解放されます', ' · Mutaciones': ' ・ミューテーション'}
   };
   try {
     Object.keys(X).forEach(function (l) { if (I18N_DATA[l]) Object.keys(X[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = X[l][k]; }); });
@@ -14723,7 +14789,7 @@ try{
     if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply();
   } catch (e) {}
   window.MUT_GOLD = GOLD;
-  window.mutForce = function (id) { St.slot = Math.floor(t / DUR); startMut(id); };
+  window.mutForce = function (id) { St.slot = t >= FIRST ? Math.floor((t - FIRST) / DUR) : 0; startMut(id); };
 })();
 /* ==========================================================================
    REPORTES Y SUGERENCIAS · botón abajo a la derecha del menú (y en la pausa)
