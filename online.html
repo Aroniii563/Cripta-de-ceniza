@@ -7353,6 +7353,15 @@ var update_on=update;update=function(dt){
   update_on(dt);
   if(ON.on&&ON.host){
     PL.forEach(function(p){if(!p.dead&&!p.offer&&(p.pend>0||p.pendS>0))onMakeOffer(p)});
+    /* mientras alguien elige su mejora: invulnerable y los enemigos se apartan de él */
+    PL.forEach(function(p){
+      if(p.dead||!p.offer)return;
+      p.inv=Math.max(p.inv||0,.3);
+      for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.dead)continue;
+        var dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy);
+        if(d<6.5){if(d<.01){dx=1;dy=0;d=1}moveEnt(e,dx/d*7*dt,dy/d*7*dt)}}
+      p._ofx=(p._ofx||0)-dt;if(p._ofx<=0){p._ofx=.5;try{ring(p.x,p.y,2.2,.45,'#f2d27a')}catch(e2){}}
+    });
     var k=Math.min(1,dt*8);ON.cx+=(PL[0].x-ON.cx)*k;ON.cy+=(PL[0].y-ON.cy)*k;cam.x=ON.cx;cam.y=ON.cy;
   }
 };
