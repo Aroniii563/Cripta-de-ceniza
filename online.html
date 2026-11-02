@@ -8511,7 +8511,7 @@ openMaps=function(k){
   if(twMode==='tower'&&twUnlocked()){
     h1.textContent='Torre de ceniza';
     ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a los 24 jefes seguidos para completar la torre.';
-    $('mapGrid').innerHTML='<div class="mapc"><img class="ic" alt="" style="image-rendering:pixelated" src="mapimg/ceniza/retrato.png">'+
+    $('mapGrid').innerHTML='<div class="mapc mbg6"><img class="ic" alt="" style="image-rendering:pixelated" src="mapimg/ceniza/retrato.png">'+
       '<div class="mi"><span class="nm">Torre de ceniza</span>'+
       '<span class="ef">Jefes y enemigos: los de cada mapa del modo clásico, en orden.</span>'+
       '<span class="ef">Primer jefe a los 5 s · mejora especial inicial · termina con El Escritor.</span></div>'+
@@ -15465,7 +15465,6 @@ try{
     /* arte */
     '.mc .mc-art{position:relative;display:block;height:clamp(150px,24vh,250px);overflow:hidden;background:#0c0d0e;box-shadow:inset 0 0 0 2px #6b4e1c,inset 0 0 0 4px #0c0d0e,inset 0 0 0 6px rgba(201,168,90,.35)}',
     '.mc .mc-bg{position:absolute;inset:-20%;width:140%!important;height:140%!important;max-width:none;object-fit:cover;filter:blur(16px) saturate(1.2) brightness(.5);transform:scale(1.05);border:0!important;aspect-ratio:auto!important}',
-    '.mc[data-md="tower"] .mc-bg{filter:blur(2px) saturate(1.1) brightness(.62);transform:scale(1)}',
     '.mdcard.mc[disabled] .mc-bg{filter:blur(16px) grayscale(1) brightness(.3)}',
     '.mc .mc-emb{position:absolute;left:50%;top:50%;height:calc(100% - 20px)!important;width:auto!important;aspect-ratio:1!important;transform:translate(-50%,-50%);image-rendering:pixelated;border-radius:0!important;border:0!important;box-shadow:0 0 0 2px #c9a85a,0 0 0 4px #0c0d0e,0 0 0 6px #6b4e1c,6px 6px 0 6px rgba(0,0,0,.6)}',
     '.mc .mc-art::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:none!important;box-shadow:inset 0 0 0 2px #6b4e1c,inset 0 0 0 4px #0c0d0e,inset 0 0 0 6px rgba(201,168,90,.5)}',
@@ -15542,10 +15541,9 @@ try{
     b.classList.toggle('mcg', !!modos);
     [].forEach.call(b.querySelectorAll('.mdcard[data-md]:not(.mc)'), function (c) {
       var md = c.getAttribute('data-md'), I = INFO[md] || INFO.classic, img = c.querySelector('img'), src = img ? img.getAttribute('src') : '';
-      var bgSrc = md === 'tower' ? 'fondos/menu_ruinas2.webp' : src;
       var nm = txt(c.querySelector('.nm')), p = txt(c.querySelector('p')), lk = txt(c.querySelector('.lk'));
       c.classList.add('mc');
-      c.innerHTML = '<span class="mc-art"><img class="mc-bg" alt="" src="' + bgSrc + '"><img class="mc-emb" alt="" src="' + src + '">' +
+      c.innerHTML = '<span class="mc-art"><img class="mc-bg" alt="" src="' + src + '"><img class="mc-emb" alt="" src="' + src + '">' +
         (c.disabled ? '<span class="mc-lock">' + IC.lock + '<span>' + lk + '</span></span>' : '') + '</span>' +
         '<span class="mc-body"><span class="mc-kick">' + I.k + '</span><span class="nm">' + nm + '</span><p>' + p + '</p>' +
         '<span class="mc-chips">' + I.ch.map(function (x) { return '<i>' + x + '</i>'; }).join('') + '</span>' +

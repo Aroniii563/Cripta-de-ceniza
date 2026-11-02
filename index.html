@@ -8529,7 +8529,7 @@ openMaps=function(k){
   if(twMode==='tower'&&twUnlocked()){
     h1.textContent='Torre de ceniza';
     ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a los 24 jefes seguidos para completar la torre.';
-    $('mapGrid').innerHTML='<div class="mapc"><img class="ic" alt="" style="image-rendering:pixelated" src="mapimg/ceniza/retrato.png">'+
+    $('mapGrid').innerHTML='<div class="mapc mbg6"><img class="ic" alt="" style="image-rendering:pixelated" src="mapimg/ceniza/retrato.png">'+
       '<div class="mi"><span class="nm">Torre de ceniza</span>'+
       '<span class="ef">Jefes y enemigos: los de cada mapa del modo clásico, en orden.</span>'+
       '<span class="ef">Primer jefe a los 5 s · mejora especial inicial · termina con El Escritor.</span></div>'+
@@ -15411,7 +15411,7 @@ try{
       var bgSrc = md === 'tower' ? 'fondos/menu_ruinas2.webp' : src;
       var nm = txt(c.querySelector('.nm')), p = txt(c.querySelector('p')), lk = txt(c.querySelector('.lk'));
       c.classList.add('mc');
-      c.innerHTML = '<span class="mc-art"><img class="mc-bg" alt="" src="' + bgSrc + '"><img class="mc-emb" alt="" src="' + src + '">' +
+      c.innerHTML = '<span class="mc-art"><img class="mc-bg" alt="" src="' + src + '"><img class="mc-emb" alt="" src="' + src + '">' +
         (c.disabled ? '<span class="mc-lock">' + IC.lock + '<span>' + lk + '</span></span>' : '') + '</span>' +
         '<span class="mc-body"><span class="mc-kick">' + I.k + '</span><span class="nm">' + nm + '</span><p>' + p + '</p>' +
         '<span class="mc-chips">' + I.ch.map(function (x) { return '<i>' + x + '</i>'; }).join('') + '</span>' +
