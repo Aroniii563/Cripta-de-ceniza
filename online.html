@@ -7450,7 +7450,7 @@ var LANG='es';
 var I18N={d:{},p:[],c:{},miss:{},sk:{},bk:null};
 var NUMRE=/\d+(?:[.,]\d+)?/g;
 function i18nLoad(){
-  I18N.c={};I18N.p=[];I18N.d={};I18N.sk={};
+  I18N.v=(I18N.v||0)+1;I18N.c={};I18N.p=[];I18N.d={};I18N.sk={};
   var D=(typeof I18N_DATA!=='undefined'&&I18N_DATA[LANG])||{};
   Object.keys(D).forEach(function(k){
     if(k.indexOf('{')<0){
@@ -7498,11 +7498,11 @@ var I18N_ATTR=['title','placeholder','aria-label','alt'];
 function skipNode(n){for(var e=n.nodeType===1?n:n.parentNode;e&&e.nodeType===1;e=e.parentNode){if(e.hasAttribute&&e.hasAttribute('data-nt'))return true;var tg=e.tagName;if(tg==='SCRIPT'||tg==='STYLE')return true}return false}
 function doText(n){
   if(n.__t!==undefined&&n.nodeValue===n.__t){
-    if(n.__l===LANG)return;
+    if(n.__l===LANG+'#'+I18N.v)return;
   }else n.__o=n.nodeValue;
   if(skipNode(n))return;
   var o=n.__o,t=LANG==='es'?o:trStr(o);
-  n.__l=LANG;n.__t=t;
+  n.__l=LANG+'#'+I18N.v;n.__t=t;
   if(n.nodeValue!==t)n.nodeValue=t;
 }
 function doAttrs(e){
@@ -10644,7 +10644,7 @@ function note(){
 }
 var die_run=die;die=function(){var r=die_run.apply(this,arguments);note();return r};
 var victory_run=victory;victory=function(){var r=victory_run.apply(this,arguments);note();return r};
-var render_qk=render;render=function(){var sh=0;try{sh=qkShake()}catch(e){}if(sh){cam.x+=sh;cam.y-=sh}try{render_qk()}finally{if(sh){cam.x-=sh;cam.y+=sh}}};
+var render_qk=render;render=function(){var sh=0;try{sh=window.__noShake?0:qkShake()}catch(e){}if(sh){cam.x+=sh;cam.y-=sh}try{render_qk()}finally{if(sh){cam.x-=sh;cam.y+=sh}}};
 window.__RUN={act:act,RUN:RUN,RUNES:RUNES,give:give,R:R,buyRune:buyRune,RR:RR,lv:lv,ORDER:ORDER};
 
 /* Réplicas: las sombras actúan tras cada paso del jugador y se dibujan como copias del personaje */
@@ -14003,7 +14003,7 @@ try{
       'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': '試合が終わるとゴールドを獲得。強化・ルーン・スキンに使って次の試合に備えましょう。',
       'Empieza una partida y te guiaré de nuevo.': '試合を始めると、もう一度案内します。'}
   };
-  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); } catch (e) {}
+  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply(); } catch (e) {}
   function tr(s) { try { return typeof trCore === 'function' && typeof LANG !== 'undefined' && LANG !== 'es' ? trCore(s) : s; } catch (e) { return s; } }
   var BOX = window.__PXBOX, G = '#c9a85a';
   var css = [
@@ -14124,7 +14124,7 @@ try{
       'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': '全画面のフラッシュや点滅を弱めます。',
       'Se guarda en este dispositivo.': 'この端末に保存されます。'}
   };
-  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); } catch (e) {}
+  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply(); } catch (e) {}
   function tr(s) { try { return typeof trCore === 'function' && typeof LANG !== 'undefined' && LANG !== 'es' ? trCore(s) : s; } catch (e) { return s; } }
 
   /* ---------- estado guardado ---------- */
@@ -14132,7 +14132,7 @@ try{
   var A = JSON.parse(JSON.stringify(DEF));
   try { var sv = JSON.parse(localStorage.getItem('cripta_ajustes') || 'null'); if (sv) { ['shake', 'flash', 'bg'].forEach(function (k) { if (sv[k] !== undefined) A[k] = sv[k] ? 1 : 0; }); if (/^(n|g|x|o)$/.test(sv.dmg)) A.dmg = sv.dmg; if (sv.keys) ['up', 'down', 'left', 'right'].forEach(function (k) { if (typeof sv.keys[k] === 'string' && sv.keys[k].length) A.keys[k] = sv.keys[k]; }); } } catch (e) {}
   function save() { try { localStorage.setItem('cripta_ajustes', JSON.stringify(A)); } catch (e) {} }
-  window.__noBgAnim = !A.bg;
+  window.__noBgAnim = !A.bg; window.__noShake = !A.shake;
 
   /* ---------- efectos: destellos, números de daño, sacudida ---------- */
   var fr = CanvasRenderingContext2D.prototype.fillRect;
@@ -14184,7 +14184,7 @@ try{
   /* ---------- ventana ---------- */
   var BOX = window.__PXBOX, ON = window.__PXON, G = '#c9a85a', INK = '#e8e1d0';
   var css = [
-    '#setOv{z-index:75}',
+    '#setOv{z-index:75}', '.setOpen #tutBox{display:none!important}',
     '#setOv .mbox{width:min(640px,100%);max-height:calc(100vh - 32px);overflow:auto;scrollbar-width:thin}',
     '#setOv .sh{display:flex;align-items:center;gap:10px;margin:16px 0 8px;font-family:var(--display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:' + G + ';text-shadow:1px 1px 0 #000}',
     '#setOv .sh:first-of-type{margin-top:4px}',
@@ -14256,17 +14256,72 @@ try{
     Array.prototype.forEach.call(ov.querySelectorAll('[data-o]'), function (g) { var o = g.getAttribute('data-o'); Array.prototype.forEach.call(g.children, function (b) { b.setAttribute('aria-pressed', String(String(A[o]) === b.getAttribute('data-v'))); }); });
   }
   ov.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-o] .btn'); if (b) { var o = b.parentNode.getAttribute('data-o'), v = b.getAttribute('data-v'); A[o] = (o === 'dmg') ? v : (v === '1' ? 1 : 0); if (o === 'bg') { window.__noBgAnim = !A.bg; if (A.bg && window.__bgResume) window.__bgResume(); } save(); paintOpts(); return; }
+    var b = e.target.closest('[data-o] .btn'); if (b) { var o = b.parentNode.getAttribute('data-o'), v = b.getAttribute('data-v'); A[o] = (o === 'dmg') ? v : (v === '1' ? 1 : 0); if (o === 'shake') window.__noShake = !A.shake; if (o === 'bg') { window.__noBgAnim = !A.bg; if (A.bg && window.__bgResume) window.__bgResume(); } save(); paintOpts(); return; }
     if (e.target === ov) closeSet();
   });
   document.getElementById('setClose').addEventListener('click', closeSet);
-  function openSet() { listening = null; msg.textContent = ''; paintLang(); paintKeys(); paintOpts(); ov.hidden = false; try { var v = document.getElementById('vol'); } catch (e) {} setTimeout(function () { var c = document.getElementById('setClose'); if (c) c.focus(); }, 30); }
-  function closeSet() { listening = null; ov.hidden = true; }
+  function openSet() { document.body.classList.add('setOpen'); listening = null; msg.textContent = ''; paintLang(); paintKeys(); paintOpts(); ov.hidden = false; try { var v = document.getElementById('vol'); } catch (e) {} setTimeout(function () { var c = document.getElementById('setClose'); if (c) c.focus(); }, 30); }
+  function closeSet() { document.body.classList.remove('setOpen'); listening = null; ov.hidden = true; }
   window.abrirAjustes = openSet;
   document.getElementById('setBtn').addEventListener('click', openSet);
   /* botón en la pausa */
   var pb = document.querySelector('#pauseOv .btns');
   if (pb) { var b2 = document.createElement('button'); b2.className = 'btn alt'; b2.type = 'button'; b2.id = 'setPauseBtn'; b2.textContent = 'Ajustes'; b2.addEventListener('click', openSet); pb.insertBefore(b2, pb.children[1] || null); }
+})();
+/* ==========================================================================
+   TRADUCCIONES EXTRA (menú, runas sin descubrir, modos en ru/ja, textos de mapas)
+   ========================================================================== */
+(function () {
+  var X = {
+    en: {'← Atrás': '← Back', 'sin descubrir': 'undiscovered', 'Difícil': 'Hard', 'Infinito': 'Infinite',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos. Modo infinito disponible.': 'Map cleared. Hard: +50% health, damage and enemies. Infinite mode available.',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos.': 'Map cleared. Hard: +50% health, damage and enemies.',
+      'Difícil: +50% de vida, daño y enemigos.': 'Hard: +50% health, damage and enemies.',
+      '+50% de vida, daño y enemigos': '+50% health, damage and enemies',
+      'Escritor derrotado. Modo infinito desbloqueado en los demás mapas. Difícil: +15% de vida, daño y enemigos.': 'Writer defeated. Infinite mode unlocked on the other maps. Hard: +15% health, damage and enemies.',
+      'La partida sigue tras el jefe del minuto 20': 'The run continues after the minute-20 boss'},
+    pt: {'← Atrás': '← Voltar', 'sin descubrir': 'não descoberta', 'Difícil': 'Difícil', 'Infinito': 'Infinito',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos. Modo infinito disponible.': 'Mapa concluído. Difícil: +50% de vida, dano e inimigos. Modo infinito disponível.',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos.': 'Mapa concluído. Difícil: +50% de vida, dano e inimigos.',
+      'Difícil: +50% de vida, daño y enemigos.': 'Difícil: +50% de vida, dano e inimigos.',
+      '+50% de vida, daño y enemigos': '+50% de vida, dano e inimigos',
+      'Escritor derrotado. Modo infinito desbloqueado en los demás mapas. Difícil: +15% de vida, daño y enemigos.': 'Escritor derrotado. Modo infinito desbloqueado nos outros mapas. Difícil: +15% de vida, dano e inimigos.',
+      'La partida sigue tras el jefe del minuto 20': 'A partida continua após o chefe do minuto 20'},
+    fr: {'← Atrás': '← Retour', 'sin descubrir': 'non découverte', 'Difícil': 'Difficile', 'Infinito': 'Infini',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos. Modo infinito disponible.': 'Carte terminée. Difficile : +50 % de vie, de dégâts et d\'ennemis. Mode infini disponible.',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos.': 'Carte terminée. Difficile : +50 % de vie, de dégâts et d\'ennemis.',
+      'Difícil: +50% de vida, daño y enemigos.': 'Difficile : +50 % de vie, de dégâts et d\'ennemis.',
+      '+50% de vida, daño y enemigos': '+50 % de vie, de dégâts et d\'ennemis',
+      'Escritor derrotado. Modo infinito desbloqueado en los demás mapas. Difícil: +15% de vida, daño y enemigos.': 'Écrivain vaincu. Mode infini débloqué sur les autres cartes. Difficile : +15 % de vie, de dégâts et d\'ennemis.',
+      'La partida sigue tras el jefe del minuto 20': 'La partie continue après le boss de la minute 20'},
+    ru: {'← Atrás': '← Назад', 'sin descubrir': 'не открыта', 'Difícil': 'Сложный', 'Infinito': 'Бесконечный',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos. Modo infinito disponible.': 'Карта пройдена. Сложный: +50% здоровья, урона и врагов. Бесконечный режим доступен.',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos.': 'Карта пройдена. Сложный: +50% здоровья, урона и врагов.',
+      'Difícil: +50% de vida, daño y enemigos.': 'Сложный: +50% здоровья, урона и врагов.',
+      '+50% de vida, daño y enemigos': '+50% здоровья, урона и врагов',
+      'Escritor derrotado. Modo infinito desbloqueado en los demás mapas. Difícil: +15% de vida, daño y enemigos.': 'Писатель побеждён. Бесконечный режим открыт на остальных картах. Сложный: +15% здоровья, урона и врагов.',
+      'La partida sigue tras el jefe del minuto 20': 'Партия продолжается после босса 20-й минуты',
+      'Modo principal': 'Основной режим', 'Desafío': 'Испытание', '5 mapas': '5 карт', 'Jefe cada 5 min': 'Босс каждые 5 мин', 'Hasta el minuto 20': 'До 20-й минуты',
+      '24 jefes seguidos': '24 босса подряд', 'Mejora especial desde el inicio': 'Особое улучшение с самого начала', 'Elegir personaje': 'Выбрать персонажа',
+      'Subir a la torre': 'Подняться на башню', 'Multijugador': 'Мультиплеер', 'Cada día': 'Каждый день',
+      'Se renuevan en {n} h {n} min': 'Обновятся через {n} ч {n} мин', 'Se renuevan en {n} min': 'Обновятся через {n} мин'},
+    ja: {'← Atrás': '← 戻る', 'sin descubrir': '未発見', 'Difícil': 'ハード', 'Infinito': '無限',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos. Modo infinito disponible.': 'マップクリア。ハード：体力・ダメージ・敵が+50%。無限モード利用可能。',
+      'Mapa superado. Difícil: +50% de vida, daño y enemigos.': 'マップクリア。ハード：体力・ダメージ・敵が+50%。',
+      'Difícil: +50% de vida, daño y enemigos.': 'ハード：体力・ダメージ・敵が+50%。',
+      '+50% de vida, daño y enemigos': '体力・ダメージ・敵が+50%',
+      'Escritor derrotado. Modo infinito desbloqueado en los demás mapas. Difícil: +15% de vida, daño y enemigos.': 'ライターを撃破。他のマップで無限モード解放。ハード：体力・ダメージ・敵が+15%。',
+      'La partida sigue tras el jefe del minuto 20': '20分ボスの後も続行します',
+      'Modo principal': 'メインモード', 'Desafío': 'チャレンジ', '5 mapas': '5マップ', 'Jefe cada 5 min': '5分ごとにボス', 'Hasta el minuto 20': '20分まで',
+      '24 jefes seguidos': '24連続ボス', 'Mejora especial desde el inicio': '最初から特別強化', 'Elegir personaje': 'キャラ選択',
+      'Subir a la torre': '塔に登る', 'Multijugador': 'マルチプレイ', 'Cada día': '毎日',
+      'Se renuevan en {n} h {n} min': '{n}時間{n}分後にリセット', 'Se renuevan en {n} min': '{n}分後にリセット'}
+  };
+  try {
+    Object.keys(X).forEach(function (l) { if (I18N_DATA[l]) Object.keys(X[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = X[l][k]; }); });
+    if (typeof i18nLoad === 'function') i18nLoad();
+    if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply();
+  } catch (e) {}
 })();
 /* ==========================================================================
    LOGROS · pestaña «Logros» dentro del Diario (junto a «Páginas»)
@@ -15383,7 +15438,8 @@ try {
     '#metaList.mu .mu-lv{position:absolute;right:4px;top:2px;margin:0;padding:0;border:0;background:none;font-family:var(--display);font-size:12px;letter-spacing:.12em;color:' + GL + '.7);text-shadow:1px 1px 0 #000}',
     '#metaList.mu .mu-tot{font-family:var(--display);font-weight:400;font-size:30px;line-height:1;letter-spacing:.02em;color:' + G + ';text-shadow:2px 2px 0 #000}',
     '#metaList.mu .mu-tot.cero{color:rgba(232,225,208,.22)}',
-    '#metaList.mu .mu-e{font-style:italic;font-size:12.5px;line-height:1.4;color:rgba(232,225,208,.55)}',
+    '#metaList.mu .mu-e{font-style:italic;font-size:12.5px;line-height:1.4;color:rgba(232,225,208,.55);flex:1 1 auto;display:flex;align-items:center;justify-content:center}',
+    '#metaList.mu .mu-n{min-height:3.3em;display:flex;align-items:center;justify-content:center;text-align:center}',
     '#metaList.mu .mu-e::before{display:none}',
     '#metaList.mu .mu-seg{display:flex;justify-content:center;gap:2px;flex-wrap:wrap;margin:2px 0}',
     '#metaList.mu .mu-seg b{width:14px;height:14px;border:0;border-radius:0;transform:none;box-shadow:none;background:url("' + PX.doff + '") 0 0/100% 100% no-repeat;image-rendering:pixelated}',
