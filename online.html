@@ -261,13 +261,14 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 .abtn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);color:var(--fg);padding:0}
 .abtn:hover{border-color:var(--gold)}
 #pauseBtn{display:none;font-size:16px;touch-action:manipulation}
-.tbrow{position:absolute;right:48px;top:0;display:flex;gap:8px;height:40px}
+.tbrow{position:absolute;right:0;top:0;display:flex;gap:8px;height:40px}
 .tbtn{width:auto;padding:0 12px;gap:7px;font:600 13px/1 var(--display,inherit);letter-spacing:.04em;white-space:nowrap}
 .tbtn.gold{background:var(--gold);border-color:var(--gold);color:#1b1405}
 .tbtn.gold:hover{filter:brightness(1.12);border-color:#ffe08a}
 .tbtn .bi{font-size:14px}
 .ver{position:absolute;right:2px;top:46px;font:600 11px/1 var(--body);letter-spacing:.06em;color:var(--muted);opacity:.85;pointer-events:none}
-#hud:not([hidden]) ~ .audio #supportBtn,#hud:not([hidden]) ~ .audio #patchBtn,#hud:not([hidden]) ~ .audio .ver{display:none}
+#langBtn,#langPanel,#audioBtn,#audioPanel{display:none!important}
+#hud:not([hidden]) ~ .audio #supportBtn,#hud:not([hidden]) ~ .audio #patchBtn,#hud:not([hidden]) ~ .audio #setBtn,#hud:not([hidden]) ~ .audio .ver{display:none}
 .btn.gold{background:var(--gold);color:#1b1405;text-decoration:none;display:inline-block;text-align:center}
 .btn.gold:hover{filter:brightness(1.12)}
 .mdl{z-index:60;background:rgba(5,9,10,.88);justify-content:center}
@@ -644,6 +645,7 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
     <div class="tbrow" id="tbRow">
       <button class="abtn tbtn gold" id="supportBtn" type="button"><span class="bi" aria-hidden="true" data-nt="1">&#9829;</span><span class="bt">Apoyar</span></button>
       <button class="abtn tbtn" id="patchBtn" type="button"><span class="bi" aria-hidden="true" data-nt="1">&#9998;</span><span class="bt">Parches</span></button>
+      <button class="abtn tbtn" id="setBtn" type="button"><span class="bi" aria-hidden="true" data-nt="1"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" shape-rendering="crispEdges"><path d="M7 0h2v2h2v1h2v2h-1v1h2v2h-2v1h1v2h-2v1H9v2H7v-2H5v-1H3v-2h1V9H2V7h2V6H3V4h2V3h2zM6 6v4h4V6z"/></svg></span><span class="bt">Ajustes</span></button>
       <button class="abtn" id="pauseBtn" type="button" data-nt="1" aria-label="Pausa">&#10074;&#10074;</button>
       <button class="abtn" id="langBtn" type="button" data-nt="1" aria-label="Idioma" aria-expanded="false" aria-controls="langPanel">ES</button>
     </div>
@@ -13750,8 +13752,9 @@ var FONDO_FX = {
     if (!visible()) { setTimeout(function () { if (!raf) raf = requestAnimationFrame(bucle); }, 400); return; }
     var dt = Math.min(.1, (now - last) / 1000);
     if (now - last >= 33) { last = now; cur.dibuja((now - T0) / 1000, dt); }   // ~30 fps
-    raf = requestAnimationFrame(bucle);
+    if (!window.__noBgAnim) raf = requestAnimationFrame(bucle);
   }
+  window.__bgResume = function () { if (cur && cur.fx && !REDUCE && !window.__noBgAnim && !raf) raf = requestAnimationFrame(bucle); };
   function elige(id) {
     fm(); var f = fondoDe(id); if (meta.fondos.indexOf(f.id) < 0) f = FONDOS_MENU[0];
     meta.fondoSel = f.id; saveMeta();
@@ -13760,7 +13763,7 @@ var FONDO_FX = {
     m.listo.then(function () {
       setTimeout(function () {
         cur = m; last = 0; m.dibuja((performance.now() - T0) / 1000, 0); host.style.opacity = '1';
-        if (m.fx && !REDUCE && !raf) raf = requestAnimationFrame(bucle);
+        if (m.fx && !REDUCE && !window.__noBgAnim && !raf) raf = requestAnimationFrame(bucle);
       }, cur ? 250 : 0);
     });
   }
@@ -13922,7 +13925,7 @@ try{
 /* Apoyar y Parches: botón dorado y ventanas con el marco de píxel del resto; oro con moneda de píxel */
 (function () {
   var BOX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAfElEQVR42mNkYGBgOLki6j8DGcA8YhkjI0yzc+qWN6Ro3jvbR4SBgYGBCVkzTJAYjTA9LMgS6gZmDHtnM4gsWnYIq+a4KDsGmBoMA5xTt7xBlsAGFu7fwoCuhglZAS6b8alhYqAQjBqAZkBclB1BDehqBj4hUZyZGCnNzgDPLVElrK41WwAAAABJRU5ErkJggg==", ON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2SoQ3DMBRE31U2LzTIAJ0mi4RU3SGkyCAZoyQjFHYCDxAQaB7wS2LWWDLtw3e6r7svDnKKRoXr7S4AAdi+mXzQ0Hc/TfOyqmhcTtHkg2zfThMmMPmgnKI5gKHv7PN61C6ipF9o5B8MrvQM7+pw87JqfGLNw6n1Nb6tzDozaOLgZwAAAABJRU5ErkJggg==", COIN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAPklEQVR42mNkYGBgyPaT+c8ABVM3PWFkyfaT+R8XZcegbmAGFe75z8SABG5eOMXAwMDAwIQuwMDAwMCIzUwAxOMR05dtKZoAAAAASUVORK5CYII=", G = '#c9a85a', INK = '#e8e1d0';
-  window.__PXBOX = BOX;
+  window.__PXBOX = BOX; window.__PXON = ON;
   var css = [
     '.abtn.tbtn.gold{border-image-source:url("' + ON + '")!important;color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important}',
     '.abtn.tbtn.gold:hover{filter:brightness(1.1);color:#0c0d0e!important}',
@@ -14069,6 +14072,194 @@ try{
   var wrap = function () { runId++; };
   try { var o = startRun; startRun = function () { wrap(); return o.apply(this, arguments); }; } catch (e) {}
 })();
+
+/* ==========================================================================
+   AJUSTES: idioma, sonido y accesibilidad/comodidad en una sola ventana.
+   Se abre desde el menú inicial y desde la pausa. Se guarda en este dispositivo (cripta_ajustes).
+   ========================================================================== */
+(function () {
+  var TR = {
+    en: {'Ajustes': 'Settings', 'Idioma': 'Language', 'Sonido': 'Sound', 'Accesibilidad y comodidad': 'Accessibility and comfort',
+      'Sacudida de pantalla': 'Screen shake', 'Reducir destellos de pantalla': 'Reduce screen flashes', 'Números de daño': 'Damage numbers',
+      'Normales': 'Normal', 'Grandes': 'Large', 'Muy grandes': 'Extra large', 'Ocultos': 'Hidden', 'Fondo del menú animado': 'Animated menu background',
+      'Teclas de movimiento': 'Movement keys', 'Arriba': 'Up', 'Abajo': 'Down', 'Izquierda': 'Left', 'Derecha': 'Right', 'Restablecer': 'Reset',
+      'Pulsa una tecla…': 'Press a key…', 'Sí': 'Yes', 'No': 'No', 'Cerrar': 'Close', 'Esa tecla está reservada.': 'That key is reserved.',
+      'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': 'Dims the full-screen flashes and flickers.',
+      'Se guarda en este dispositivo.': 'Saved on this device.'},
+    pt: {'Ajustes': 'Ajustes', 'Idioma': 'Idioma', 'Sonido': 'Som', 'Accesibilidad y comodidad': 'Acessibilidade e conforto',
+      'Sacudida de pantalla': 'Tremor de tela', 'Reducir destellos de pantalla': 'Reduzir clarões de tela', 'Números de daño': 'Números de dano',
+      'Normales': 'Normais', 'Grandes': 'Grandes', 'Muy grandes': 'Muito grandes', 'Ocultos': 'Ocultos', 'Fondo del menú animado': 'Fundo do menu animado',
+      'Teclas de movimiento': 'Teclas de movimento', 'Arriba': 'Cima', 'Abajo': 'Baixo', 'Izquierda': 'Esquerda', 'Derecha': 'Direita', 'Restablecer': 'Restaurar',
+      'Pulsa una tecla…': 'Pressione uma tecla…', 'Sí': 'Sim', 'No': 'Não', 'Cerrar': 'Fechar', 'Esa tecla está reservada.': 'Essa tecla é reservada.',
+      'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': 'Suaviza os clarões e piscadas de tela cheia.',
+      'Se guarda en este dispositivo.': 'Salvo neste dispositivo.'},
+    fr: {'Ajustes': 'Paramètres', 'Idioma': 'Langue', 'Sonido': 'Son', 'Accesibilidad y comodidad': 'Accessibilité et confort',
+      'Sacudida de pantalla': "Secousses de l'écran", 'Reducir destellos de pantalla': "Réduire les flashs d'écran", 'Números de daño': 'Nombres de dégâts',
+      'Normales': 'Normaux', 'Grandes': 'Grands', 'Muy grandes': 'Très grands', 'Ocultos': 'Masqués', 'Fondo del menú animado': 'Fond du menu animé',
+      'Teclas de movimiento': 'Touches de déplacement', 'Arriba': 'Haut', 'Abajo': 'Bas', 'Izquierda': 'Gauche', 'Derecha': 'Droite', 'Restablecer': 'Réinitialiser',
+      'Pulsa una tecla…': 'Appuie sur une touche…', 'Sí': 'Oui', 'No': 'Non', 'Cerrar': 'Fermer', 'Esa tecla está reservada.': 'Cette touche est réservée.',
+      'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': "Atténue les flashs et scintillements plein écran.",
+      'Se guarda en este dispositivo.': 'Enregistré sur cet appareil.'},
+    ru: {'Ajustes': 'Настройки', 'Idioma': 'Язык', 'Sonido': 'Звук', 'Accesibilidad y comodidad': 'Доступность и удобство',
+      'Sacudida de pantalla': 'Тряска экрана', 'Reducir destellos de pantalla': 'Уменьшить вспышки на экране', 'Números de daño': 'Числа урона',
+      'Normales': 'Обычные', 'Grandes': 'Большие', 'Muy grandes': 'Огромные', 'Ocultos': 'Скрыты', 'Fondo del menú animado': 'Анимированный фон меню',
+      'Teclas de movimiento': 'Клавиши движения', 'Arriba': 'Вверх', 'Abajo': 'Вниз', 'Izquierda': 'Влево', 'Derecha': 'Вправо', 'Restablecer': 'Сбросить',
+      'Pulsa una tecla…': 'Нажмите клавишу…', 'Sí': 'Да', 'No': 'Нет', 'Cerrar': 'Закрыть', 'Esa tecla está reservada.': 'Эта клавиша зарезервирована.',
+      'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': 'Приглушает вспышки и мерцание на весь экран.',
+      'Se guarda en este dispositivo.': 'Сохраняется на этом устройстве.'},
+    ja: {'Ajustes': '設定', 'Idioma': '言語', 'Sonido': 'サウンド', 'Accesibilidad y comodidad': 'アクセシビリティと快適さ',
+      'Sacudida de pantalla': '画面の揺れ', 'Reducir destellos de pantalla': '画面フラッシュを減らす', 'Números de daño': 'ダメージ数字',
+      'Normales': '標準', 'Grandes': '大', 'Muy grandes': '特大', 'Ocultos': '非表示', 'Fondo del menú animado': 'メニュー背景のアニメ',
+      'Teclas de movimiento': '移動キー', 'Arriba': '上', 'Abajo': '下', 'Izquierda': '左', 'Derecha': '右', 'Restablecer': 'リセット',
+      'Pulsa una tecla…': 'キーを押してください…', 'Sí': 'はい', 'No': 'いいえ', 'Cerrar': '閉じる', 'Esa tecla está reservada.': 'このキーは予約されています。',
+      'Quita los fogonazos y parpadeos que ocupan toda la pantalla.': '全画面のフラッシュや点滅を弱めます。',
+      'Se guarda en este dispositivo.': 'この端末に保存されます。'}
+  };
+  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); } catch (e) {}
+  function tr(s) { try { return typeof trCore === 'function' && typeof LANG !== 'undefined' && LANG !== 'es' ? trCore(s) : s; } catch (e) { return s; } }
+
+  /* ---------- estado guardado ---------- */
+  var DEF = {shake: 1, flash: 0, dmg: 'n', bg: 1, keys: {up: 'w', down: 's', left: 'a', right: 'd'}};
+  var A = JSON.parse(JSON.stringify(DEF));
+  try { var sv = JSON.parse(localStorage.getItem('cripta_ajustes') || 'null'); if (sv) { ['shake', 'flash', 'bg'].forEach(function (k) { if (sv[k] !== undefined) A[k] = sv[k] ? 1 : 0; }); if (/^(n|g|x|o)$/.test(sv.dmg)) A.dmg = sv.dmg; if (sv.keys) ['up', 'down', 'left', 'right'].forEach(function (k) { if (typeof sv.keys[k] === 'string' && sv.keys[k].length) A.keys[k] = sv.keys[k]; }); } } catch (e) {}
+  function save() { try { localStorage.setItem('cripta_ajustes', JSON.stringify(A)); } catch (e) {} }
+  window.__noBgAnim = !A.bg;
+
+  /* ---------- efectos: destellos, números de daño, sacudida ---------- */
+  var fr = CanvasRenderingContext2D.prototype.fillRect;
+  function lum(c) {
+    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c), r, g, b;
+    if (m) { var h = m[1]; if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2]; r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); return .3 * r + .59 * g + .11 * b; }
+    m = /^rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/i.exec(c); if (m) return .3 * m[1] + .59 * m[2] + .11 * m[3];
+    return -1;
+  }
+  CanvasRenderingContext2D.prototype.fillRect = function (x, y, w, h) {
+    if (A.flash && typeof this.fillStyle === 'string') {
+      var cv0 = this.canvas, cw = cv0.clientWidth || cv0.width, ch = cv0.clientHeight || cv0.height;
+      if (w >= cw * .8 && h >= ch * .8) {
+        var L = lum(this.fillStyle);
+        if (L > 150 || (L >= 0 && L < 45 && /rgba/i.test(this.fillStyle))) { var ga = this.globalAlpha; this.globalAlpha = ga * (L > 150 ? .3 : .5); fr.call(this, x, y, w, h); this.globalAlpha = ga; return; }
+      }
+    }
+    return fr.call(this, x, y, w, h);
+  };
+  var DMGC = {'#f1e7d0': 1, '#ffd25a': 1, '#ff3b3b': 1, '#b266ff': 1};
+  function hook() {
+    try {
+      if (typeof addText === 'function' && !addText.__aj) {
+        var o = addText; addText = function (x, y, s, col, size) {
+          if (DMGC[col] && /^-?\d+!?$/.test(String(s))) { if (A.dmg === 'o') return; var k = A.dmg === 'g' ? 1.35 : A.dmg === 'x' ? 1.8 : 1; size = (size || 13) * k; }
+          return o.call(this, x, y, s, col, size);
+        }; addText.__aj = 1;
+      }
+      if (typeof qkShake === 'function' && !qkShake.__aj) { var q = qkShake; qkShake = function () { return A.shake ? q.apply(this, arguments) : 0; }; qkShake.__aj = 1; }
+    } catch (e) {}
+  }
+  hook(); window.addEventListener('load', hook); setTimeout(hook, 1500);
+
+  /* ---------- teclas de movimiento ---------- */
+  var RES = {'p': 1, 'c': 1, 'escape': 1, '1': 1, '2': 1, '3': 1, ' ': 1, 'enter': 1, 'tab': 1};
+  var CAN = {up: 'w', down: 's', left: 'a', right: 'd'};
+  function remapped() { return ['up', 'down', 'left', 'right'].some(function (k) { return A.keys[k] !== CAN[k]; }); }
+  function onKey(e, down) {
+    if (!remapped()) return;
+    var k = String(e.key).toLowerCase(), act = null;
+    ['up', 'down', 'left', 'right'].forEach(function (n) { if (A.keys[n] === k) act = n; });
+    if (act) { try { keys[CAN[act]] = down; } catch (x) {} e.stopImmediatePropagation(); if (down) e.preventDefault(); return; }
+    var isDefault = false; ['up', 'down', 'left', 'right'].forEach(function (n) { if (CAN[n] === k && A.keys[n] !== k) isDefault = true; });
+    if (isDefault) e.stopImmediatePropagation();
+  }
+  window.addEventListener('keydown', function (e) { if (listening) return; onKey(e, true); }, true);
+  window.addEventListener('keyup', function (e) { if (listening) return; onKey(e, false); }, true);
+
+  /* ---------- ventana ---------- */
+  var BOX = window.__PXBOX, ON = window.__PXON, G = '#c9a85a', INK = '#e8e1d0';
+  var css = [
+    '#setOv{z-index:75}',
+    '#setOv .mbox{width:min(640px,100%);max-height:calc(100vh - 32px);overflow:auto;scrollbar-width:thin}',
+    '#setOv .sh{display:flex;align-items:center;gap:10px;margin:16px 0 8px;font-family:var(--display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:' + G + ';text-shadow:1px 1px 0 #000}',
+    '#setOv .sh:first-of-type{margin-top:4px}',
+    '#setOv .sh::after{content:"";flex:1;height:4px;background:repeating-linear-gradient(90deg,#6b4e1c 0 4px,transparent 4px 8px)}',
+    '#setOv .sr{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin:8px 0}',
+    '#setOv .sl{font-size:14px;color:' + INK + ';flex:1 1 200px}',
+    '#setOv .sl small{display:block;font-size:12px;color:rgba(232,225,208,.55);margin-top:2px}',
+    '#setOv .sg{display:flex;flex-wrap:wrap;gap:6px}',
+    '#setOv .sg .btn{padding:3px 10px!important;font-size:12px!important;min-width:0}',
+    '#setOv .sg .btn[aria-pressed="true"]{border-image-source:url("' + ON + '")!important;color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important}',
+    '#setOv .ks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%}',
+    '#setOv .ks .btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px!important;font-size:11px!important}',
+    '#setOv .ks .btn b{font-size:15px;color:#f0d890;letter-spacing:.1em}',
+    '#setOv .ks .btn.ls{border-image-source:url("' + ON + '")!important;color:#0c0d0e!important}',
+    '#setOv .ks .btn.ls b{color:#0c0d0e}',
+    '#setOv .smsg{min-height:16px;font-size:12px;color:#f09a90;width:100%}',
+    '#setOv .arow,#setOv .ap{margin:4px 0}',
+    '#setOv label{display:block;font-size:13px;color:' + INK + ';margin-top:6px}',
+    '#setOv input[type=range]{width:100%;accent-color:' + G + '}',
+    '#setOv .foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px}',
+    '#setOv .foot span{font-size:12px;color:rgba(232,225,208,.5)}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'ajustesPx'; st.textContent = css; document.head.appendChild(st);
+
+  var ov = document.createElement('div'); ov.className = 'ov center mdl'; ov.id = 'setOv'; ov.hidden = true;
+  ov.innerHTML = '<div class="mbox" role="dialog" aria-modal="true" aria-labelledby="setH"><h2 id="setH">Ajustes</h2>' +
+    '<div class="sh">Idioma</div><div class="sg" id="setLang"></div>' +
+    '<div class="sh">Sonido</div><div id="setSnd"></div>' +
+    '<div class="sh">Accesibilidad y comodidad</div>' +
+    '<div class="sr"><div class="sl">Sacudida de pantalla</div><div class="sg" data-o="shake"><button class="btn alt" type="button" data-v="1">Sí</button><button class="btn alt" type="button" data-v="0">No</button></div></div>' +
+    '<div class="sr"><div class="sl">Reducir destellos de pantalla<small>Quita los fogonazos y parpadeos que ocupan toda la pantalla.</small></div><div class="sg" data-o="flash"><button class="btn alt" type="button" data-v="1">Sí</button><button class="btn alt" type="button" data-v="0">No</button></div></div>' +
+    '<div class="sr"><div class="sl">Números de daño</div><div class="sg" data-o="dmg"><button class="btn alt" type="button" data-v="n">Normales</button><button class="btn alt" type="button" data-v="g">Grandes</button><button class="btn alt" type="button" data-v="x">Muy grandes</button><button class="btn alt" type="button" data-v="o">Ocultos</button></div></div>' +
+    '<div class="sr"><div class="sl">Fondo del menú animado</div><div class="sg" data-o="bg"><button class="btn alt" type="button" data-v="1">Sí</button><button class="btn alt" type="button" data-v="0">No</button></div></div>' +
+    '<div class="sr"><div class="sl">Teclas de movimiento</div><div class="sg"><button class="btn alt" type="button" id="setKReset">Restablecer</button></div><div class="ks" id="setKeys"></div><div class="smsg" id="setMsg"></div></div>' +
+    '<div class="foot"><span>Se guarda en este dispositivo.</span><button class="btn alt" type="button" id="setClose">Cerrar</button></div></div>';
+  document.body.appendChild(ov);
+
+  /* mover aquí los controles de sonido (conservan sus eventos) */
+  var snd = document.getElementById('setSnd'), ap = document.getElementById('audioPanel');
+  if (ap && snd) while (ap.firstChild) snd.appendChild(ap.firstChild);
+
+  var langBox = document.getElementById('setLang');
+  function paintLang() { Array.prototype.forEach.call(langBox.children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-l') === LANG)); }); }
+  try { LANGS.forEach(function (a) { var b = document.createElement('button'); b.type = 'button'; b.className = 'btn alt'; b.setAttribute('data-l', a[0]); b.textContent = a[1]; langBox.appendChild(b); }); } catch (e) {}
+  langBox.addEventListener('click', function (e) { var b = e.target.closest('[data-l]'); if (!b) return; try { i18nSet(b.getAttribute('data-l')); } catch (x) {} paintLang(); paintKeys(); });
+
+  var KN = [['up', 'Arriba'], ['down', 'Abajo'], ['left', 'Izquierda'], ['right', 'Derecha']], listening = null, kBox = document.getElementById('setKeys'), msg = document.getElementById('setMsg');
+  function kName(k) { return ({arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→', ' ': 'SPACE'})[k] || k.toUpperCase(); }
+  function paintKeys() {
+    kBox.innerHTML = KN.map(function (n) { return '<button class="btn alt' + (listening === n[0] ? ' ls' : '') + '" type="button" data-k="' + n[0] + '"><span>' + tr(n[1]) + '</span><b>' + (listening === n[0] ? '…' : kName(A.keys[n[0]])) + '</b></button>'; }).join('');
+  }
+  kBox.addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (!b) return; listening = b.getAttribute('data-k'); msg.textContent = tr('Pulsa una tecla…'); paintKeys(); });
+  document.getElementById('setKReset').addEventListener('click', function () { A.keys = JSON.parse(JSON.stringify(DEF.keys)); listening = null; msg.textContent = ''; save(); paintKeys(); });
+  window.addEventListener('keydown', function (e) {
+    if (ov.hidden) return;
+    var k = String(e.key).toLowerCase();
+    if (listening) {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (k === 'escape') { listening = null; msg.textContent = ''; paintKeys(); return; }
+      if (RES[k]) { msg.textContent = tr('Esa tecla está reservada.'); return; }
+      var used = null; KN.forEach(function (n) { if (A.keys[n[0]] === k && n[0] !== listening) used = n[0]; });
+      if (used) A.keys[used] = A.keys[listening];     /* intercambia con la que la tenía */
+      A.keys[listening] = k; listening = null; msg.textContent = ''; save(); paintKeys(); return;
+    }
+    if (k === 'escape' || k === 'p') { e.preventDefault(); e.stopImmediatePropagation(); closeSet(); }
+  }, true);
+
+  function paintOpts() {
+    Array.prototype.forEach.call(ov.querySelectorAll('[data-o]'), function (g) { var o = g.getAttribute('data-o'); Array.prototype.forEach.call(g.children, function (b) { b.setAttribute('aria-pressed', String(String(A[o]) === b.getAttribute('data-v'))); }); });
+  }
+  ov.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-o] .btn'); if (b) { var o = b.parentNode.getAttribute('data-o'), v = b.getAttribute('data-v'); A[o] = (o === 'dmg') ? v : (v === '1' ? 1 : 0); if (o === 'bg') { window.__noBgAnim = !A.bg; if (A.bg && window.__bgResume) window.__bgResume(); } save(); paintOpts(); return; }
+    if (e.target === ov) closeSet();
+  });
+  document.getElementById('setClose').addEventListener('click', closeSet);
+  function openSet() { listening = null; msg.textContent = ''; paintLang(); paintKeys(); paintOpts(); ov.hidden = false; try { var v = document.getElementById('vol'); } catch (e) {} setTimeout(function () { var c = document.getElementById('setClose'); if (c) c.focus(); }, 30); }
+  function closeSet() { listening = null; ov.hidden = true; }
+  window.abrirAjustes = openSet;
+  document.getElementById('setBtn').addEventListener('click', openSet);
+  /* botón en la pausa */
+  var pb = document.querySelector('#pauseOv .btns');
+  if (pb) { var b2 = document.createElement('button'); b2.className = 'btn alt'; b2.type = 'button'; b2.id = 'setPauseBtn'; b2.textContent = 'Ajustes'; b2.addEventListener('click', openSet); pb.insertBefore(b2, pb.children[1] || null); }
+})();
+
 
 
 /* ==========================================================================
