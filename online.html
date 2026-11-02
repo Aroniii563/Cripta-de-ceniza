@@ -14259,6 +14259,422 @@ try{
   var pb = document.querySelector('#pauseOv .btns');
   if (pb) { var b2 = document.createElement('button'); b2.className = 'btn alt'; b2.type = 'button'; b2.id = 'setPauseBtn'; b2.textContent = 'Ajustes'; b2.addEventListener('click', openSet); pb.insertBefore(b2, pb.children[1] || null); }
 })();
+/* ==========================================================================
+   LOGROS · pestaña «Logros» dentro del Diario (junto a «Páginas»)
+   · Los logros que dependen de datos ya guardados (aspectos, mejoras, bajas, bestiario…) se calculan solos;
+     el resto se cuentan con contadores propios en meta.ach.
+   · Cada logro da oro una sola vez, al desbloquearse.
+   ========================================================================== */
+(function () {
+  var TROPHY = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAgklEQVR4nGNkgIKTK6L+M+AB5hHLGBkYGBhYsv1k4ArVDcwYGBgYGG5eOIWhAaaOiYGBgWHqpieMMAl0xYuWHWJAVsOEzxnYABOyddicgu4kRmROXJQdVsXIzmJEl0QPLVjo4AUnV0T9xxXM5Hkal5Ow2YKiATkScYmxoCuAhQguAADvqzWKEJSTWQAAAABJRU5ErkJggg==';
+  var LI = {es: 0, en: 1, pt: 2, fr: 3, ru: 4, ja: 5};
+  function li() { try { return LI[LANG] || 0; } catch (e) { return 0; } }
+  function T(a) { return a[li()] || a[0]; }
+  function trs(s) { try { return li() ? trStr(s) : s; } catch (e) { return s; } }
+  function fnum(n) { try { return n.toLocaleString(['es-ES', 'en-US', 'pt-PT', 'fr-FR', 'ru-RU', 'ja-JP'][li()]).replace(/ /g, ' '); } catch (e) { return String(n); } }
+  function fill(s, o) { return s.replace(/\{(\w+)\}/g, function (m, k) { return o[k] === undefined ? m : o[k]; }); }
+
+  /* ---------- textos de la interfaz ---------- */
+  var UI = {
+    pages: ['Páginas', 'Pages', 'Páginas', 'Pages', 'Страницы', 'ページ'],
+    ach: ['Logros', 'Achievements', 'Conquistas', 'Succès', 'Достижения', '実績'],
+    all: ['Todos', 'All', 'Todos', 'Tous', 'Все', 'すべて'],
+    done: ['Conseguidos', 'Unlocked', 'Conquistados', 'Obtenus', 'Получены', '達成済み'],
+    todo: ['Pendientes', 'Locked', 'Pendentes', 'À obtenir', 'Не получены', '未達成'],
+    count: ['Logros desbloqueados', 'Achievements unlocked', 'Conquistas desbloqueadas', 'Succès débloqués', 'Открыто достижений', '解除した実績'],
+    left: ['Te quedan {n} por desbloquear.', '{n} left to unlock.', 'Faltam {n} para desbloquear.', 'Il t\'en reste {n} à débloquer.', 'Осталось открыть: {n}.', '残り{n}個。'],
+    all100: ['¡Has desbloqueado todos los logros!', 'You have unlocked every achievement!', 'Você desbloqueou todas as conquistas!', 'Tu as débloqué tous les succès !', 'Вы открыли все достижения!', 'すべての実績を解除しました！'],
+    gold: ['Oro obtenido', 'Gold earned', 'Ouro obtido', 'Or obtenu', 'Получено золота', '獲得ゴールド'],
+    toast: ['Logro desbloqueado', 'Achievement unlocked', 'Conquista desbloqueada', 'Succès débloqué', 'Достижение открыто', '実績解除'],
+    toastN: ['{n} logros desbloqueados (+{g} de oro)', '{n} achievements unlocked (+{g} gold)', '{n} conquistas desbloqueadas (+{g} de ouro)', '{n} succès débloqués (+{g} d\'or)', 'Открыто достижений: {n} (+{g} золота)', '{n}個の実績を解除（+{g}ゴールド）'],
+    lead: ['Cada logro da oro una sola vez, cuando lo consigues.', 'Each achievement gives gold once, when you earn it.', 'Cada conquista dá ouro uma única vez, ao ser conquistada.', 'Chaque succès rapporte de l\'or une seule fois, quand tu l\'obtiens.', 'Каждое достижение один раз приносит золото.', '実績は達成時に一度だけゴールドがもらえます。']
+  };
+  var CATN = {
+    vic: ['Victorias', 'Victories', 'Vitórias', 'Victoires', 'Победы', '勝利'],
+    hero: ['Héroes', 'Heroes', 'Heróis', 'Héros', 'Герои', '英雄'],
+    hard: ['Dificultad', 'Hard mode', 'Dificuldade', 'Difficulté', 'Сложность', '難易度'],
+    esc: ['El Escritor', 'The Writer', 'O Escritor', 'L\'Écrivain', 'Писатель', 'ライター'],
+    kills: ['Bajas', 'Kills', 'Abates', 'Éliminations', 'Убийства', '撃破数'],
+    skins: ['Aspectos', 'Skins', 'Skins', 'Skins', 'Облики', 'スキン'],
+    upg: ['Mejoras', 'Upgrades', 'Melhorias', 'Améliorations', 'Улучшения', '強化'],
+    col: ['Colección', 'Collection', 'Coleção', 'Collection', 'Коллекция', 'コレクション'],
+    mis: ['Misiones y cooperativo', 'Missions and co-op', 'Missões e cooperativo', 'Missions et coop', 'Задания и кооператив', 'ミッションと協力'],
+    inf: ['Modo infinito', 'Infinite mode', 'Modo infinito', 'Mode infini', 'Бесконечный режим', '無限モード'],
+    boss: ['Jefes', 'Bosses', 'Chefes', 'Boss', 'Боссы', 'ボス'],
+    exp: ['Exploración', 'Exploration', 'Exploração', 'Exploration', 'Исследование', '探索'],
+    lvl: ['Nivel de partida', 'Run level', 'Nível na partida', 'Niveau en partie', 'Уровень в партии', 'ラン中のレベル']
+  };
+  /* plantillas de descripción */
+  var DT = {
+    win: ['Logra una victoria en {m}.', 'Win a run in {m}.', 'Vença uma partida em {m}.', 'Remporte une victoire dans {m}.', 'Одержите победу: {m}.', '{m}で勝利する。'],
+    towerfast: ['Pasa {m} en menos de cuatro minutos.', 'Clear {m} in under four minutes.', 'Conclua {m} em menos de quatro minutos.', 'Termine {m} en moins de quatre minutes.', 'Пройдите «{m}» менее чем за четыре минуты.', '{m}を4分未満でクリアする。'],
+    unlock: ['Desbloquea {a}.', 'Unlock {c}.', 'Desbloqueie {c}.', 'Débloque {c}.', 'Откройте персонажа: {c}.', '{c}を解放する。'],
+    hardwin: ['Consigue una victoria en {m} en difícil.', 'Win a run in {m} on Hard.', 'Vença uma partida em {m} no modo difícil.', 'Remporte une victoire dans {m} en difficile.', 'Одержите победу на сложном уровне: {m}.', '{m}をハードで勝利する。'],
+    ew: ['Vence al Escritor en difícil con {a}.', 'Defeat the Writer on Hard with {c}.', 'Derrote o Escritor no modo difícil com {c}.', 'Bats l\'Écrivain en difficile avec {c}.', '{c}: победите Писателя на сложном уровне.', '{c}でハードのライターを倒す。'],
+    ewr: ['Vence al Escritor en difícil con {a}, y sin runas activas.', 'Defeat the Writer on Hard with {c}, with no runes equipped.', 'Derrote o Escritor no modo difícil com {c}, sem runas ativas.', 'Bats l\'Écrivain en difficile avec {c}, sans aucune rune active.', '{c}: победите Писателя на сложном уровне без активных рун.', 'ルーンを装備せずに{c}でハードのライターを倒す。'],
+    ewa: ['Vence al Escritor en difícil con {a} y sin coger mejoras de aumento de área.', 'Defeat the Writer on Hard with {c} without picking any area-increase upgrades.', 'Derrote o Escritor no modo difícil com {c} sem escolher melhorias de aumento de área.', 'Bats l\'Écrivain en difficile avec {c} sans prendre d\'amélioration de zone.', '{c}: победите Писателя на сложном уровне, не беря улучшений области.', '範囲拡大の強化を取らずに{c}でハードのライターを倒す。'],
+    kills: ['Mata a {n} enemigos con {a}.', 'Defeat {n} enemies with {c}.', 'Derrote {n} inimigos com {c}.', 'Terrasse {n} ennemis avec {c}.', '{c}: победите {n} врагов.', '{c}で敵を{n}体倒す。'],
+    skins: ['Compra todos los aspectos {de}.', 'Buy every skin of {c}.', 'Compre todas as skins de {c}.', 'Achète tous les skins de {c}.', '{c}: купите все облики.', '{c}の全スキンを購入する。'],
+    upg: ['Adquiere todas las mejoras {de} al nivel máximo.', 'Buy every upgrade for {c} at max level.', 'Adquira todas as melhorias de {c} no nível máximo.', 'Acquiers toutes les améliorations de {c} au niveau max.', '{c}: приобретите все улучшения на максимальном уровне.', '{c}の全強化を最大レベルまで獲得する。'],
+    best: ['Completa el bestiario.', 'Complete the bestiary.', 'Complete o bestiário.', 'Complète le bestiaire.', 'Заполните бестиарий.', 'ベスティアリーを完成させる。'],
+    daily: ['Completa {n} misiones diarias.', 'Complete {n} daily missions.', 'Complete {n} missões diárias.', 'Accomplis {n} missions quotidiennes.', 'Выполните ежедневных заданий: {n}.', 'デイリーミッションを{n}回達成する。'],
+    coop1: ['Gana en una partida cooperativa online.', 'Win one online co-op run.', 'Vença uma partida cooperativa online.', 'Remporte une partie coopérative en ligne.', 'Победите в одной онлайн-кооперативной партии.', 'オンライン協力プレイで1回勝利する。'],
+    coopN: ['Gana en {n} partidas cooperativas online.', 'Win {n} online co-op runs.', 'Vença {n} partidas cooperativas online.', 'Remporte {n} parties coopératives en ligne.', 'Победите в онлайн-кооперативных партиях: {n}.', 'オンライン協力プレイで{n}回勝利する。'],
+    runes: ['Desbloquea todas las runas.', 'Unlock every rune.', 'Desbloqueie todas as runas.', 'Débloque toutes les runes.', 'Откройте все руны.', 'すべてのルーンを解放する。'],
+    inf: ['Sobrevive hasta el minuto {n} en infinito.', 'Survive until minute {n} in Infinite mode.', 'Sobreviva até o minuto {n} no modo infinito.', 'Survis jusqu\'à la minute {n} en mode infini.', 'Продержитесь до {n}-й минуты в бесконечном режиме.', '無限モードで{n}分まで生き延びる。'],
+    boss: ['Derrota {b}.', 'Defeat {b}.', 'Derrote {b}.', 'Vaincs {b}.', 'Победите: {b}.', '{b}を倒す。'],
+    chests: ['Abre un total de {n} cofres.', 'Open {n} chests in total.', 'Abra um total de {n} baús.', 'Ouvre un total de {n} coffres.', 'Откройте сундуков всего: {n}.', '宝箱を合計{n}個開ける。'],
+    pages: ['Consigue todas las páginas del diario.', 'Collect every journal page.', 'Reúna todas as páginas do diário.', 'Récupère toutes les pages du journal.', 'Соберите все страницы дневника.', '日記のページをすべて集める。'],
+    altars: ['Activa un total de {n} altares.', 'Activate {n} altars in total.', 'Ative um total de {n} altares.', 'Active un total de {n} autels.', 'Активируйте алтарей всего: {n}.', '祭壇を合計{n}回起動する。'],
+    gob: ['Mata a {n} goblins en infinito.', 'Kill {n} goblins in Infinite mode.', 'Mate {n} goblins no modo infinito.', 'Tue {n} gobelins en mode infini.', 'Убейте гоблинов в бесконечном режиме: {n}.', '無限モードでゴブリンを{n}体倒す。'],
+    bosstot: ['Derrota a un total de {n} jefes.', 'Defeat {n} bosses in total.', 'Derrote um total de {n} chefes.', 'Vaincs un total de {n} boss.', 'Победите боссов всего: {n}.', 'ボスを合計{n}体倒す。'],
+    lvl: ['Llega a nivel {n} en una partida.', 'Reach level {n} in a single run.', 'Chegue ao nível {n} em uma partida.', 'Atteins le niveau {n} en une partie.', 'Достигните {n}-го уровня за одну партию.', '1回の挑戦でレベル{n}に到達する。'],
+    fondos: ['Obtén todos los fondos de menú animados.', 'Unlock every animated menu background.', 'Obtenha todos os fundos de menu animados.', 'Obtiens tous les fonds de menu animés.', 'Откройте все анимированные фоны меню.', 'アニメ付きメニュー背景をすべて入手する。']
+  };
+  /* nombres: fijos, o plantillas con {c} (ES usa {de}) */
+  var NM = {
+    w0: ['Dueño de la cripta', 'Lord of the Crypt', 'Senhor da Cripta', 'Maître de la crypte', 'Владыка склепа', '地下墓所の主'],
+    w1: ['Rey de las profundidades', 'King of the Deep', 'Rei das Profundezas', 'Roi des profondeurs', 'Король глубин', '深淵の王'],
+    w2: ['Señor del fango', 'Lord of the Mire', 'Senhor do Lodo', 'Seigneur de la fange', 'Владыка топей', '泥沼の領主'],
+    w3: ['Templado en fuego', 'Forged in Fire', 'Forjado no Fogo', 'Trempé dans le feu', 'Закалённый огнём', '炎に鍛えられし者'],
+    w4: ['Luz en la penumbra', 'Light in the Gloom', 'Luz na Penumbra', 'Lumière dans la pénombre', 'Свет во мраке', '薄闇の光'],
+    w5: ['Punto final', 'The Final Word', 'Ponto Final', 'Point final', 'Последняя точка', '最後の句点'],
+    w6: ['Ascenso de ceniza', 'Ascent of Ash', 'Ascensão de Cinzas', 'Ascension de cendres', 'Восхождение пепла', '灰の昇天'],
+    tfast: ['Relámpago de ceniza', 'Ashen Lightning', 'Relâmpago de Cinzas', 'Éclair de cendres', 'Пепельная молния', '灰の稲妻'],
+    hu_druid: ['Voz de la espesura', 'Voice of the Thicket', 'Voz da Espessura', 'Voix du fourré', 'Голос чащи', '茂みの声'],
+    hu_necro: ['Eco de la tumba', 'Echo of the Tomb', 'Eco da Tumba', 'Écho du tombeau', 'Эхо гробницы', '墓のこだま'],
+    hu_angel: ['Luz caída', 'Fallen Light', 'Luz Caída', 'Lumière tombée', 'Павший свет', '堕ちた光'],
+    hu_monja: ['Velo y plegaria', 'Veil and Prayer', 'Véu e Prece', 'Voile et prière', 'Покров и молитва', 'ヴェールと祈り'],
+    hu_jinete: ['Galope esmeralda', 'Emerald Gallop', 'Galope Esmeralda', 'Galop émeraude', 'Изумрудный галоп', '翠玉の疾駆'],
+    hu_piro: ['Brasa viva', 'Living Ember', 'Brasa Viva', 'Braise vive', 'Живой уголёк', '生きた燠火'],
+    h0: ['Cripta sin piedad', 'Crypt Without Mercy', 'Cripta Sem Piedade', 'Crypte sans pitié', 'Склеп без пощады', '無慈悲の地下墓所'],
+    h1: ['Abismo sin fondo', 'Bottomless Abyss', 'Abismo Sem Fundo', 'Abîme sans fond', 'Бездонная бездна', '底なしの深淵'],
+    h2: ['Pantano sin tregua', 'Mire Without Truce', 'Pântano Sem Trégua', 'Marais sans trêve', 'Топь без передышки', '休戦なき沼'],
+    h3: ['Forja al rojo vivo', 'White-Hot Forge', 'Forja em Brasa', 'Forge au rouge vif', 'Раскалённая кузня', '灼熱の鍛冶場'],
+    h4: ['Santuario implacable', 'Relentless Sanctuary', 'Santuário Implacável', 'Sanctuaire implacable', 'Неумолимое святилище', '容赦なき聖域'],
+    h5: ['Biblioteca maldita', 'Accursed Library', 'Biblioteca Maldita', 'Bibliothèque maudite', 'Проклятая библиотека', '呪われた書庫'],
+    ew: ['Pluma quebrada {de}', '{c}: Broken Quill', '{c}: Pena Quebrada', '{c} : plume brisée', '{c}: сломанное перо', '{c}：折れた羽根ペン'],
+    ewr: ['Fe sin símbolos', 'Faith Without Symbols', 'Fé Sem Símbolos', 'Foi sans symboles', 'Вера без символов', '印なき信仰'],
+    ewr2: ['Jinete sin ataduras', 'Unbound Rider', 'Cavaleira Sem Amarras', 'Cavalière sans entraves', 'Всадница без пут', '縛られぬ騎手'],
+    ewa: ['Raíz y garra', 'Root and Claw', 'Raiz e Garra', 'Racine et griffe', 'Корень и коготь', '根と爪'],
+    kills: ['Matanza {de}', '{c}: Massacre', '{c}: Massacre', '{c} : massacre', '{c}: бойня', '{c}：大虐殺'],
+    skins: ['Guardarropa {de}', '{c}: Wardrobe', '{c}: Guarda-roupa', '{c} : garde-robe', '{c}: гардероб', '{c}：衣装棚'],
+    upg: ['Maestría {de}', '{c}: Mastery', '{c}: Maestria', '{c} : maîtrise', '{c}: мастерство', '{c}：極意'],
+    best: ['Cronista de monstruos', 'Chronicler of Monsters', 'Cronista de Monstros', 'Chroniqueur de monstres', 'Летописец чудовищ', '怪物の記録者'],
+    pages: ['Archivista', 'Archivist', 'Arquivista', 'Archiviste', 'Архивариус', '記録保管官'],
+    runes: ['Señor de las runas', 'Master of Runes', 'Mestre das Runas', 'Maître des runes', 'Властелин рун', 'ルーンの支配者'],
+    fondos: ['Coleccionista de paisajes', 'Landscape Collector', 'Colecionador de Paisagens', 'Collectionneur de paysages', 'Собиратель пейзажей', '風景蒐集家'],
+    d10: ['Constante', 'Steadfast', 'Constante', 'Constant', 'Стойкий', '不屈'],
+    d25: ['Disciplinado', 'Disciplined', 'Disciplinado', 'Discipliné', 'Дисциплинированный', '規律の人'],
+    d50: ['Incansable', 'Tireless', 'Incansável', 'Infatigable', 'Неутомимый', '不眠不休'],
+    c1: ['Hermanos de armas', 'Brothers in Arms', 'Irmãos de Armas', 'Frères d\'armes', 'Братья по оружию', '戦友'],
+    c5: ['Cordada de hierro', 'Iron Fellowship', 'Cordada de Ferro', 'Cordée de fer', 'Железная связка', '鉄の絆'],
+    c10: ['Leyenda compartida', 'Shared Legend', 'Lenda Compartilhada', 'Légende partagée', 'Общая легенда', '分かち合う伝説'],
+    i30: ['Más allá del límite', 'Beyond the Limit', 'Além do Limite', 'Au-delà de la limite', 'За гранью', '限界の先へ'],
+    i40: ['Sin horizonte', 'No Horizon', 'Sem Horizonte', 'Sans horizon', 'Без горизонта', '地平なき道'],
+    i60: ['Eterno', 'Eternal', 'Eterno', 'Éternel', 'Вечный', '永遠なる者'],
+    g10: ['Ladrón de ladrones', 'Thief of Thieves', 'Ladrão de Ladrões', 'Voleur de voleurs', 'Вор воров', '盗人の盗人'],
+    g25: ['Cazagoblins', 'Goblin Hunter', 'Caça-goblins', 'Chasseur de gobelins', 'Охотник на гоблинов', 'ゴブリンハンター'],
+    g50: ['Terror del tesoro', 'Terror of the Hoard', 'Terror do Tesouro', 'Terreur du trésor', 'Гроза сокровищ', '宝の恐怖'],
+    b_morvayne: ['Cazador de condes', 'Count Hunter', 'Caçador de Condes', 'Chasseur de comtes', 'Охотник на графов', '伯爵狩り'],
+    b_noxarion: ['Noxarion enmudece', 'Noxarion Falls Silent', 'Noxarion Silenciado', 'Noxarion réduit au silence', 'Ноксарион умолк', '沈黙のノクサリオン'],
+    b_vael: ['Regicida', 'Regicide', 'Regicida', 'Régicide', 'Цареубийца', '王殺し'],
+    b_valeria: ['Luna rota', 'Broken Moon', 'Lua Quebrada', 'Lune brisée', 'Разбитая луна', '砕けた月'],
+    b_estrella_fugaz: ['Pide un deseo', 'Make a Wish', 'Faça um Pedido', 'Fais un vœu', 'Загадай желание', '願い事をひとつ'],
+    bt100: ['Matajefes', 'Bossbreaker', 'Mata-chefes', 'Tueur de boss', 'Убийца боссов', 'ボスブレイカー'],
+    bt250: ['Azote de tiranos', 'Scourge of Tyrants', 'Flagelo dos Tiranos', 'Fléau des tyrans', 'Бич тиранов', '暴君の天敵'],
+    bt500: ['Verdugo supremo', 'Supreme Executioner', 'Carrasco Supremo', 'Bourreau suprême', 'Верховный палач', '至高の処刑人'],
+    ch100: ['Saqueador', 'Looter', 'Saqueador', 'Pilleur', 'Мародёр', '略奪者'],
+    ch250: ['Cazatesoros', 'Treasure Hunter', 'Caçador de Tesouros', 'Chasseur de trésors', 'Охотник за сокровищами', 'トレジャーハンター'],
+    ch500: ['Rey del botín', 'King of Loot', 'Rei do Espólio', 'Roi du butin', 'Король добычи', '戦利品の王'],
+    al20: ['Devoto', 'Devotee', 'Devoto', 'Dévot', 'Фанатик', '信徒'],
+    al40: ['Hereje', 'Heretic', 'Herege', 'Hérétique', 'Еретик', '異端者'],
+    al60: ['Sumo sacerdote', 'High Priest', 'Sumo Sacerdote', 'Grand prêtre', 'Верховный жрец', '大司祭'],
+    l50: ['Veterano', 'Veteran', 'Veterano', 'Vétéran', 'Ветеран', '古参兵'],
+    l100: ['Gran maestro', 'Grand Master', 'Grão-Mestre', 'Grand maître', 'Великий мастер', '大達人'],
+    l150: ['Ascendido', 'Ascended', 'Ascendido', 'Ascendé', 'Вознесённый', '昇華者']
+  };
+  var CL = ['sorc', 'barb', 'rogue', 'pal', 'druid', 'necro', 'amazona', 'monja', 'angel', 'jinete', 'piro'];
+  var ART = {sorc: 'el hechicero', barb: 'el bárbaro', rogue: 'el pícaro', pal: 'el paladín', druid: 'el druida', necro: 'el nigromante', amazona: 'la amazona', monja: 'la monja', angel: 'el ángel', jinete: 'la jinete', piro: 'la piromántica'};
+  var BNAME = {morvayne: ['al Conde Morvayne', 'Conde Morvayne'], noxarion: ['a Noxarion', 'Noxarion'], vael: ['a Vael, rey demonio', 'Vael, rey demonio'], valeria: ['a Valeria', 'Valeria'], estrella_fugaz: ['a Estrella fugaz', 'Estrella fugaz']};
+  var MAPN = ['Cripta gris', 'Abismo azul', 'Pantano verde', 'Forja roja', 'Santuario púrpura', 'Librería sepia'];
+  var AREA = {'Aura ampliada': 1, 'Zona ampliada': 1, 'Territorio': 1, 'Estallido ampliado': 1};
+
+  /* ---------- estado guardado ---------- */
+  function A() {
+    var a = meta.ach; if (!a) a = meta.ach = {};
+    if (!a.d) a.d = {}; if (!a.c) a.c = {}; if (!a.hw) a.hw = {}; if (!a.ew) a.ew = {}; if (!a.win) a.win = {}; if (!a.ex) a.ex = {}; if (!a.bk) a.bk = {};
+    return a;
+  }
+  function cn(k) { return A().c[k] || 0; }
+  function bump(k, n) { var c = A().c; c[k] = (c[k] || 0) + (n || 1); }
+  function cmax(k, v) { var c = A().c; if (v > (c[k] || 0)) c[k] = v; }
+  function clsName(k) { try { return CLASSES[k].name; } catch (e) { return k; } }
+  function ownHero(k) { try { return ownsHero(k); } catch (e) { return false; } }
+
+  /* ---------- lista de logros ---------- */
+  var L = [];
+  function add(id, cat, gold, o) { o.id = id; o.cat = cat; o.gold = gold; L.push(o); }
+  var cap = function () { return 10 + 2 * (MAPN.length - 1); };
+  function skinsOf(k) { return SKINCAT.filter(function (q) { return q.cls === k && q.cost > 0; }); }
+  function bestProg() {
+    var t = 0, s = 0;
+    BEST.forEach(function (b) { if (b.zone < 5) { t++; if (bestKills(b.zone + ':' + b.type)) s++; } });
+    BOSS_ENTRIES.forEach(function (b) { t++; if (bestKills(bossKey(b))) s++; });
+    return [s, t];
+  }
+  function runesProg() { var n = 0; try { n = Object.keys((meta.runes && meta.runes.seen) || {}).length; } catch (e) {} return [Math.min(24, n), 24]; }
+  function fondosProg() {
+    var f = (meta.fondos || []), n = 0; FONDOS_MENU.forEach(function (x) { if (f.indexOf(x.id) >= 0) n++; });
+    return [n, FONDOS_MENU.length];
+  }
+  function upgProg(k) {
+    var lv = meta.lv[k] || {}, tot = 0, mx = cap() * META.length;
+    META.forEach(function (m) { tot += Math.min(cap(), lv[m.k] || 0); });
+    return [tot, mx];
+  }
+  function mapWon(i) { return !!(meta.done && meta.done[i]) || !!A().win[i]; }
+  function towerWon() { var r = []; try { r = loadRankTw(); } catch (e) {} return !!meta.torreWin || r.length > 0 || !!A().win.tower; }
+
+  /* victorias */
+  MAPN.forEach(function (m, i) { add('w' + i, 'vic', 500 + i * 150, {nm: 'w' + i, dt: 'win', p: {m: m}, ok: function () { return mapWon(i); }}); });
+  add('w6', 'vic', 1500, {nm: 'w6', dt: 'win', p: {m: 'Torre de ceniza'}, ok: towerWon});
+  add('tfast', 'vic', 3000, {nm: 'tfast', dt: 'towerfast', p: {m: 'Torre de ceniza'}, ok: function () { return !!A().ex.tfast; }});
+  /* héroes */
+  ['druid', 'necro', 'angel', 'monja', 'jinete', 'piro'].forEach(function (k) {
+    add('hu_' + k, 'hero', 500, {nm: 'hu_' + k, dt: 'unlock', cl: k, ok: function () { return ownHero(k); }});
+  });
+  /* difícil */
+  MAPN.forEach(function (m, i) { add('h' + i, 'hard', 1500 + i * 300, {nm: 'h' + i, dt: 'hardwin', p: {m: m}, ok: function () { return !!A().hw[i]; }}); });
+  /* El Escritor en difícil */
+  CL.forEach(function (k) { add('ew_' + k, 'esc', 2500, {nm: 'ew', dt: 'ew', cl: k, ok: function () { return !!A().ew[k]; }}); });
+  add('ex_monja', 'esc', 4000, {nm: 'ewr', dt: 'ewr', cl: 'monja', ok: function () { return !!A().ex.monja; }});
+  add('ex_jinete', 'esc', 4000, {nm: 'ewr2', dt: 'ewr', cl: 'jinete', ok: function () { return !!A().ex.jinete; }});
+  add('ex_druid', 'esc', 4000, {nm: 'ewa', dt: 'ewa', cl: 'druid', ok: function () { return !!A().ex.druid; }});
+  /* bajas, aspectos y mejoras por héroe */
+  CL.forEach(function (k) {
+    add('k_' + k, 'kills', 3000, {nm: 'kills', dt: 'kills', cl: k, p: {n: fnum(500000)}, prog: function () { var c = meta.stats.cls[k]; return [Math.min(500000, (c && c.kills) || 0), 500000]; }, ok: function () { var c = meta.stats.cls[k]; return !!c && c.kills >= 500000; }});
+  });
+  CL.forEach(function (k) {
+    add('s_' + k, 'skins', 3000, {nm: 'skins', dt: 'skins', cl: k, prog: function () { var l = skinsOf(k), n = 0; l.forEach(function (q) { if (ownsSkin(q.id)) n++; }); return [n, l.length]; }, ok: function () { var l = skinsOf(k); return l.length > 0 && l.every(function (q) { return ownsSkin(q.id); }); }});
+  });
+  CL.forEach(function (k) {
+    add('u_' + k, 'upg', 5000, {nm: 'upg', dt: 'upg', cl: k, prog: function () { return upgProg(k); }, ok: function () { var p = upgProg(k); return p[0] >= p[1]; }});
+  });
+  /* colección */
+  add('best', 'col', 3000, {nm: 'best', dt: 'best', prog: bestProg, ok: function () { var p = bestProg(); return p[1] > 0 && p[0] >= p[1]; }});
+  add('pages', 'col', 1000, {nm: 'pages', dt: 'pages', prog: function () { var n = 0; (meta.diary || []).forEach(function (x) { if (x) n++; }); return [n, DIARY_PAGES]; }, ok: function () { var n = 0; (meta.diary || []).forEach(function (x) { if (x) n++; }); return n >= DIARY_PAGES; }});
+  add('runes', 'col', 2500, {nm: 'runes', dt: 'runes', prog: runesProg, ok: function () { var p = runesProg(); return p[0] >= p[1]; }});
+  add('fondos', 'col', 1500, {nm: 'fondos', dt: 'fondos', prog: fondosProg, ok: function () { var p = fondosProg(); return p[0] >= p[1]; }});
+  /* misiones y cooperativo */
+  [[10, 500], [25, 1000], [50, 2500]].forEach(function (a) { add('d' + a[0], 'mis', a[1], {nm: 'd' + a[0], dt: 'daily', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('daily')), a[0]]; }, ok: function () { return cn('daily') >= a[0]; }}); });
+  [[1, 500], [5, 1500], [10, 3000]].forEach(function (a) { add('c' + a[0], 'mis', a[1], {nm: 'c' + a[0], dt: a[0] === 1 ? 'coop1' : 'coopN', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('coop')), a[0]]; }, ok: function () { return cn('coop') >= a[0]; }}); });
+  /* infinito */
+  [[30, 1500], [40, 2500], [60, 5000]].forEach(function (a) { add('i' + a[0], 'inf', a[1], {nm: 'i' + a[0], dt: 'inf', p: {n: a[0]}, prog: function () { return [Math.min(a[0] * 60, Math.floor(cn('inf'))), a[0] * 60]; }, time: 1, ok: function () { return cn('inf') >= a[0] * 60; }}); });
+  [[10, 500], [25, 1000], [50, 2500]].forEach(function (a) { add('g' + a[0], 'inf', a[1], {nm: 'g' + a[0], dt: 'gob', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('gob')), a[0]]; }, ok: function () { return cn('gob') >= a[0]; }}); });
+  /* jefes */
+  [['morvayne', 1500], ['noxarion', 1500], ['vael', 2000], ['valeria', 2000], ['estrella_fugaz', 2500]].forEach(function (a) {
+    add('b_' + a[0], 'boss', a[1], {nm: 'b_' + a[0], dt: 'boss', b: a[0], ok: function () { return !!A().bk[a[0]]; }});
+  });
+  [[100, 1000], [250, 2500], [500, 5000]].forEach(function (a) { add('bt' + a[0], 'boss', a[1], {nm: 'bt' + a[0], dt: 'bosstot', p: {n: a[0]}, prog: function () { return [Math.min(a[0], (meta.stats && meta.stats.bosses) || 0), a[0]]; }, ok: function () { return ((meta.stats && meta.stats.bosses) || 0) >= a[0]; }}); });
+  /* exploración */
+  [[100, 500], [250, 1000], [500, 2500]].forEach(function (a) { add('ch' + a[0], 'exp', a[1], {nm: 'ch' + a[0], dt: 'chests', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('chests')), a[0]]; }, ok: function () { return cn('chests') >= a[0]; }}); });
+  [[20, 500], [40, 1000], [60, 2500]].forEach(function (a) { add('al' + a[0], 'exp', a[1], {nm: 'al' + a[0], dt: 'altars', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('altars')), a[0]]; }, ok: function () { return cn('altars') >= a[0]; }}); });
+  /* nivel */
+  [[50, 500], [100, 1500], [150, 3000]].forEach(function (a) { add('l' + a[0], 'lvl', a[1], {nm: 'l' + a[0], dt: 'lvl', p: {n: a[0]}, prog: function () { return [Math.min(a[0], cn('lvl')), a[0]]; }, ok: function () { return cn('lvl') >= a[0]; }}); });
+  window.__ACH_N = L.length;
+
+  function nameOf(a) {
+    var s = T(NM[a.nm]);
+    if (a.cl) { s = fill(s, {de: ART[a.cl].replace(/^el /, 'del ').replace(/^la /, 'de la '), c: trs(clsName(a.cl))}); }
+    return s;
+  }
+  function descOf(a) {
+    var o = {}, k;
+    if (a.p) for (k in a.p) o[k] = a.p[k];
+    if (o.m) o.m = trs(o.m);
+    if (a.cl) { o.c = trs(clsName(a.cl)); o.a = ART[a.cl]; o.de = ART[a.cl].replace(/^el /, 'del ').replace(/^la /, 'de la '); }
+    if (a.b) o.b = li() ? trs(BNAME[a.b][1]) : BNAME[a.b][0];
+    return fill(T(DT[a.dt]), o);
+  }
+
+  /* ---------- desbloqueo ---------- */
+  var queue = [], qBusy = false;
+  function qShow() {
+    if (qBusy || !queue.length) return;
+    qBusy = true;
+    var m = queue.shift();
+    try { toast(m); S('level'); } catch (e) {}
+    setTimeout(function () { qBusy = false; qShow(); }, 3400);
+  }
+  var first = true;
+  function check() {
+    var a;
+    try { a = A(); } catch (e) { return; }
+    var got = [], g = 0;
+    L.forEach(function (x) {
+      if (a.d[x.id]) return;
+      var ok = false; try { ok = !!x.ok(); } catch (e) {}
+      if (ok) { a.d[x.id] = Date.now(); got.push(x); g += x.gold; }
+    });
+    if (!got.length) return;
+    meta.gold += g; a.gold = (a.gold || 0) + g; saveMeta();
+    try { $('goldTxt').textContent = meta.gold; } catch (e) {}
+    if (got.length > 3) queue.push(fill(T(UI.toastN), {n: got.length, g: fnum(g)}));
+    else got.forEach(function (x) { queue.push('🏆 ' + T(UI.toast) + ': ' + nameOf(x) + ' (+' + fnum(x.gold) + ')'); });
+    qShow(); first = false;
+    try { if (menuTab === 'diary') render(); } catch (e) {}
+  }
+
+  /* ---------- ganchos de juego ---------- */
+  var run = {picked: {}, noRunes: true};
+  function eqRunes() { try { var e = meta.runes && meta.runes.eq; if (!e) return false; return (e.o || []).concat(e.d || []).some(function (k) { return !!k; }); } catch (e) { return false; } }
+  var _sr = startRun;
+  startRun = function () { run = {picked: {}, noRunes: !eqRunes()}; return _sr.apply(this, arguments); };
+  var _cu = chooseUp;
+  chooseUp = function (i) { try { if (state === 'levelup' && offered[i]) run.picked[offered[i].n] = 1; } catch (e) {} return _cu.apply(this, arguments); };
+  var _vic = victory;
+  victory = function () {
+    var was = state === 'play';
+    var r = _vic.apply(this, arguments);
+    if (!was) return r;
+    try {
+      var a = A(), onl = typeof ON !== 'undefined' && ON.on, me = (onl && ON.own) || PL[0], k = me && me.key;
+      if (TW.on) { a.win.tower = 1; if (t < 240) a.ex.tfast = 1; }
+      else {
+        a.win[curMap] = 1;
+        if (RUNHARD) {
+          a.hw[curMap] = 1;
+          if (curMap === 5 && k) {
+            a.ew[k] = 1;
+            if (run.noRunes && (k === 'monja' || k === 'jinete')) a.ex[k] = 1;
+            if (k === 'druid' && !Object.keys(run.picked).some(function (n) { return AREA[n]; })) a.ex.druid = 1;
+          }
+        }
+      }
+      if (onl) bump('coop');
+      saveMeta(); check();
+    } catch (e) {}
+    return r;
+  };
+  var _ke = killEnemy;
+  killEnemy = function (e) {
+    var was = e && e.dead;
+    var r = _ke.apply(this, arguments);
+    try {
+      if (e && !was) {
+        if (e.zvBoss && BNAME[e.kind]) { A().bk[e.kind] = 1; saveMeta(); }
+        if (e.gob && RUNINF && !TW.on) bump('gob');
+      }
+    } catch (x) {}
+    return r;
+  };
+  if (typeof cofOpen === 'function') { var _co = cofOpen; cofOpen = function (c) { var s = c && c.st; var r = _co.apply(this, arguments); try { if (s === 0 && c.st !== 0) bump('chests'); } catch (e) {} return r; }; }
+  if (typeof altStart === 'function') { var _as = altStart; altStart = function (a, p) { var r = _as.apply(this, arguments); try { bump('altars'); } catch (e) {} return r; }; }
+  if (typeof dqCheck === 'function') { var _dq = dqCheck; dqCheck = function (D) { var b = Object.keys(D.done || {}).length; var r = _dq.apply(this, arguments); try { var n = Object.keys(D.done || {}).length - b; if (n > 0) bump('daily', n); } catch (e) {} return r; }; }
+  setInterval(function () {
+    try {
+      if (state === 'play' && typeof PL !== 'undefined' && PL.length) {
+        var onl = typeof ON !== 'undefined' && ON.on, me = (onl && ON.own) || PL[0];
+        if (me && me.level) cmax('lvl', me.level);
+        if (RUNINF && !TW.on) cmax('inf', t);
+      }
+      check();
+    } catch (e) {}
+  }, 1500);
+
+  /* ---------- interfaz ---------- */
+  var css = [
+    '#diaryTabs{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 18px}',
+    '#diaryTabs .tab img{width:18px;height:18px;image-rendering:pixelated;vertical-align:-4px;margin-right:6px;filter:drop-shadow(1px 1px 0 #000)}',
+    '#diaryTabs .tab[aria-pressed="true"] img{filter:brightness(.3) sepia(1) saturate(2)}',
+    '#achWrap[hidden]{display:none}',
+    '#achWrap .ah{display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px;margin:0 0 14px;padding:12px 16px;background:#0c0d0e;box-shadow:0 0 0 2px #6b4e1c,4px 4px 0 #000}',
+    '#achWrap .ah img{width:44px;height:44px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #000)}',
+    '#achWrap .ah .at{flex:1 1 220px;min-width:0}',
+    '#achWrap .ah .at b{display:block;font-family:var(--display);font-size:22px;letter-spacing:.08em;color:#f0d890;text-shadow:2px 2px 0 #000}',
+    '#achWrap .ah .at span{display:block;font-size:13px;color:rgba(232,225,208,.65);margin-top:2px}',
+    '#achWrap .bar{height:10px;margin-top:8px;background:#1a1408;box-shadow:0 0 0 2px #3a2f14}',
+    '#achWrap .bar i{display:block;height:100%;background:repeating-linear-gradient(90deg,#c9a85a 0 6px,#a98a42 6px 8px)}',
+    '#achWrap .ag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(232,225,208,.55)}',
+    '#achWrap .ag b{display:block;font-family:var(--display);font-size:18px;color:#f0d890;letter-spacing:.04em;text-transform:none}',
+    '#achWrap .af{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 16px}',
+    '#achWrap .ac{margin:20px 0 8px;display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#c9a85a;text-shadow:1px 1px 0 #000}',
+    '#achWrap .ac::after{content:"";flex:1;height:4px;background:repeating-linear-gradient(90deg,#6b4e1c 0 4px,transparent 4px 8px)}',
+    '#achWrap .ac small{color:rgba(232,225,208,.45);letter-spacing:.1em}',
+    '#achWrap .al{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}',
+    '#achWrap .ai{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:#0c0d0e;box-shadow:0 0 0 2px #3a2f14,3px 3px 0 #000}',
+    '#achWrap .ai .ti{flex:none;width:42px;height:42px;display:grid;place-items:center;background:#15110a;box-shadow:0 0 0 2px #3a2f14}',
+    '#achWrap .ai .ti img{width:30px;height:30px;image-rendering:pixelated;filter:grayscale(1) brightness(.4)}',
+    '#achWrap .ai .tx{flex:1;min-width:0}',
+    '#achWrap .ai .nm{display:block;font-family:var(--display);font-size:15px;letter-spacing:.05em;color:rgba(232,225,208,.7)}',
+    '#achWrap .ai .ds{display:block;font-size:13px;line-height:1.35;color:rgba(232,225,208,.5);margin-top:3px}',
+    '#achWrap .ai .pg{display:block;margin-top:7px}',
+    '#achWrap .ai .pg .bar{margin-top:3px;height:6px}',
+    '#achWrap .ai .pg small{font-size:11px;color:rgba(232,225,208,.5);letter-spacing:.08em}',
+    '#achWrap .ai .rw{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:12px;color:rgba(201,168,90,.7)}',
+    '#achWrap .ai .rw img{width:16px;height:16px;image-rendering:pixelated}',
+    '#achWrap .ai.ok{box-shadow:0 0 0 2px #c9a85a,3px 3px 0 #000;background:linear-gradient(#1a1508,#0f0c06)}',
+    '#achWrap .ai.ok .ti{box-shadow:0 0 0 2px #c9a85a;background:#24190a}',
+    '#achWrap .ai.ok .ti img{filter:drop-shadow(1px 1px 0 #000)}',
+    '#achWrap .ai.ok .nm{color:#f0d890;text-shadow:1px 1px 0 #000}',
+    '#achWrap .ai.ok .ds{color:rgba(232,225,208,.8)}',
+    '#achWrap .ai.ok .rw{color:#6fcf7f}',
+    '#pDiary.dach>.lead,#pDiary.dach>#diaryList{display:none!important}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'logrosPx'; st.textContent = css; document.head.appendChild(st);
+
+  var sec = document.getElementById('pDiary'), mode = 'pages', filt = 'all';
+  var tabs = document.createElement('div'); tabs.id = 'diaryTabs'; tabs.setAttribute('data-nt', '1');
+  var wrap = document.createElement('div'); wrap.id = 'achWrap'; wrap.setAttribute('data-nt', '1'); wrap.hidden = true;
+  var h2 = sec.querySelector('h2'); h2.insertAdjacentElement('afterend', tabs);
+  sec.appendChild(wrap);
+  function coin() { var i = document.querySelector('.mgold .gl img'); return i ? i.src : ''; }
+  function counts() { var a = A(), n = 0; L.forEach(function (x) { if (a.d[x.id]) n++; }); return n; }
+  function render() {
+    var a = A(), n = counts(), N = L.length, left = N - n, i;
+    tabs.innerHTML = '<button class="tab" type="button" data-dt="pages" aria-pressed="' + (mode === 'pages') + '">' + T(UI.pages) + '</button>' +
+      '<button class="tab" type="button" data-dt="ach" aria-pressed="' + (mode === 'ach') + '"><img alt="" src="' + TROPHY + '">' + T(UI.ach) + ' <small>' + n + '/' + N + '</small></button>';
+    sec.classList.toggle('dach', mode === 'ach');
+    wrap.hidden = mode !== 'ach';
+    if (mode !== 'ach') return;
+    var pc = Math.round(n / N * 100), cu = coin();
+    var h = '<div class="ah"><img alt="" src="' + TROPHY + '"><div class="at"><b>' + T(UI.count) + ': ' + n + ' / ' + N + '</b><span>' + (left ? fill(T(UI.left), {n: left}) : T(UI.all100)) + '</span><div class="bar"><i style="width:' + pc + '%"></i></div></div>' +
+      '<div class="ag">' + T(UI.gold) + '<b>' + fnum(a.gold || 0) + '</b></div></div>';
+    h += '<div class="af">' + [['all', UI.all], ['todo', UI.todo], ['done', UI.done]].map(function (f) { return '<button class="tab" type="button" data-af="' + f[0] + '" aria-pressed="' + (filt === f[0]) + '">' + T(f[1]) + '</button>'; }).join('') + '</div>';
+    var cats = [], by = {};
+    L.forEach(function (x) { if (!by[x.cat]) { by[x.cat] = []; cats.push(x.cat); } by[x.cat].push(x); });
+    cats.forEach(function (c) {
+      var list = by[c].filter(function (x) { var d = !!a.d[x.id]; return filt === 'all' || (filt === 'done' ? d : !d); });
+      if (!list.length) return;
+      var dn = by[c].filter(function (x) { return a.d[x.id]; }).length;
+      h += '<div class="ac">' + T(CATN[c]) + ' <small>' + dn + '/' + by[c].length + '</small></div><div class="al">';
+      list.forEach(function (x) {
+        var d = !!a.d[x.id], pr = null;
+        if (!d && x.prog) { try { pr = x.prog(); } catch (e) {} }
+        h += '<div class="ai' + (d ? ' ok' : '') + '"><span class="ti"><img alt="" src="' + TROPHY + '"></span><div class="tx"><span class="nm">' + nameOf(x) + '</span><span class="ds">' + descOf(x) + '</span>';
+        if (pr) {
+          var v = x.time ? fmtT(pr[0]) + ' / ' + fmtT(pr[1]) : fnum(pr[0]) + ' / ' + fnum(pr[1]);
+          h += '<span class="pg"><small>' + v + '</small><div class="bar"><i style="width:' + Math.round(Math.min(1, pr[0] / pr[1]) * 100) + '%"></i></div></span>';
+        }
+        h += '<span class="rw">' + (cu ? '<img alt="" src="' + cu + '">' : '') + '+' + fnum(x.gold) + '</span></div></div>';
+      });
+      h += '</div>';
+    });
+    wrap.innerHTML = h;
+  }
+  function fmtT(s) { s = Math.floor(s); var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
+  tabs.addEventListener('click', function (e) { var b = e.target.closest('[data-dt]'); if (!b) return; mode = b.getAttribute('data-dt'); render(); });
+  wrap.addEventListener('click', function (e) { var b = e.target.closest('[data-af]'); if (!b) return; filt = b.getAttribute('data-af'); render(); });
+  var _bd = buildDiary;
+  buildDiary = function () { var r = _bd.apply(this, arguments); try { check(); render(); } catch (e) {} return r; };
+  var _is = typeof i18nSet === 'function' ? i18nSet : null;
+  if (_is) i18nSet = function () { var r = _is.apply(this, arguments); try { render(); } catch (e) {} return r; };
+  render();
+  setTimeout(check, 2500);
+  window.__achCheck = check; window.__achList = L;
+})();
+
 
 
 
