@@ -2149,7 +2149,7 @@ function render(){
   ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.fillStyle=BG;ctx.fillRect(0,0,cv.width,cv.height);
   if(!map)return;
   var cs=sp(cam.x,cam.y);
-  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z+MUT.sx),DPR*(H/2-cs.y*Z+MUT.sy));
+  ctx.setTransform(DPR*Z,0,0,DPR*Z,DPR*(W/2-cs.x*Z+(window.__noShake?0:MUT.sx)),DPR*(H/2-cs.y*Z+(window.__noShake?0:MUT.sy)));
   var vl=cs.x-W/2/Z-80,vr=cs.x+W/2/Z+80,vt=cs.y-H/2/Z-140,vb=cs.y+H/2/Z+60;
   function seen(x,y){var q=sp(x,y);return q.x>vl&&q.x<vr&&q.y>vt&&q.y<vb}
   ctx.lineWidth=1;
@@ -14411,7 +14411,7 @@ try{
     {id: 'magnet', n: ['Imán invertido', 'Inverted magnet', 'Ímã invertido', 'Aimant inversé', 'Обратный магнит', '逆磁石'],
       d: ['Las almas huyen de ti. Persíguelas.', 'Souls run away from you. Chase them.', 'As almas fogem de você. Persiga-as.', 'Les âmes te fuient. Poursuis-les.', 'Души убегают от вас. Догоняйте их.', '魂が逃げていく。追いかけろ。']},
     {id: 'hunt', n: ['Cacería', 'The Hunt', 'Caçada', 'La Chasse', 'Охота', '狩り'],
-      d: ['Un élite marcado e inmortal te persigue sin parar. Al acabar el tiempo ya se le puede matar, y suelta un cofre.', 'A marked, immortal elite chases you relentlessly. When time runs out it can be killed, and it drops a chest.', 'Um elite marcado e imortal persegue você sem parar. Quando o tempo acaba, ele pode ser morto e solta um baú.', 'Un élite marqué et immortel te poursuit sans relâche. Quand le temps est écoulé, on peut le tuer et il lâche un coffre.', 'Помеченный бессмертный элитный враг неустанно преследует вас. Когда время выйдет, его можно убить, и выпадет сундук.', '印のついた不死のエリートが執拗に追ってくる。時間が切れると倒せるようになり、宝箱を落とす。']},
+      d: ['Un élite marcado e inmortal te persigue sin parar hasta que acabe el tiempo.', 'A marked, immortal elite chases you relentlessly until time runs out.', 'Um elite marcado e imortal persegue você sem parar até o tempo acabar.', 'Un élite marqué et immortel te poursuit sans relâche jusqu\'à la fin du temps.', 'Помеченный бессмертный элитный враг неустанно преследует вас, пока не истечёт время.', '印のついた不死のエリートが、時間が切れるまで執拗に追ってくる。']},
     {id: 'giant', n: ['Gigantismo', 'Gigantism', 'Gigantismo', 'Gigantisme', 'Гигантизм', '巨大化'],
       d: ['Los enemigos son el triple de grandes y un 5% más rápidos.', 'Enemies are three times bigger and 5% faster.', 'Os inimigos são três vezes maiores e 5% mais rápidos.', 'Les ennemis sont trois fois plus grands et 5 % plus rapides.', 'Враги втрое крупнее и на 5% быстрее.', '敵が3倍の大きさになり、速度が5%上がる。']},
     {id: 'elite', n: ['Guardia de élite', 'Elite Guard', 'Guarda de Elite', 'Garde d\'élite', 'Элитная гвардия', '精鋭部隊'],
@@ -14480,6 +14480,11 @@ try{
     var l = DEFS.filter(function (d) { return d.id !== MUT.id; });
     return l[Math.floor(Math.random() * l.length)].id;
   }
+  function clearHunter(silent) {
+    var h = St.hunter;
+    if (h && !h.dead) { h.immune = false; h.dead = true; try { burst(h.x, h.y, '#d6524a', 18); ring(h.x, h.y, 1.6, .5, '#d6524a'); } catch (e) {} if (!silent) try { toast(T(UI.gone)); } catch (e) {} }
+    St.hunter = null; elA.hidden = true;
+  }
   function undeco(e) {
     if (e._g) { e._g = 0; e.r /= 3; e.gk = 1; e.speed /= 1.05; }
     if (e._el) { e._el = 0; e.elite = false; e.r /= 1.2; e.h /= 1.2; e.hp /= 2.4; e.maxHp /= 2.4; e.dmg /= 1.3; e.speed /= 1.1; e.xp /= 2; }
@@ -14499,8 +14504,7 @@ try{
     if (id === 'giant' || id === 'elite' || id === 'kami') enemies.forEach(undeco);
     St.strikes = []; St.pits = []; St.bolts = [];
     /* el élite de la Cacería deja de ser inmortal, pero sigue ahí hasta que lo maten */
-    var h = St.hunter;
-    if (id === 'hunt' && h && !h.dead) { h.immune = false; try { toast(T(UI.vuln)); } catch (e) {} }
+    if (id === 'hunt') clearHunter(false);
     plain();
   }
   function startMut(id) {
@@ -14575,11 +14579,6 @@ try{
     try {
       if (e && e.hunt) {
         if (St.hunter === e) { St.hunter = null; elA.hidden = true; }
-        if (typeof chests !== 'undefined' && typeof cofId !== 'undefined' && typeof COF_CFG !== 'undefined') {
-          chests.push({id: ++cofId, x: e.x, y: e.y, tier: 1, mim: false, st: 0, ot: 0, life: COF_CFG.life, ph: Math.random() * 6});
-          ring(e.x, e.y, 1.6, .5, '#e8c060');
-        }
-        toast(T(UI.prize));
       }
     } catch (x) {}
     return r;
@@ -14591,6 +14590,15 @@ try{
     if (e && e.immune && !e.dead) { e.hp = 1e15; var r = _he.apply(this, arguments); if (!e.dead) e.hp = e.maxHp; return r; }
     return _he.apply(this, arguments);
   };
+
+  /* ---------- ajuste de sacudida de pantalla (también se lee de lo guardado, por si la bandera no estuviera al día) ---------- */
+  var shkC = 0, shkV = false;
+  function shakeOff() {
+    if (window.__noShake) return true;
+    var n = performance.now();
+    if (n - shkC > 500) { shkC = n; try { var a = JSON.parse(localStorage.getItem('cripta_ajustes') || 'null'); shkV = !!(a && (a.shake === 0 || a.shake === false)); } catch (e) { shkV = false; } }
+    return shkV;
+  }
 
   /* ---------- XP doble ---------- */
   var _gx = gainXp;
@@ -14705,7 +14713,7 @@ try{
     else if (id === 'kami') kamikazes(dt);
     else if (id === 'pull') pull(dt);
     /* temblor de cámara (respeta el ajuste de sacudida de pantalla) */
-    if (id === 'quake' && !window.__noShake) { MUT.sx = Math.sin(t * 43) * 2.4 + Math.sin(t * 71) * 1.6; MUT.sy = Math.sin(t * 37 + 1) * 2.4 + Math.sin(t * 59) * 1.6; } else { MUT.sx = 0; MUT.sy = 0; }
+    if (id === 'quake' && !shakeOff()) { MUT.sx = Math.sin(t * 43) * 2.4 + Math.sin(t * 71) * 1.6; MUT.sy = Math.sin(t * 37 + 1) * 2.4 + Math.sin(t * 59) * 1.6; } else { MUT.sx = 0; MUT.sy = 0; }
     /* élite perseguidor: velocidad y flecha de aviso (mientras siga vivo) */
     var h = St.hunter;
     if (h && !h.dead) {
