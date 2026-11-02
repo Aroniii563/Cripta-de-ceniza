@@ -14414,7 +14414,7 @@ try{
 
   /* ---------- lista de logros ---------- */
   var L = [];
-  function add(id, cat, gold, o) { o.id = id; o.cat = cat; o.gold = gold; L.push(o); }
+  function add(id, cat, gold, o) { var g = 500 * Math.pow(gold / 500, 1.7), q = g >= 5000 ? 500 : 100; o.id = id; o.cat = cat; o.gold = Math.round(g / q) * q; L.push(o); }
   var cap = function () { return 10 + 2 * (MAPN.length - 1); };
   function skinsOf(k) { return SKINCAT.filter(function (q) { return q.cls === k && q.cost > 0; }); }
   function bestProg() {
