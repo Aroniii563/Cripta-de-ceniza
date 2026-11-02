@@ -12901,10 +12901,10 @@ var FONDOS_MENU = [
    req: 'Derrota al jefe de la Forja roja', ok: function () { return !!(meta.done && meta.done[3]); }},
   {id: 'catedral', nombre: 'Catedral Violeta', src: 'fondos/menu_catedral2.webp', pos: 'center 40%', fx: 'catedral',
    req: 'Derrota al jefe del Santuario púrpura', ok: function () { return !!(meta.done && meta.done[4]); }},
-  {id: 'ruinas', nombre: 'Ruinas de la Tormenta', src: 'fondos/menu_ruinas2.webp', pos: 'center 40%', fx: 'ruinas',
-   req: 'Gana una partida de Torre de ceniza', ok: function () { var r = []; try { r = loadRankTw(); } catch (e) {} return !!meta.torreWin || r.length > 0; }},
   {id: 'biblioteca', nombre: 'Biblioteca del Escritor', src: 'fondos/menu_biblioteca.webp', pos: 'center 45%', fx: 'biblioteca',
-   req: 'Derrota al jefe de la Librería sepia', ok: function () { return !!(meta.done && meta.done[5]); }}
+   req: 'Derrota al jefe de la Librería sepia', ok: function () { return !!(meta.done && meta.done[5]); }},
+  {id: 'ruinas', nombre: 'Ruinas de la Tormenta', src: 'fondos/menu_ruinas2.webp', pos: 'center 40%', fx: 'ruinas',
+   req: 'Gana una partida de Torre de ceniza', ok: function () { var r = []; try { r = loadRankTw(); } catch (e) {} return !!meta.torreWin || r.length > 0; }}
 ];
 
 /* ---------- efectos de cada fondo (coordenadas en píxeles de la imagen) ---------- */
@@ -13922,6 +13922,7 @@ try{
 /* Apoyar y Parches: botón dorado y ventanas con el marco de píxel del resto; oro con moneda de píxel */
 (function () {
   var BOX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAfElEQVR42mNkYGBgOLki6j8DGcA8YhkjI0yzc+qWN6Ro3jvbR4SBgYGBCVkzTJAYjTA9LMgS6gZmDHtnM4gsWnYIq+a4KDsGmBoMA5xTt7xBlsAGFu7fwoCuhglZAS6b8alhYqAQjBqAZkBclB1BDehqBj4hUZyZGCnNzgDPLVElrK41WwAAAABJRU5ErkJggg==", ON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAf0lEQVR42t2SoQ3DMBRE31U2LzTIAJ0mi4RU3SGkyCAZoyQjFHYCDxAQaB7wS2LWWDLtw3e6r7svDnKKRoXr7S4AAdi+mXzQ0Hc/TfOyqmhcTtHkg2zfThMmMPmgnKI5gKHv7PN61C6ipF9o5B8MrvQM7+pw87JqfGLNw6n1Nb6tzDozaOLgZwAAAABJRU5ErkJggg==", COIN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAPklEQVR42mNkYGBgyPaT+c8ABVM3PWFkyfaT+R8XZcegbmAGFe75z8SABG5eOMXAwMDAwIQuwMDAwMCIzUwAxOMR05dtKZoAAAAASUVORK5CYII=", G = '#c9a85a', INK = '#e8e1d0';
+  window.__PXBOX = BOX;
   var css = [
     '.abtn.tbtn.gold{border-image-source:url("' + ON + '")!important;color:#0c0d0e!important;text-shadow:1px 1px 0 rgba(255,240,200,.5)!important}',
     '.abtn.tbtn.gold:hover{filter:brightness(1.1);color:#0c0d0e!important}',
@@ -13937,6 +13938,138 @@ try{
   var st = document.createElement('style'); st.id = 'apoyoPx'; st.textContent = css; document.head.appendChild(st);
   document.querySelectorAll('.mgold .gl').forEach(function (e) { if (!e.firstChild) { var i = document.createElement('img'); i.alt = ''; i.src = COIN; e.appendChild(i); } });
 })();
+
+/* ==========================================================================
+   TUTORIAL de la primera partida: avisos cortos que se van pasando según lo que haces.
+   Solo sale a quien aún no ha jugado ninguna partida (o desde «Ver tutorial» en la pausa). Se puede omitir.
+   ========================================================================== */
+(function () {
+  var TR = {
+    en: {'Tutorial': 'Tutorial', 'Omitir': 'Skip', 'Ver tutorial': 'View tutorial',
+      'Muévete con WASD o las flechas del teclado.': 'Move with WASD or the arrow keys.',
+      'Arrastra el dedo por la pantalla para moverte.': 'Drag your finger across the screen to move.',
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.': 'Your character attacks the nearest enemy on its own. You just dodge and position yourself.',
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.': 'Enemies drop experience orbs. Collect them to level up.',
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.': 'Pick an upgrade. They only last this run: combine them to build your style.',
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.': 'A boss arrives every 5 minutes. Survive until minute 20 to clear the map. P pauses and C shows your stats.',
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': 'You earn gold when a run ends. Spend it on Upgrades, Runes and Skins to be stronger next run.',
+      'Empieza una partida y te guiaré de nuevo.': 'Start a run and I will guide you again.'},
+    pt: {'Tutorial': 'Tutorial', 'Omitir': 'Pular', 'Ver tutorial': 'Ver tutorial',
+      'Muévete con WASD o las flechas del teclado.': 'Mova-se com WASD ou as setas do teclado.',
+      'Arrastra el dedo por la pantalla para moverte.': 'Arraste o dedo pela tela para se mover.',
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.': 'Seu personagem ataca sozinho o inimigo mais próximo. Você só precisa desviar e se posicionar.',
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.': 'Os inimigos soltam orbes de experiência. Colete-os para subir de nível.',
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.': 'Escolha uma melhoria. Elas duram só esta partida: combine-as para criar seu estilo.',
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.': 'A cada 5 minutos chega um chefe. Aguente até o minuto 20 para vencer o mapa. P pausa e C mostra suas estatísticas.',
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': 'Ao terminar você ganha ouro. Gaste em Melhorias, Runas e Aspectos para ficar mais forte na próxima partida.',
+      'Empieza una partida y te guiaré de nuevo.': 'Comece uma partida e eu vou guiar você de novo.'},
+    fr: {'Tutorial': 'Tutoriel', 'Omitir': 'Passer', 'Ver tutorial': 'Voir le tutoriel',
+      'Muévete con WASD o las flechas del teclado.': 'Déplace-toi avec WASD ou les flèches du clavier.',
+      'Arrastra el dedo por la pantalla para moverte.': "Fais glisser ton doigt sur l'écran pour te déplacer.",
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.': "Ton personnage attaque tout seul l'ennemi le plus proche. Toi, tu esquives et te places.",
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.': "Les ennemis lâchent des orbes d'expérience. Ramasse-les pour monter de niveau.",
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.': "Choisis une amélioration. Elles ne durent que cette partie : combine-les pour créer ton style.",
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.': "Un boss arrive toutes les 5 minutes. Tiens jusqu'à la minute 20 pour terminer la carte. P met en pause et C affiche tes statistiques.",
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': "À la fin tu gagnes de l'or. Dépense-le en Améliorations, Runes et Aspects pour être plus fort à la prochaine partie.",
+      'Empieza una partida y te guiaré de nuevo.': 'Lance une partie et je te guiderai de nouveau.'},
+    ru: {'Tutorial': 'Обучение', 'Omitir': 'Пропустить', 'Ver tutorial': 'Показать обучение',
+      'Muévete con WASD o las flechas del teclado.': 'Двигайтесь клавишами WASD или стрелками.',
+      'Arrastra el dedo por la pantalla para moverte.': 'Проведите пальцем по экрану, чтобы двигаться.',
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.': 'Персонаж сам атакует ближайшего врага. Вам нужно лишь уклоняться и выбирать позицию.',
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.': 'Враги роняют сферы опыта. Собирайте их, чтобы повысить уровень.',
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.': 'Выберите улучшение. Они действуют только в этой партии: комбинируйте их, чтобы создать свой стиль.',
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.': 'Каждые 5 минут приходит босс. Продержитесь до 20-й минуты, чтобы пройти карту. P — пауза, C — статистика.',
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': 'По окончании партии вы получаете золото. Тратьте его на улучшения, руны и облики, чтобы стать сильнее.',
+      'Empieza una partida y te guiaré de nuevo.': 'Начните партию, и я снова вас проведу.'},
+    ja: {'Tutorial': 'チュートリアル', 'Omitir': 'スキップ', 'Ver tutorial': 'チュートリアルを見る',
+      'Muévete con WASD o las flechas del teclado.': 'WASDか矢印キーで移動します。',
+      'Arrastra el dedo por la pantalla para moverte.': '画面を指でなぞって移動します。',
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.': 'キャラは最も近い敵を自動で攻撃します。あなたは避けて位置取りするだけです。',
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.': '敵は経験値オーブを落とします。集めてレベルアップしましょう。',
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.': '強化を選びましょう。効果はこの試合だけ。組み合わせて自分のスタイルを作ります。',
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.': '5分ごとにボスが現れます。20分まで耐えればマップクリア。Pで一時停止、Cで統計を表示します。',
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.': '試合が終わるとゴールドを獲得。強化・ルーン・スキンに使って次の試合に備えましょう。',
+      'Empieza una partida y te guiaré de nuevo.': '試合を始めると、もう一度案内します。'}
+  };
+  try { Object.keys(TR).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TR[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = TR[l][k]; }); }); if (typeof i18nLoad === 'function') i18nLoad(); } catch (e) {}
+  function tr(s) { try { return typeof trCore === 'function' && typeof LANG !== 'undefined' && LANG !== 'es' ? trCore(s) : s; } catch (e) { return s; } }
+  var BOX = window.__PXBOX, G = '#c9a85a';
+  var css = [
+    '#tutBox{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:90;width:min(560px,calc(100vw - 24px));display:flex;gap:12px;align-items:center;padding:6px 8px 6px 14px;background:#0c0d0e;border:12px solid transparent;border-image:url("' + BOX + '") 6 fill / 12px / 0 stretch;image-rendering:pixelated;box-shadow:6px 6px 0 rgba(0,0,0,.5);pointer-events:auto;animation:tutIn .25s steps(4)}',
+    '@keyframes tutIn{from{opacity:0;transform:translate(-50%,-10px)}}',
+    '#tutBox[hidden]{display:none}',
+    '#tutBox .tb{flex:1;min-width:0}',
+    '#tutBox .th{font-family:var(--display);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:' + G + ';text-shadow:1px 1px 0 #000;margin-bottom:4px;display:flex;gap:8px;align-items:center}',
+    '#tutBox .dots{display:inline-flex;gap:4px}#tutBox .th .d{display:inline-block;width:7px;height:7px;background:rgba(232,225,208,.25)}',
+    '#tutBox .th .d.on{background:' + G + '}',
+    '#tutBox .tt{font-size:14px;line-height:1.45;color:#e8e1d0;image-rendering:auto}',
+    '#tutBox .tx{flex:none;font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(232,225,208,.6);background:none;border:0;cursor:pointer;padding:6px}',
+    '#tutBox .tx:hover{color:' + G + '}',
+    '@media (max-width:700px){#tutBox{top:58px}}'
+  ].join('\n');
+  var st = document.createElement('style'); st.id = 'tutorialPx'; st.textContent = css; document.head.appendChild(st);
+  var box = document.createElement('div'); box.id = 'tutBox'; box.hidden = true;
+  box.innerHTML = '<div class="tb"><div class="th"><span class="tl"></span><span class="dots"></span></div><div class="tt"></div></div><button class="tx" type="button"></button>';
+  document.body.appendChild(box);
+  var tl = box.querySelector('.tl'), dots = box.querySelector('.dots'), tt = box.querySelector('.tt'), tx = box.querySelector('.tx');
+  var STEPS = 6, step = 0, shownAt = 0, active = false, moved = 0, lx = null, ly = null, runId = 0;
+  function isTouch() { try { return !!(touchMode || COARSE); } catch (e) { return false; } }
+  function text(n) {
+    return [
+      isTouch() ? 'Arrastra el dedo por la pantalla para moverte.' : 'Muévete con WASD o las flechas del teclado.',
+      'Tu personaje ataca solo al enemigo más cercano. Tú solo tienes que esquivar y colocarte bien.',
+      'Los enemigos sueltan orbes de experiencia. Recógelos para subir de nivel.',
+      'Elige una mejora. Solo duran esta partida: combínalas para crear tu estilo.',
+      'Cada 5 minutos llega un jefe. Aguanta hasta el minuto 20 para superar el mapa. P pausa y C muestra tus estadísticas.',
+      'Al terminar ganas oro. Gástalo en Mejoras, Runas y Aspectos para ser más fuerte en la próxima partida.'
+    ][n - 1];
+  }
+  function render() {
+    tl.textContent = tr('Tutorial');
+    var h = ''; for (var i = 1; i <= STEPS; i++) h += '<span class="d' + (i <= step ? ' on' : '') + '"></span>'; dots.innerHTML = h;
+    tt.textContent = tr(text(step)); tx.textContent = tr('Omitir');
+  }
+  function go(n) { step = n; shownAt = performance.now(); if (n > STEPS) { finish(); return; } render(); box.hidden = false; }
+  function finish() { active = false; step = 0; box.hidden = true; try { meta.tutDone = true; saveMeta(); } catch (e) {} }
+  tx.addEventListener('click', function () { finish(); });
+  function isNew() { try { return !meta.tutDone && !(meta.stats && meta.stats.runs > 0); } catch (e) { return false; } }
+  var forced = false;
+  window.tutReplay = function () { forced = true; active = false; step = 0; box.hidden = true; try { toast(tr('Empieza una partida y te guiaré de nuevo.')); } catch (e) {} };
+  /* botón en la pausa */
+  var pb = document.querySelector('#pauseOv .btns');
+  if (pb) { var b = document.createElement('button'); b.className = 'btn alt'; b.type = 'button'; b.id = 'tutBtn'; b.textContent = 'Ver tutorial'; b.addEventListener('click', function () { try { show('pauseOv', false); } catch (e) {} forced = true; startGuide(); try { $('pauseOv').hidden = true; if (state === 'pause') { state = 'play'; last = performance.now(); } } catch (e) {} }); pb.appendChild(b); }
+  function startGuide() { active = true; moved = 0; lx = ly = null; forced = false; go(1); }
+  var prevState = '', lastRun = -1;
+  setInterval(function () {
+    try {
+      var inGame = !$('hud').hidden && P, dead = !$('deadOv').hidden, now0 = performance.now();
+      if (dead) { if (active) { if (step !== 6) go(6); else if (now0 - shownAt > 14000) finish(); } else box.hidden = true; return; }
+      if (!inGame) { if (active && step < 6) { active = false; box.hidden = true; } else if (active) finish(); else box.hidden = true; return; }
+      if (active && step === 6) { if (now0 - shownAt > 1500) finish(); return; }
+      if (!active) { if ((forced || isNew()) && state === 'play' && t < 4 && lastRun !== runId) { lastRun = runId; startGuide(); } else return; }
+      box.hidden = false;
+      var now = performance.now();
+      if (state === 'levelup' && step < 4) go(4);
+      if (state === 'play' && step === 4 && now - shownAt > 600) go(5);
+      if (step === 1) {
+        if (lx !== null) moved += Math.hypot(P.x - lx, P.y - ly); lx = P.x; ly = P.y;
+        if (moved > 3.5 && now - shownAt > 1200) go(2);
+      } else if (step === 2) {
+        if (now - shownAt > 6500 || (kills >= 2 && now - shownAt > 3000)) go(3);
+      } else if (step === 3) {
+        if (P.level >= 2 || state === 'levelup') go(4);
+        else if (now - shownAt > 30000) go(5);
+      } else if (step === 5) {
+        if (now - shownAt > 12000) { box.hidden = true; step = 5.5; }
+      } else if (step === 5.5) { box.hidden = true; }
+    } catch (e) {}
+  }, 140);
+  /* distinguir cada partida: startRun reinicia t y pone t<4 */
+  var _sr = window.startRun;
+  var wrap = function () { runId++; };
+  try { var o = startRun; startRun = function () { wrap(); return o.apply(this, arguments); }; } catch (e) {}
+})();
+
 
 /* ==========================================================================
    TARJETAS DE MODO (pestaña Jugar) · ESTILO VICTORIANO MINIMALISTA EN PIXEL ART · Clásico, Torre de ceniza, Cooperativo y Misiones diarias
