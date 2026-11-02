@@ -407,7 +407,8 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 .mapc .nm{font-family:var(--display);font-size:30px;font-weight:800;line-height:1.05;color:var(--gold)}
 .mapc .ef{font-size:13.5px;color:var(--muted)}
 .mapc .btn{width:100%}
-.mapc .mact{display:flex;gap:10px;justify-content:flex-end;align-items:center}.mapc .mact .btn{width:auto;min-width:104px;white-space:nowrap;padding-left:14px;padding-right:14px}.mchk{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;white-space:nowrap;font-size:14px;padding:7px 10px;border:1px solid var(--line);background:rgba(8,16,20,.6)}.mchk input{position:absolute;opacity:0;width:0;height:0}.mchk .bx{width:16px;height:16px;border:2px solid #8aa;display:inline-block;position:relative;background:#0b1214}.mchk input:checked+.bx::after{content:'';position:absolute;left:3px;top:0;width:5px;height:10px;border:solid #ffd25a;border-width:0 2px 2px 0;transform:rotate(40deg)}.mchk.hard{color:#ff8c84;border-color:#7a3a36}.mchk.hard .bx{border-color:#c0504a}.mchk.inf{color:#cfb0ff;border-color:#5a4390}.mchk.inf .bx{border-color:#9a6ae0}.mchk.off{opacity:.45;cursor:not-allowed}.mchk:has(input:focus-visible){outline:2px solid #ffd25a}
+.mapc .mact{display:flex;gap:10px;justify-content:flex-end;align-items:center}.mapc .mact .btn{width:auto;min-width:104px;white-space:nowrap;padding-left:14px;padding-right:14px}.mchk{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;white-space:nowrap;font-size:14px;padding:7px 10px;border:1px solid var(--line);background:rgba(8,16,20,.6)}.mchk input{position:absolute;opacity:0;width:0;height:0}.mchk .bx{width:16px;height:16px;border:2px solid #8aa;display:inline-block;position:relative;background:#0b1214}.mchk input:checked+.bx::after{content:'';position:absolute;left:3px;top:0;width:5px;height:10px;border:solid #ffd25a;border-width:0 2px 2px 0;transform:rotate(40deg)}.mchk.hard{color:#ff8c84;border-color:#7a3a36}.mchk.hard .bx{border-color:#c0504a}.mchk.mut{color:#9fe0a6;border-color:#3f7a48}.mchk.mut .bx{border-color:#6cc27a}
+.mchk.inf{color:#cfb0ff;border-color:#5a4390}.mchk.inf .bx{border-color:#9a6ae0}.mchk.off{opacity:.45;cursor:not-allowed}.mchk:has(input:focus-visible){outline:2px solid #ffd25a}
 @media (max-width:700px){#mapOv{padding:14px;overflow:auto}.mapwrap{height:auto;grid-template-rows:auto}.mappanel{overflow:visible;padding:12px}.mapc{grid-template-columns:84px minmax(0,1fr);gap:12px}.mapc .ic{width:84px;height:84px}.mapc .nm{font-size:23px}.mapc .mact{grid-column:1 / -1;flex-wrap:wrap;justify-content:flex-start}.mapc .mact .btn{flex:1 1 90px}}
 
 /* Movimiento: transiciones cortas (120–260 ms) y suaves; se desactivan con "reducir movimiento" */
@@ -1313,7 +1314,7 @@ function endRun(why){
   if(!P||P.awarded)return {g:0,newBest:false};
   P=PL[0];P.awarded=true;
   var lvl=0;PL.forEach(function(q){lvl=Math.max(lvl,q.level)});
-  var g=goldFor(kills,t,lvl,curMap,P.key);
+  var g=goldFor(kills,t,lvl,curMap,P.key);if(RUNMUT)g=Math.round(g*1.25);
   meta.gold+=g;try{dailyAdd('gold',g)}catch(e){}
   addStats(P.key,kills,t,g,bossKills);
   meta.last={cls:P.key,map:curMap,kills:kills,time:t,gold:g,level:lvl,why:why};
@@ -1346,7 +1347,7 @@ var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],par
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
 var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
-var RUNHARD=false,RUNINF=false,NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.42,.35,.28,.22,.15,.15];
+var RUNHARD=false,RUNINF=false,RUNMUT=false,MUT={id:null,spawn:1,hp:1,xp:1,rep:false,slip:false},NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.42,.35,.28,.22,.15,.15];
 var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
 /* Cooperativo local: PL = jugadores; P apunta al jugador "actual" mientras se procesa su lógica (P=PL[0] el resto del tiempo). */
@@ -1420,6 +1421,7 @@ function startRun(key,mi){
   var _o=NEXTOPT;NEXTOPT=null;
   RUNHARD=!!(_o&&_o.hard&&hardOk(curMap));RUNINF=!!(_o&&_o.inf&&meta.infinite&&curMap!==5);
   HM=RUNHARD?1+(HARDP[curMap]||.15):1;
+  RUNMUT=!!(_o&&_o.mut&&hardOk(curMap)&&!TW.on);if(window.mutReset)mutReset();
   applyMap(curMap);genMap();carpet=null;if(curMap===0)cryptGen();if(curMap===1)abyssReset();if(curMap===2)swampGen();else swampWater=null;
   coop=coopOn&&!touchMode&&!COARSE;
   PL=[mkPlayer(key,0)];
@@ -1430,7 +1432,7 @@ function startRun(key,mi){
   zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;window.FBN=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1,-1,-1];
   statsOpen=W>=700;applyStatsOpen();
   $('toast').hidden=true;
-  $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n+(RUNHARD?' · Difícil':'')+(RUNINF?' · Infinito':'');$('hudClass').style.color=c.col;
+  $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n+(RUNHARD?' · Difícil':'')+(RUNINF?' · Infinito':'')+(RUNMUT?' · Mutaciones':'');$('hudClass').style.color=c.col;
   $('hud2').hidden=!coop;
   if(coop){$('hud2Class').textContent='J2 · '+CLASSES[coopCls].name;$('hud2Class').style.color=CLASSES[coopCls].col}
   $('helpTxt').innerHTML=coop?'J1: WASD · J2: flechas · ataque automático<br>P pausa · C estadísticas':'WASD mover · el ataque es automático<br>P pausa · C estadísticas';
@@ -1860,7 +1862,7 @@ function playerStep(dt){
   var ml=Math.hypot(mx,my);
   P.moving=ml>0;
   if(ml>0){mx/=ml;my/=ml;P.fx=mx;P.fy=my;var sxm=mx-my;if(Math.abs(sxm)>.15)P.flip=sxm>0;P.walk=(P.walk||0)+dt*P.speed*2.6;if(!ne&&!mine){P.ax=mx;P.ay=my}}
-  movePl(P,mx*P.speed*dt,my*P.speed*dt);
+  if(!(RUNMUT&&mutMove(P,mx,my,dt)))movePl(P,mx*P.speed*dt,my*P.speed*dt);
   if(!isFinite(P.x)||!isFinite(P.y)){P.x=P.gx||N/2+.5;P.y=P.gy||N/2+.5}else{P.gx=P.x;P.gy=P.y}
   if(!isFinite(P.hp))P.hp=P.maxHp;
   P.atkCd-=dt;P.inv-=dt;P.flash-=dt;
@@ -1874,6 +1876,7 @@ function playerStep(dt){
 }
 function update(dt){
   t+=dt;
+  if(RUNMUT)mutUpdate(dt);
   /* la vida de los enemigos sigue al daño del personaje (en cooperativo, a la media de los dos): si sube con las mejoras, ellos suben igual */
   snapT-=dt;if(snapT<=0){snapT=10;snapshotRun()}
   for(var pi=0;pi<PL.length;pi++){P=PL[pi];playerStep(dt)}
@@ -1887,6 +1890,7 @@ function update(dt){
     spawnT=.12;
     /* Enemigos objetivo en pantalla: sube un 10% cada 10 segundos (tope 320). */
     var target=Math.round(Math.min(capMax()*(pactoOn()?1.35:1),16*Math.pow(1.09,Math.floor(tE()/10))*coopN()*(pactoOn()?1.35:1))*capScale*HM);
+    if(MUT.spawn>1)target=Math.min(Math.round(target*MUT.spawn),Math.round(capMax()*1.6));
     var need=Math.min(6,target-enemies.length);
     for(var k=0;k<need;k++)spawnEnemy();
   }
@@ -1958,7 +1962,9 @@ function update(dt){
     b.t+=dt;
     if(!pk)continue;
     var ox=pk.x-b.x,oy=pk.y-b.y;
-    if(od<pk.pick||b.mag){
+    if(MUT.rep&&od<9){
+      b.mag=false;var fx0=-ox/(od||1)*3.4*dt,fy0=-oy/(od||1)*3.4*dt;if(!solid(b.x+fx0,b.y))b.x+=fx0;if(!solid(b.x,b.y+fy0))b.y+=fy0;
+    }else if(od<pk.pick||b.mag){
       b.mag=true;var sp2=7+Math.max(0,8-od)*1.2;
       b.x+=ox/(od||1)*sp2*dt;b.y+=oy/(od||1)*sp2*dt;
     }
@@ -2054,8 +2060,9 @@ function buildMaps(msg){
   $('mapGrid').innerHTML=MAPS.map(function(m,i){
     var st=mapStatus(i),btn,note,last=(i===5);
     if(st==='own'){
-      var op=MAPOPT[i]||(MAPOPT[i]={hard:false,inf:false});if(!hardOk(i))op.hard=false;if(!meta.infinite||last)op.inf=false;
+      var op=MAPOPT[i]||(MAPOPT[i]={hard:false,inf:false,mut:false});if(!hardOk(i)){op.hard=false;op.mut=false}if(!meta.infinite||last)op.inf=false;
       btn='<label class="mchk hard'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'+'+Math.round((HARDP[i]||.15)*100)+'% de vida, daño y enemigos':'Gana en este mapa para desbloquear Difícil')+'"><input type="checkbox" data-opt="hard" data-m="'+i+'"'+(op.hard?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Difícil</label>'+
+        '<label class="mchk mut'+(hardOk(i)?'':' off')+'" title="'+(hardOk(i)?'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.':'Gana en este mapa para desbloquear Mutaciones')+'"><input type="checkbox" data-opt="mut" data-m="'+i+'"'+(op.mut?' checked':'')+(hardOk(i)?'':' disabled')+'><span class="bx"></span>Mutaciones</label>'+
         ((meta.infinite&&!last)?'<label class="mchk inf" title="La partida sigue tras el jefe del minuto 20"><input type="checkbox" data-opt="inf" data-m="'+i+'"'+(op.inf?' checked':'')+'><span class="bx"></span>Infinito</label>':'')+
         '<button class="btn" type="button" data-play="'+i+'">Jugar</button>';
     }
@@ -2085,7 +2092,7 @@ function openMaps(k){mapChar=k;fillCoopCls();$('coopBar').hidden=COARSE;$('coopC
 $('mapGrid').addEventListener('change',function(e){var c=e.target;if(!c||!c.getAttribute||!c.getAttribute('data-opt'))return;var mi=+c.getAttribute('data-m');(MAPOPT[mi]||(MAPOPT[mi]={hard:false,inf:false}))[c.getAttribute('data-opt')]=!!c.checked});
 $('mapGrid').addEventListener('click',function(e){
   var pb=e.target.closest('[data-play]');
-  if(pb){if(pb.disabled)return;var pi0=+pb.getAttribute('data-play');NEXTOPT={hard:!!(MAPOPT[pi0]&&MAPOPT[pi0].hard),inf:!!(MAPOPT[pi0]&&MAPOPT[pi0].inf)};startRun(mapChar,pi0);return}
+  if(pb){if(pb.disabled)return;var pi0=+pb.getAttribute('data-play');NEXTOPT={hard:!!(MAPOPT[pi0]&&MAPOPT[pi0].hard),inf:!!(MAPOPT[pi0]&&MAPOPT[pi0].inf),mut:!!(MAPOPT[pi0]&&MAPOPT[pi0].mut)};startRun(mapChar,pi0);return}
 });
 $('mapBack').addEventListener('click',function(){$('mapOv').hidden=true;buildMenu();$('menu').hidden=false});
 $('menuBack').addEventListener('click',function(){showTab('none')});
@@ -2166,7 +2173,7 @@ function render(){
   })});
   /* orbes */
   sg(function(){zones.forEach(drawZoneGround)});
-  sg(function(){drawHazGround()});sg(function(){abyssHazGround()});
+  sg(function(){drawHazGround()});sg(function(){abyssHazGround()});sg(function(){if(RUNMUT)mutGround()});
   var Psv=P;
   try{for(var qi0=0;qi0<PL.length;qi0++){P=PL[qi0];if(P.dead||P.c.kind!=='aura')continue;
     var apos=sp(P.x,P.y),arr=P.c.aura.r*P.auraR*(P.spec.terr?1.35:1),apul=.5+.5*Math.sin(P.anim*3);
@@ -14362,6 +14369,349 @@ try{
     if (typeof i18nLoad === 'function') i18nLoad();
     if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply();
   } catch (e) {}
+})();
+/* ==========================================================================
+   MUTACIONES · dificultad opcional que se marca en cada mapa junto a «Difícil».
+   Cada 2 minutos (desde el minuto 2) se activa una mutación distinta a la anterior y la anterior termina.
+   Núcleo: RUNMUT, MUT (modificadores), mutReset/mutUpdate/mutMove/mutGround. Ver los ganchos en startRun, update, playerStep, orbes y render.
+   ========================================================================== */
+(function () {
+  var LI = {es: 0, en: 1, pt: 2, fr: 3, ru: 4, ja: 5};
+  function li() { try { return LI[LANG] || 0; } catch (e) { return 0; } }
+  function T(a) { return a[li()] || a[0]; }
+  var DUR = 120, FIRST = 120, GOLD = 1.25;
+  var UI = {
+    next: ['Primera mutación en {t}', 'First mutation in {t}', 'Primeira mutação em {t}', 'Première mutation dans {t}', 'Первая мутация через {t}', '最初の変異まで{t}'],
+    left: ['Siguiente en {t}', 'Next in {t}', 'Próxima em {t}', 'Suivante dans {t}', 'Следующая через {t}', '次まで{t}'],
+    mut: ['MUTACIÓN', 'MUTATION', 'MUTAÇÃO', 'MUTATION', 'МУТАЦИЯ', '変異'],
+    hunted: ['¡Cacería! Un élite marcado te persigue.', 'Hunt! A marked elite is chasing you.', 'Caçada! Um elite marcado persegue você.', 'Chasse ! Un élite marqué te poursuit.', 'Охота! Помеченный элитный враг преследует вас.', '狩り！印のついたエリートが追ってくる。'],
+    prize: ['Cacería superada: ¡cofre!', 'Hunt complete: a chest!', 'Caçada concluída: um baú!', 'Chasse réussie : un coffre !', 'Охота завершена: сундук!', '狩り達成：宝箱！'],
+    gone: ['El élite se ha desvanecido.', 'The elite vanished.', 'O elite desapareceu.', 'L\'élite s\'est évanoui.', 'Элитный враг исчез.', 'エリートは消えた。']
+  };
+  var DEFS = [
+    {id: 'swarm', n: ['Enjambre', 'Swarm', 'Enxame', 'Essaim', 'Рой', '大群'],
+      d: ['El doble de enemigos, con la mitad de vida.', 'Twice as many enemies, with half the health.', 'O dobro de inimigos, com metade da vida.', 'Deux fois plus d\'ennemis, avec moitié moins de vie.', 'Врагов вдвое больше, но с половиной здоровья.', '敵が2倍に増えるが、体力は半分。']},
+    {id: 'shooters', n: ['Tiradores', 'Shooters', 'Atiradores', 'Tireurs', 'Стрелки', '射手'],
+      d: ['Todos los enemigos lanzan proyectiles.', 'Every enemy shoots projectiles.', 'Todos os inimigos lançam projéteis.', 'Tous les ennemis tirent des projectiles.', 'Все враги стреляют снарядами.', '全ての敵が弾を撃ってくる。']},
+    {id: 'storm', n: ['Tormenta', 'Storm', 'Tempestade', 'Tempête', 'Гроза', '嵐'],
+      d: ['Caen rayos en zonas marcadas del suelo. Esquívalos.', 'Lightning strikes marked spots on the ground. Dodge it.', 'Raios caem em pontos marcados no chão. Desvie.', 'La foudre tombe sur des zones marquées au sol. Esquive-la.', 'Молнии бьют в отмеченные места. Уворачивайтесь.', '地面の印の位置に落雷。避けろ。']},
+    {id: 'slip', n: ['Suelo resbaladizo', 'Slippery floor', 'Chão escorregadio', 'Sol glissant', 'Скользкий пол', '滑る床'],
+      d: ['Tu personaje patina y le cuesta frenar.', 'Your hero slides and struggles to stop.', 'Seu herói escorrega e tem dificuldade para parar.', 'Ton héros glisse et peine à s\'arrêter.', 'Герой скользит и с трудом останавливается.', 'キャラが滑って止まりにくい。']},
+    {id: 'pits', n: ['Pozos de ceniza', 'Ash pits', 'Poços de cinzas', 'Puits de cendres', 'Пепельные ямы', '灰の穴'],
+      d: ['Charcos de ceniza que ralentizan a todo el que los pise.', 'Ash pools that slow anyone who steps in them.', 'Poças de cinzas que retardam quem pisar nelas.', 'Des mares de cendres qui ralentissent quiconque y marche.', 'Пепельные лужи замедляют всех, кто в них наступит.', '踏んだ者を遅くする灰だまり。']},
+    {id: 'noheal', n: ['Sin regeneración', 'No regeneration', 'Sem regeneração', 'Sans régénération', 'Без регенерации', '回復不能'],
+      d: ['No recuperas vida, pero la experiencia se duplica.', 'You cannot heal, but experience is doubled.', 'Você não recupera vida, mas a experiência é dobrada.', 'Tu ne récupères pas de vie, mais l\'expérience est doublée.', 'Лечение отключено, но опыт удваивается.', '回復できないが、経験値は2倍。']},
+    {id: 'magnet', n: ['Imán invertido', 'Inverted magnet', 'Ímã invertido', 'Aimant inversé', 'Обратный магнит', '逆磁石'],
+      d: ['Las almas huyen de ti. Persíguelas.', 'Souls run away from you. Chase them.', 'As almas fogem de você. Persiga-as.', 'Les âmes te fuient. Poursuis-les.', 'Души убегают от вас. Догоняйте их.', '魂が逃げていく。追いかけろ。']},
+    {id: 'hunt', n: ['Cacería', 'The Hunt', 'Caçada', 'La Chasse', 'Охота', '狩り'],
+      d: ['Un élite marcado te persigue sin parar. Si lo matas, suelta un cofre.', 'A marked elite chases you relentlessly. Kill it and it drops a chest.', 'Um elite marcado persegue você sem parar. Se o matar, solta um baú.', 'Un élite marqué te poursuit sans relâche. Tue-le et il lâche un coffre.', 'Помеченный элитный враг неустанно преследует вас. Убейте его, и выпадет сундук.', '印のついたエリートが執拗に追ってくる。倒すと宝箱を落とす。']}
+  ];
+  var BYID = {}; DEFS.forEach(function (d) { BYID[d.id] = d; });
+  function mmss(s) { s = Math.max(0, Math.ceil(s)); var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
+  function fill(s, o) { return s.replace(/\{(\w+)\}/g, function (m, k) { return o[k] === undefined ? m : o[k]; }); }
+
+  /* ---------- estado ---------- */
+  var St = {slot: 0, bag: [], last: null, strikes: [], bolts: [], pits: [], stT: 1.5, pitT: 0, hunter: null, shootT: 0, arrow: null};
+  function plain() { MUT.id = null; MUT.spawn = 1; MUT.hp = 1; MUT.xp = 1; MUT.rep = false; MUT.slip = false; }
+
+  /* ---------- HUD ---------- */
+  var hud = document.getElementById('hud');
+  var css = document.createElement('style');
+  css.textContent = [
+    '#mutHud{left:50%;top:14px;transform:translateX(-50%);min-width:210px;max-width:min(420px,calc(100% - 640px));padding:6px 14px 8px;text-align:center;background:rgba(12,13,14,.88);box-shadow:0 0 0 2px #6b4e1c,0 0 0 4px #0c0d0e,0 0 0 6px rgba(201,168,90,.35);font-family:var(--display);color:#e8e1d0;pointer-events:none}',
+    '#mutHud[hidden]{display:none}',
+    '#mutHud b{display:block;font-size:15px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:#f0d890;text-shadow:2px 2px 0 #000}',
+    '#mutHud span{display:block;font-family:var(--body);font-size:12px;color:rgba(232,225,208,.7);margin-top:2px}',
+    '#mutHud .mb{height:6px;margin-top:6px;background:#1a1408;box-shadow:0 0 0 2px #3a2f14}',
+    '#mutHud .mb i{display:block;height:100%;width:100%;transform-origin:left;background:repeating-linear-gradient(90deg,#c9a85a 0 6px,#a98a42 6px 8px)}',
+    '#mutBan{left:50%;top:22%;transform:translateX(-50%);width:min(560px,calc(100% - 32px));padding:16px 22px 18px;text-align:center;background:rgba(12,13,14,.94);box-shadow:0 0 0 3px #c9a85a,0 0 0 6px #0c0d0e,0 0 0 9px #6b4e1c;opacity:0;transition:opacity .35s;pointer-events:none;z-index:6}',
+    '#mutBan.on{opacity:1}',
+    '#mutBan small{display:block;font-family:var(--display);font-size:13px;letter-spacing:.3em;color:#d6524a;text-shadow:2px 2px 0 #000}',
+    '#mutBan b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(26px,4vw,40px);letter-spacing:.1em;text-transform:uppercase;color:#f0d890;text-shadow:3px 3px 0 #000;margin:4px 0 6px}',
+    '#mutBan span{display:block;font-size:15px;color:rgba(232,225,208,.85)}',
+    '#mutArrow{width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:22px solid #d6524a;filter:drop-shadow(2px 2px 0 #000);pointer-events:none}',
+    '#mutArrow[hidden]{display:none}'
+  ].join('\n');
+  document.head.appendChild(css);
+  var elH = document.createElement('div'); elH.id = 'mutHud'; elH.hidden = true; elH.setAttribute('data-nt', '1');
+  elH.innerHTML = '<b></b><span></span><div class="mb"><i></i></div>';
+  var elB = document.createElement('div'); elB.id = 'mutBan'; elB.setAttribute('data-nt', '1');
+  elB.innerHTML = '<small></small><b></b><span></span>';
+  var elA = document.createElement('div'); elA.id = 'mutArrow'; elA.hidden = true; elA.setAttribute('data-nt', '1');
+  hud.appendChild(elH); hud.appendChild(elB); hud.appendChild(elA);
+  var hB = elH.querySelector('b'), hS = elH.querySelector('span'), hI = elH.querySelector('i');
+  var banT = 0;
+  function banner(d) {
+    elB.querySelector('small').textContent = T(UI.mut);
+    elB.querySelector('b').textContent = T(d.n);
+    elB.querySelector('span').textContent = T(d.d);
+    elB.classList.add('on'); clearTimeout(banT); banT = setTimeout(function () { elB.classList.remove('on'); }, 4500);
+  }
+
+  /* ---------- ciclo de mutaciones ---------- */
+  function nextId() {
+    if (!St.bag.length) {
+      St.bag = DEFS.map(function (d) { return d.id; });
+      for (var i = St.bag.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = St.bag[i]; St.bag[i] = St.bag[j]; St.bag[j] = x; }
+      if (St.bag[0] === St.last) { var y = St.bag.shift(); St.bag.push(y); }
+    }
+    var id = St.bag.shift(); St.last = id; return id;
+  }
+  function clearHunter(silent) {
+    var h = St.hunter;
+    if (h && !h.dead) { h.dead = true; try { burst(h.x, h.y, '#d6524a', 18); } catch (e) {} if (!silent) try { toast(T(UI.gone)); } catch (e) {} }
+    St.hunter = null; elA.hidden = true;
+  }
+  function endCur() {
+    var id = MUT.id;
+    if (id === 'noheal') PL.forEach(function (p) { if (p._rg !== undefined) { p.regen = p._rg; p.steal = p._st; p._rg = undefined; p._st = undefined; } p._mh = undefined; });
+    if (id === 'slip') PL.forEach(function (p) { p.sv = null; });
+    St.strikes = []; St.pits = []; St.bolts = [];
+    clearHunter(false);
+    plain();
+  }
+  function startMut(id) {
+    endCur();
+    MUT.id = id;
+    if (id === 'swarm') { MUT.spawn = 2; MUT.hp = .5; }
+    else if (id === 'slip') MUT.slip = true;
+    else if (id === 'noheal') {
+      MUT.xp = 2;
+      PL.forEach(function (p) { p._rg = p.regen; p._st = p.steal; p.regen = 0; p.steal = 0; p._mh = p.hp; });
+    }
+    else if (id === 'magnet') MUT.rep = true;
+    else if (id === 'storm') St.stT = 1.2;
+    else if (id === 'pits') { St.pitT = 0; fillPits(true); }
+    else if (id === 'hunt') spawnHunter();
+    banner(BYID[id]);
+    try { S('level'); } catch (e) {}
+  }
+
+  /* ---------- utilidades ---------- */
+  function livePl() { return PL.filter(function (q) { return !q.dead; }); }
+  function anyLive() { var l = livePl(); return l.length ? l[Math.floor(Math.random() * l.length)] : PL[0]; }
+  function dmgBase() { return (1 + t / 300) * MAPS[curMap].dmg * HM; }
+  function free(x, y, r) { return !blocked(x, y, r || .5); }
+  function inPit(e) { for (var i = 0; i < St.pits.length; i++) { var p = St.pits[i]; if (Math.hypot(e.x - p.x, e.y - p.y) < p.r) return true; } return false; }
+
+  /* ---------- pozos de ceniza ---------- */
+  function fillPits(first) {
+    var T0 = livePl()[0] || PL[0];
+    St.pits = St.pits.filter(function (p) { return Math.hypot(p.x - T0.x, p.y - T0.y) < 18; });
+    var tries = 0;
+    while (St.pits.length < 6 && tries++ < 40) {
+      var a = Math.random() * 6.283, d = first ? 3 + Math.random() * 7 : 8 + Math.random() * 6, x = T0.x + Math.cos(a) * d, y = T0.y + Math.sin(a) * d, r = 1.7 + Math.random() * .8;
+      if (!free(x, y, r * .6)) continue;
+      var ok = true; St.pits.forEach(function (p) { if (Math.hypot(p.x - x, p.y - y) < p.r + r + .5) ok = false; });
+      if (ok) St.pits.push({x: x, y: y, r: r, a: Math.random() * 6.283});
+    }
+  }
+
+  /* ---------- enjambre: mitad de vida ---------- */
+  var _se = spawnEnemy;
+  spawnEnemy = function () {
+    var n = enemies.length; _se.apply(this, arguments);
+    if (MUT.hp !== 1) for (var i = n; i < enemies.length; i++) { enemies[i].hp *= MUT.hp; enemies[i].maxHp *= MUT.hp; }
+  };
+
+  /* ---------- cacería ---------- */
+  function spawnHunter() {
+    var n0 = enemies.length, e = null, k;
+    for (k = 0; k < 14 && !e; k++) {
+      spawnEnemy();
+      for (var i = n0; i < enemies.length; i++) if (enemies[i].type === 'zombie' && !enemies[i].boss) { e = enemies[i]; break; }
+    }
+    if (!e) { var l = enemies[enemies.length - 1]; if (l && !l.boss) e = l; }
+    if (!e) return;
+    e.elite = true; e.hunt = true; e.r *= 1.25; e.h *= 1.15;
+    var hf = HPF[e.type] * 2.4 * 1.8;
+    e.hf = hf; e.maxHp = e.hp = enemyHp(hf);
+    e.dmg *= 1.3; e.xp *= 4;
+    var T0 = livePl()[0] || PL[0];
+    e.speed = Math.max(e.speed, (T0.speed || 4) * .93);
+    St.hunter = e;
+    try { toast(T(UI.hunted)); } catch (x) {}
+  }
+  var _kill = killEnemy;
+  killEnemy = function (e) {
+    var r = _kill.apply(this, arguments);
+    try {
+      if (e && e.hunt) {
+        if (St.hunter === e) { St.hunter = null; elA.hidden = true; }
+        if (typeof chests !== 'undefined' && typeof cofId !== 'undefined' && typeof COF_CFG !== 'undefined') {
+          chests.push({id: ++cofId, x: e.x, y: e.y, tier: 1, mim: false, st: 0, ot: 0, life: COF_CFG.life, ph: Math.random() * 6});
+          ring(e.x, e.y, 1.6, .5, '#e8c060');
+        }
+        toast(T(UI.prize));
+      }
+    } catch (x) {}
+    return r;
+  };
+
+  /* ---------- XP doble ---------- */
+  var _gx = gainXp;
+  gainXp = function (v) { return _gx.call(this, v * (MUT.xp || 1)); };
+
+  /* ---------- enemigos que disparan ---------- */
+  function shooters(dt) {
+    if (shots.length > 330) return;
+    var shp = curMap === 1 ? ['#4a8a3a', 'alga'] : curMap === 2 ? ['#e04a1a', 'moho'] : curMap === 3 ? ['#a050ff', 'llama'] : curMap === 4 ? ['#a8d0ff', 'aguab'] : ['#c79bff', undefined];
+    for (var i = 0; i < enemies.length; i++) {
+      var e = enemies[i];
+      if (e.dead || e.boss || e.type === 'archer' || e.mim || !e.tg) continue;
+      e.ms = (e.ms === undefined ? 1 + Math.random() * 2.5 : e.ms) - dt;
+      if (e.ms > 0) continue;
+      var dx = e.tg.x - e.x, dy = e.tg.y - e.y, d = Math.hypot(dx, dy) || 1;
+      if (d > 9 || !e.los) { e.ms = .4; continue; }
+      e.ms = 2 + Math.random() * 1.6;
+      try { S('shoot', e.x, e.y); } catch (x) {}
+      shots.push({x: e.x, y: e.y, vx: dx / d * 4.2, vy: dy / d * 4.2, life: 2.5, friendly: false, dmg: e.dmg * .7, col: shp[0], r: .18, spr: shp[1]});
+    }
+  }
+
+  /* ---------- tormenta ---------- */
+  function storm(dt) {
+    St.stT -= dt;
+    if (St.stT <= 0) {
+      St.stT = 1.1 + Math.random() * .7;
+      var q = anyLive(), n = Math.random() < .35 ? 2 : 1;
+      for (var k = 0; k < n; k++) {
+        for (var tr = 0; tr < 12; tr++) {
+          var a = Math.random() * 6.283, d = k ? 2 + Math.random() * 7 : Math.random() * 3.2, x = q.x + Math.cos(a) * d, y = q.y + Math.sin(a) * d;
+          if (!free(x, y, .3)) continue;
+          St.strikes.push({x: x, y: y, t: 0, dur: 1.05, r: 1.5}); break;
+        }
+      }
+    }
+    for (var i = St.strikes.length - 1; i >= 0; i--) {
+      var s = St.strikes[i]; s.t += dt;
+      if (s.t >= s.dur) {
+        St.strikes.splice(i, 1);
+        St.bolts.push({x: s.x, y: s.y, t: 0, dur: .3});
+        try { hitPlayersAt(s.x, s.y, s.r, 20 * dmgBase()); burst(s.x, s.y, '#bfe4ff', 14); ring(s.x, s.y, s.r, .35, '#bfe4ff'); S('smash', s.x, s.y, 0, .7); } catch (x) {}
+      }
+    }
+  }
+
+  /* ---------- API usada por el núcleo ---------- */
+  window.mutReset = function () {
+    plain(); St.slot = 0; St.bag = []; St.last = null; St.strikes = []; St.bolts = []; St.pits = []; St.hunter = null;
+    elA.hidden = true; elB.classList.remove('on'); clearTimeout(banT);
+    elH.hidden = !RUNMUT;
+    PL.forEach(function (p) { p.sv = null; p._rg = undefined; p._st = undefined; p._mh = undefined; });
+  };
+  window.mutUpdate = function (dt) {
+    if (TW.on) return;
+    var slot = Math.floor(t / DUR);
+    if (slot >= 1 && slot !== St.slot) { St.slot = slot; startMut(nextId()); }
+    var id = MUT.id;
+    /* panel superior */
+    elH.hidden = false;
+    if (!id) {
+      hB.textContent = T(UI.mut); hS.textContent = fill(T(UI.next), {t: mmss(FIRST - t)});
+      hI.style.transform = 'scaleX(' + Math.max(0, Math.min(1, t / FIRST)) + ')';
+    } else {
+      var left = (St.slot + 1) * DUR - t;
+      hB.textContent = T(BYID[id].n); hS.textContent = fill(T(UI.left), {t: mmss(left)});
+      hI.style.transform = 'scaleX(' + Math.max(0, Math.min(1, left / DUR)) + ')';
+    }
+    if (id === 'shooters') shooters(dt);
+    else if (id === 'storm') storm(dt);
+    else if (id === 'pits') {
+      St.pitT -= dt; if (St.pitT <= 0) { St.pitT = 3; fillPits(false); }
+      for (var i = 0; i < enemies.length; i++) { var e = enemies[i]; if (!e.dead && inPit(e)) e.slow = Math.max(e.slow || 0, .2); }
+    }
+    else if (id === 'noheal') {
+      PL.forEach(function (p) {
+        if (p.dead) { p._mh = 1e9; return; }
+        if (p.regen > 0) { p._rg = (p._rg || 0) + p.regen; p.regen = 0; }
+        if (p.steal > 0) { p._st = (p._st || 0) + p.steal; p.steal = 0; }
+        if (p._mh === undefined) p._mh = p.hp;
+        if (p.hp > p._mh) p.hp = p._mh; else p._mh = p.hp;
+      });
+    }
+    else if (id === 'hunt') {
+      var h = St.hunter;
+      if (h && !h.dead) {
+        var q = livePl()[0] || PL[0], cs = sp(cam.x, cam.y), pp = sp(h.x, h.y), sx = (pp.x - cs.x) * Z + W / 2, sy = (pp.y - cs.y) * Z + H / 2;
+        var m = 34;
+        if (sx < m || sx > W - m || sy < m + 60 || sy > H - m) {
+          var ang = Math.atan2(sy - H / 2, sx - W / 2), rx = W / 2 - m, ry = H / 2 - m - 40, k = 1 / Math.max(Math.abs(Math.cos(ang)) / rx, Math.abs(Math.sin(ang)) / ry);
+          elA.hidden = false; elA.style.left = (W / 2 + Math.cos(ang) * k - 11) + 'px'; elA.style.top = (H / 2 + Math.sin(ang) * k - 11) + 'px'; elA.style.transform = 'rotate(' + (ang + Math.PI / 2) + 'rad)';
+        } else elA.hidden = true;
+        h.speed = Math.max(h.speed, (q.speed || 4) * .93);
+      } else if (St.hunter) { St.hunter = null; elA.hidden = true; }
+    }
+  };
+  /* movimiento del jugador: suelo resbaladizo y pozos de ceniza. Devuelve true si lo ha movido ya. */
+  window.mutMove = function (p, mx, my, dt) {
+    var slow = (MUT.id === 'pits' && inPit(p)) ? .5 : 1, spd = p.speed * slow;
+    if (MUT.slip) {
+      p.sv = p.sv || {x: 0, y: 0};
+      var k = Math.min(1, dt * ((mx || my) ? 2.2 : 1.0));
+      p.sv.x += (mx * spd - p.sv.x) * k; p.sv.y += (my * spd - p.sv.y) * k;
+      var ox = p.x, oy = p.y;
+      movePl(p, p.sv.x * dt, p.sv.y * dt);
+      var mv = Math.hypot(p.x - ox, p.y - oy), want = Math.hypot(p.sv.x, p.sv.y) * dt;
+      if (want > 1e-6 && mv < want * .5) { p.sv.x *= .55; p.sv.y *= .55; }
+      return true;
+    }
+    if (slow !== 1) { movePl(p, mx * spd * dt, my * spd * dt); return true; }
+    return false;
+  };
+  window.mutGround = function () {
+    var i, s, pr, p;
+    /* pozos */
+    for (i = 0; i < St.pits.length; i++) {
+      var q = St.pits[i]; p = sp(q.x, q.y);
+      ctx.globalAlpha = .62; ctx.fillStyle = '#17120f'; ctx.beginPath(); ctx.ellipse(p.x, p.y, q.r * 45.25, q.r * 22.6, 0, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = .55; ctx.fillStyle = '#4a4038'; ctx.beginPath(); ctx.ellipse(p.x, p.y, q.r * 31, q.r * 15.5, 0, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = .8; ctx.strokeStyle = '#8a7c6c'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.ellipse(p.x, p.y, q.r * 45.25, q.r * 22.6, 0, 0, 6.283); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
+      ctx.fillStyle = '#b9ad9c';
+      for (var k = 0; k < 6; k++) { var ph = (t * .5 + k * .31 + q.a) % 1, an = k * 1.9 + q.a, rr = q.r * .75 * ((k * .37 + .1) % 1), bp = sp(q.x + Math.cos(an) * rr, q.y + Math.sin(an) * rr); ctx.globalAlpha = .7 * (1 - ph); ctx.fillRect(Math.round(bp.x) - 1, Math.round(bp.y - ph * 9) - 1, 2, 2); }
+      ctx.globalAlpha = 1;
+    }
+    /* rayos marcados */
+    for (i = 0; i < St.strikes.length; i++) {
+      s = St.strikes[i]; pr = Math.min(1, s.t / s.dur); p = sp(s.x, s.y);
+      ctx.globalAlpha = .14 + .1 * (.5 + .5 * Math.sin(t * 22)); ctx.fillStyle = '#9fd0ff'; ctx.beginPath(); ctx.ellipse(p.x, p.y, s.r * 45.25, s.r * 22.6, 0, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = .4; ctx.beginPath(); ctx.ellipse(p.x, p.y, s.r * 45.25 * pr, s.r * 22.6 * pr, 0, 0, 6.283); ctx.fill();
+      ctx.globalAlpha = .95; ctx.strokeStyle = '#d8ecff'; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.lineDashOffset = -t * 24; ctx.beginPath(); ctx.ellipse(p.x, p.y, s.r * 45.25, s.r * 22.6, 0, 0, 6.283); ctx.stroke();
+      ctx.setLineDash([]); ctx.lineWidth = 1; ctx.globalAlpha = 1;
+    }
+    /* destello del rayo */
+    for (i = St.bolts.length - 1; i >= 0; i--) {
+      s = St.bolts[i]; s.t += 1 / 60; if (s.t > s.dur) { St.bolts.splice(i, 1); continue; }
+      p = sp(s.x, s.y); var a = 1 - s.t / s.dur;
+      ctx.globalAlpha = a; ctx.strokeStyle = '#f4faff'; ctx.lineWidth = 4;
+      ctx.beginPath(); var bx = p.x, by = p.y - 420; ctx.moveTo(bx, by);
+      for (var z = 1; z <= 7; z++) { bx = p.x + ((z * 37 + Math.floor(s.x * 7)) % 31 - 15) * (1 - z / 8); by = p.y - 420 + z * 60; ctx.lineTo(bx, by); }
+      ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.lineWidth = 1;
+      ctx.fillStyle = '#dff0ff'; ctx.globalAlpha = a * .5; ctx.beginPath(); ctx.ellipse(p.x, p.y, 60, 30, 0, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    /* marca del élite perseguidor */
+    var h = St.hunter;
+    if (h && !h.dead) {
+      p = sp(h.x, h.y); ctx.globalAlpha = .55 + .35 * Math.sin(t * 8); ctx.strokeStyle = '#d6524a'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, h.r * 80, h.r * 40, 0, 0, 6.283); ctx.stroke(); ctx.lineWidth = 1; ctx.globalAlpha = 1;
+    }
+  };
+
+  /* ---------- textos de la selección de mapa (traducción al vuelo) ---------- */
+  var X = {
+    en: {'Mutaciones': 'Mutations', 'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.': 'Every 2 minutes a new mutation makes the run harder. +25% gold.', 'Gana en este mapa para desbloquear Mutaciones': 'Win on this map to unlock Mutations', ' · Mutaciones': ' · Mutations'},
+    pt: {'Mutaciones': 'Mutações', 'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.': 'A cada 2 minutos surge uma nova mutação que complica a partida. +25% de ouro.', 'Gana en este mapa para desbloquear Mutaciones': 'Vença neste mapa para desbloquear Mutações', ' · Mutaciones': ' · Mutações'},
+    fr: {'Mutaciones': 'Mutations', 'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.': 'Toutes les 2 minutes, une nouvelle mutation complique la partie. +25 % d\'or.', 'Gana en este mapa para desbloquear Mutaciones': 'Gagne sur cette carte pour débloquer les Mutations', ' · Mutaciones': ' · Mutations'},
+    ru: {'Mutaciones': 'Мутации', 'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.': 'Каждые 2 минуты появляется новая мутация, усложняющая партию. +25% золота.', 'Gana en este mapa para desbloquear Mutaciones': 'Победите на этой карте, чтобы открыть Мутации', ' · Mutaciones': ' · Мутации'},
+    ja: {'Mutaciones': 'ミューテーション', 'Cada 2 minutos aparece una mutación nueva que complica la partida. +25% de oro.': '2分ごとに新しい変異が発生し、難しくなる。ゴールド+25%。', 'Gana en este mapa para desbloquear Mutaciones': 'このマップで勝利するとミューテーションが解放されます', ' · Mutaciones': ' ・ミューテーション'}
+  };
+  try {
+    Object.keys(X).forEach(function (l) { if (I18N_DATA[l]) Object.keys(X[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = X[l][k]; }); });
+    if (typeof i18nLoad === 'function') i18nLoad();
+    if (typeof i18nApply === 'function' && LANG !== 'es') i18nApply();
+  } catch (e) {}
+  window.MUT_GOLD = GOLD;
+  window.mutForce = function (id) { St.slot = Math.floor(t / DUR); startMut(id); };
 })();
 /* ==========================================================================
    REPORTES Y SUGERENCIAS · botón abajo a la derecha del menú (y en la pausa)
