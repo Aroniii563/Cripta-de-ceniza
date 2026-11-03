@@ -13953,7 +13953,7 @@ var FONDO_FX = {
     w: 1672, h: 941, P: 3,
     atlas: 'fondos/menu_caida_piezas.png',
     // piezas del atlas: [x, y, ancho, alto, destino x, destino y, pivote x, pivote y]
-    piezas: {"legB": [0, 0, 98, 98, 866, 519, 880, 540], "legA": [100, 0, 122, 87, 856, 472, 873, 517], "tail": [224, 0, 51, 70, 766, 570, 790, 575], "torso": [277, 0, 240, 255, 725, 381, 840, 500], "arm": [519, 0, 65, 93, 831, 379, 845, 465], "tieA": [586, 0, 133, 57, 833, 452, 833, 505], "tieB": [721, 0, 25, 68, 808, 434, 820, 470], "libro0": [748, 0, 63, 94, 539, 391, 575, 440], "libro1": [813, 0, 67, 67, 1241, 373, 1272, 407], "libro2": [0, 257, 70, 55, 1361, 268, 1398, 295], "libro3": [72, 257, 123, 88, 1108, 666, 1170, 707], "libro4": [197, 257, 45, 39, 1029, 462, 1051, 480], "libro5": [244, 257, 80, 65, 741, 858, 788, 890], "libro6": [326, 257, 49, 54, 1107, 798, 1127, 824], "libro7": [377, 257, 44, 42, 1237, 809, 1259, 829], "libro8": [423, 257, 57, 50, 593, 496, 621, 520], "hoja9": [482, 257, 25, 27, 581, 812, 592, 829], "hoja10": [509, 257, 15, 17, 105, 266, 113, 275], "hoja11": [526, 257, 32, 30, 650, 247, 667, 263], "hoja12": [560, 257, 27, 33, 860, 307, 873, 323], "hoja13": [589, 257, 24, 27, 536, 515, 552, 526], "hoja14": [615, 257, 28, 32, 898, 730, 915, 745], "hoja15": [645, 257, 31, 28, 702, 580, 719, 596]},
+    piezas: {"sil": [0, 0, 255, 263, 724, 378, 840, 500], "legB": [257, 0, 98, 98, 866, 519, 880, 540], "legA": [357, 0, 122, 87, 856, 472, 873, 517], "tail": [481, 0, 51, 70, 766, 570, 790, 575], "torso": [534, 0, 240, 255, 725, 381, 840, 500], "arm": [776, 0, 65, 93, 831, 379, 845, 465], "tieA": [0, 265, 133, 57, 833, 452, 833, 505], "tieB": [135, 265, 25, 68, 808, 434, 820, 470], "libro0": [162, 265, 61, 92, 540, 392, 575, 440], "libro1": [225, 265, 65, 65, 1242, 374, 1272, 407], "libro2": [292, 265, 68, 53, 1362, 269, 1398, 295], "libro3": [362, 265, 121, 86, 1109, 667, 1170, 707], "libro4": [485, 265, 43, 37, 1030, 463, 1051, 480], "libro5": [530, 265, 82, 64, 738, 859, 788, 890], "libro6": [614, 265, 55, 52, 1108, 801, 1127, 824], "libro7": [671, 265, 42, 40, 1238, 810, 1259, 829], "libro8": [715, 265, 55, 48, 594, 497, 621, 520], "hoja9": [772, 265, 23, 25, 582, 813, 592, 829], "hoja10": [797, 265, 13, 15, 106, 267, 113, 275], "hoja11": [812, 265, 30, 28, 651, 248, 667, 263], "hoja12": [844, 265, 25, 31, 861, 308, 873, 323], "hoja13": [0, 359, 28, 26, 531, 516, 552, 526], "hoja14": [30, 359, 26, 30, 899, 731, 915, 745], "hoja15": [58, 359, 29, 26, 703, 581, 719, 596]},
     centro: [868, 505],
     faroles: [[321, 341, 95, 1], [1241, 81, 75, 1], [216, 439, 26, 0], [609, 652, 32, 0], [1358, 810, 32, 0], [1247, 577, 26, 0], [1497, 288, 22, 0], [1266, 625, 18, 0]],
     ventanas: [[1092, 60, 40], [1105, 188, 30], [1087, 137, 26], [1137, 278, 30], [1197, 435, 30]],
@@ -13992,20 +13992,22 @@ var FONDO_FX = {
       Object.keys(PZ).forEach(function (k, n) {
         if (k.indexOf('libro') && k.indexOf('hoja')) return;
         var hoja = !k.indexOf('hoja'), s = H.rnd(n + 700);
-        var rot = Math.sin(t * (hoja ? .45 : .16 + s * .1) + n * 2.1) * (hoja ? .5 : .14 + s * .08);
-        var ox = Math.sin(t * (.13 + s * .08) + n) * (hoja ? 10 : 6), oy = Math.sin(t * (.11 + s * .07) + n * 1.7) * (hoja ? 12 : 8) - Math.sin(t * .09) * 3;
-        pieza(k, rot, ox, oy);
+        /* libros: deriva lenta y giro muy leve; hojas: se mecen un poco más. Con suavizado para que no se pixelen al girar */
+        var rot = Math.sin(t * (hoja ? .4 : .14 + s * .08) + n * 2.1) * (hoja ? .22 : .05 + s * .03);
+        var ox = Math.sin(t * (.12 + s * .06) + n) * (hoja ? 7 : 4), oy = Math.sin(t * (.1 + s * .05) + n * 1.7) * (hoja ? 8 : 5);
+        c.imageSmoothingEnabled = true; pieza(k, rot, ox, oy); c.imageSmoothingEnabled = false;
       });
       /* el Escritor: todo el cuerpo flota y gira muy despacio; brazo y piernas se mueven cada uno a su ritmo */
       var C0 = this.centro, ga = Math.sin(t * .23) * .045, gx = Math.sin(t * .19) * 5, gy = Math.sin(t * .27 + 1) * 7;
       c.save(); c.translate(C0[0] + gx, C0[1] + gy); c.rotate(ga); c.translate(-C0[0], -C0[1]);
-      pieza('legB', Math.sin(t * .42 + 2) * .07);
-      pieza('legA', Math.sin(t * .36 + .5) * .09);
+      pieza('sil', 0);   /* silueta oscura detrás: tapa cualquier hueco entre piezas */
+      pieza('legB', Math.sin(t * .42 + 2) * .045);
+      pieza('legA', Math.sin(t * .36 + .5) * .055);
       /* faldón de la chaqueta: ondea por filas */
       var q = PZ.tail;
-      if (q && A) for (var ry = 0; ry < q[3]; ry += 2) { var k2 = ry / q[3], off = Math.round(Math.sin(t * 1.6 - ry * .12) * 3 * k2); c.drawImage(A, q[0], q[1] + ry, q[2], 2, q[4] + off, q[5] + ry, q[2], 2); }
+      if (q && A) for (var ry = 0; ry < q[3]; ry++) { var k2 = ry / q[3], off = Math.round(Math.sin(t * 1.4 - ry * .06) * 2 * k2 * k2); c.drawImage(A, q[0], q[1] + ry, q[2], 1, q[4] + off, q[5] + ry, q[2], 1); }
       pieza('torso', 0);
-      pieza('arm', Math.sin(t * .5) * .11 - .03);
+      pieza('arm', Math.sin(t * .5) * .07 - .02);
       /* corbata: la tira larga ondea por columnas (más hacia la punta) y la corta por filas (más hacia arriba) */
       q = PZ.tieA;
       if (q && A) for (var rx = 0; rx < q[2]; rx++) {
