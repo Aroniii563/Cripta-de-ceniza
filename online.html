@@ -7308,7 +7308,7 @@ function onGuestStep(dt){
 }
 
 /* ---------- mejoras de nivel: cada jugador elige las suyas, sin pausar ---------- */
-function offerStyle(on){var o=$('lvlOv');if(on){o.style.background='transparent';o.style.pointerEvents='none';o.style.justifyContent='flex-end';o.style.paddingBottom='56px';$('lvlCards').style.pointerEvents='auto';$('lvlCards').style.transform='scale(.72)';$('lvlCards').style.transformOrigin='bottom center'}else{o.style.background='';o.style.pointerEvents='';o.style.justifyContent='';o.style.paddingBottom='';$('lvlCards').style.pointerEvents='';$('lvlCards').style.transform=''}}
+function offerStyle(on){var o=$('lvlOv');try{$('atkBtn').style.visibility=on?'hidden':''}catch(e){}if(on){o.style.background='transparent';o.style.pointerEvents='none';o.style.justifyContent='flex-end';o.style.paddingBottom='56px';$('lvlCards').style.pointerEvents='auto';$('lvlCards').style.transform='scale(.72)';$('lvlCards').style.transformOrigin='bottom center'}else{o.style.background='';o.style.pointerEvents='';o.style.justifyContent='';o.style.paddingBottom='';$('lvlCards').style.pointerEvents='';$('lvlCards').style.transform=''}}
 function drawOffer(list,sp,title,sub,p){
   offered=list;specialMode=sp;
   $('lvlTitle').textContent=title;$('lvlSub').textContent=sub;
