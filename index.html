@@ -7008,7 +7008,18 @@ function onList(){
     $('onOptTx').textContent=[ON.hard?'Difícil':'',ON.mut?'Mutaciones':'',ON.inf?'Infinito':''].filter(Boolean).join(' · ');
   }
 }
-function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,hard:ON.hard?1:0,mut:ON.mut?1:0,inf:ON.inf?1:0,m:ON.mem.map(function(m){return {cls:m.cls,rdy:m.rdy,nick:m.nick||''}})})}
+/* aspecto que se muestra de cada jugador en la sala: el suyo si es válido (base, o comprado en la tienda); si no, el base */
+function onSkinOf(m,i){
+  var k=m.cls;
+  try{
+    if(ON.host&&i===0||!ON.host&&i===ON.me)return skinFor(k);
+    if(!ON.host)return (typeof m.skv==='string'&&m.skv)?m.skv:k;
+    var s=m.sk&&m.sk[k],q=SKINCAT.filter(function(c){return c.id===s&&c.cls===k})[0];
+    if(q&&(q.cost===0||(m.sks||[]).indexOf(s)>=0))return s;
+  }catch(e){}
+  return k;
+}
+function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,hard:ON.hard?1:0,mut:ON.mut?1:0,inf:ON.inf?1:0,m:ON.mem.map(function(m,i){return {cls:m.cls,rdy:m.rdy,nick:m.nick||'',sk:onSkinOf(m,i)}})})}
 function onSendMe(){
   if(ON.host){onLobbyBroadcast();onList()}
   else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes(),lv:meta.lv,sk:meta.skinSel,sks:meta.skins})}
@@ -7070,7 +7081,7 @@ function onGuestMsg(pid,m){
   ON.seen[pid]=performance.now();
   if(m.t==='you'){ON.me=m.i}
   else if(m.t==='full'){onMsg('La sala está llena o ya empezó.');onStop()}
-  else if(m.t==='lob'){ON.map=m.map||0;ON.hard=!!m.hard;ON.mut=!!m.mut;ON.inf=!!m.inf;ON.mem=m.m.map(function(x,i){return {id:i,cls:CLASSES[x.cls]?x.cls:'barb',rdy:x.rdy,nick:x.nick||''}});onList()}
+  else if(m.t==='lob'){ON.map=m.map||0;ON.hard=!!m.hard;ON.mut=!!m.mut;ON.inf=!!m.inf;ON.mem=m.m.map(function(x,i){return {id:i,cls:CLASSES[x.cls]?x.cls:'barb',rdy:x.rdy,nick:x.nick||'',skv:typeof x.sk==='string'?x.sk.slice(0,40):''}});onList()}
   else if(m.t==='pr'){onPingIn(m.ts)}
   else if(m.t==='map'){ON.mapA=m}
   else if(m.t==='start'){m.map2=m.map;m.map=m.mi;onBegin(m.cls,m.me,false,m,m.map2)}
@@ -7326,7 +7337,7 @@ function onGuestStep(dt){
 }
 
 /* ---------- mejoras de nivel: cada jugador elige las suyas, sin pausar ---------- */
-function offerStyle(on){var o=$('lvlOv');if(on){o.style.background='transparent';o.style.pointerEvents='none';o.style.justifyContent='flex-end';o.style.paddingBottom='56px';$('lvlCards').style.pointerEvents='auto';$('lvlCards').style.transform='scale(.72)';$('lvlCards').style.transformOrigin='bottom center'}else{o.style.background='';o.style.pointerEvents='';o.style.justifyContent='';o.style.paddingBottom='';$('lvlCards').style.pointerEvents='';$('lvlCards').style.transform=''}}
+function offerStyle(on){var o=$('lvlOv');try{$('atkBtn').style.visibility=on?'hidden':''}catch(e){}if(on){o.style.background='transparent';o.style.pointerEvents='none';o.style.justifyContent='flex-end';o.style.paddingBottom='56px';$('lvlCards').style.pointerEvents='auto';$('lvlCards').style.transform='scale(.72)';$('lvlCards').style.transformOrigin='bottom center'}else{o.style.background='';o.style.pointerEvents='';o.style.justifyContent='';o.style.paddingBottom='';$('lvlCards').style.pointerEvents='';$('lvlCards').style.transform=''}}
 function drawOffer(list,sp,title,sub,p){
   offered=list;specialMode=sp;
   $('lvlTitle').textContent=title;$('lvlSub').textContent=sub;
@@ -16248,6 +16259,10 @@ try {
       c.classList.add('tp');
       var nm = c.querySelector('.nm'); if (nm) nm.removeAttribute('style');
       var pr = c.querySelector('.price'), po = c.querySelector('.por');
+      if (id === 'shopList') {   /* tienda: se ve el aspecto tal cual es (nada de silueta ni candado) */
+        if (pr && /\d/.test(pr.textContent)) pr.innerHTML = '<img class="tp-coin" alt="" src="' + PX.coin + '">' + pr.textContent.match(/(\d[\d.]*)/)[1];
+        return;
+      }
       if (pr && !c.querySelector('[data-go]')) {   /* misión o evento: el texto explica cómo se desbloquea */
         c.classList.add('tp-quest'); pr.classList.add('tp-q');
         if (po) po.insertAdjacentHTML('beforeend', '<img class="tp-lk" alt="" src="' + PX.lock + '">');
@@ -16615,7 +16630,7 @@ try {
       var k = m.cls, C = CLASSES[k] || {}, nm = (typeof onName === 'function' ? onName(i) : (m.nick || 'J' + (i + 1)));
       var stt = i === 0 ? '<span class="co-st h">' + tr('Anfitrión') + '</span>' : m.rdy ? '<span class="co-st r">' + tr('Listo') + '</span>' : '<span class="co-st w">' + tr('Esperando') + '</span>';
       h += '<div class="co-s' + (i === ON.me ? ' me' : '') + '" style="--c:' + rgb(k) + '">' + (i === 0 ? '<img class="px co-crown" alt="" src="' + PX.icons.crown + '">' : '') +
-        '<span class="co-por">' + por(k) + '</span><span class="co-n">' + nm + (i === ON.me ? ' · ' + tr('tú') : '') + '</span><span class="co-c">' + (C.name || '') + '</span>' + stt + '</div>';
+        '<span class="co-por">' + (function () { try { var sv = typeof onSkinOf === 'function' ? onSkinOf(m, i) : null; return sv ? portHtml(sv, k) : por(k); } catch (e) { return por(k); } })() + '</span><span class="co-n">' + nm + (i === ON.me ? ' · ' + tr('tú') : '') + '</span><span class="co-c">' + (C.name || '') + '</span>' + stt + '</div>';
     }
     if (ls._h !== h || !ls.querySelector('.co-s')) { ls._h = h; ls.innerHTML = h; }
     rejilla();
