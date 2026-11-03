@@ -13065,7 +13065,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
       var an=Math.random()*6.283,d=rnd(2.3,5.5),x=a.x+Math.cos(an)*d,y=a.y+Math.sin(an)*d;
       if(blocked(x,y,.5))continue;
       var e=makeXs('mini_muerte',x,y);if(!e)return false;
-      e.r=ETYPES.zombie.r*.85;e.hf=HPF.zombie*1.4;e.hp=e.maxHp=enemyHp(e.hf);e.speed*=1.3;e.xp*=.7;e.cl=a.id;
+      e.r=ETYPES.zombie.r*.85;e.hf=HPF.zombie*2.4;e.hp=e.maxHp=enemyHp(e.hf);e.speed*=1.3;e.xp*=.7;e.cl=a.id;
       return true;
     }
     return false;
@@ -16771,6 +16771,9 @@ try {
     '#hud .hv-r{right:-30px;background-image:url("' + PX.gargD + '")}',
     '#hud .tl,#hud .tl2{padding-left:30px!important;padding-top:20px!important}',
     '#hud .tl,#hud .tl2{min-width:340px;box-sizing:border-box}',
+    '#hud .tl .hv-o,#hud .tl2 .hv-o{display:none!important}',
+    '#hud .tl .cls,#hud .tl2 .cls{padding-left:2px!important}',
+    '#hud .tl,#hud .tl2{padding-left:0!important;padding-top:0!important}',
     '#hud .tl .cls,#hud .tl2 .cls{padding-left:56px!important}',
     '#hud #bossBar .bar{height:16px!important}',
     '',
@@ -17068,7 +17071,7 @@ try {
     '#pRunas .rdust::before{content:"";width:22px;height:22px;background:url("' + PX.dust + '") 0 0/100% 100% no-repeat;image-rendering:pixelated;filter:hue-rotate(220deg) saturate(1.6) brightness(1.15)}',
     '#pRunas .rdust b{font-size:20px;letter-spacing:.04em;color:#d8c4ff!important;text-shadow:2px 2px 0 #000}',
     '#pRunas [data-buy]{min-width:260px}',
-    '#runHud div{box-shadow:0 0 0 2px #6b4e1c,0 0 0 4px #0c0d0e;background:#0c0d0e}',
+    '#runHud div{box-shadow:none!important;background:none!important}',
     /* ---------- CLAN ---------- */
     '#pClan .chead{display:flex!important;align-items:center;flex-wrap:wrap;margin:0 0 6px;gap:14px!important;padding:8px 16px;' + bi(PX.card, 8, 16) + '}',
     '#pClan .chead b{font-family:var(--display);font-size:26px!important;letter-spacing:.1em;text-transform:uppercase;color:#f0d890!important;text-shadow:2px 2px 0 #000}',
