@@ -16391,6 +16391,10 @@ try {
       c.classList.add('tp');
       var nm = c.querySelector('.nm'); if (nm) nm.removeAttribute('style');
       var pr = c.querySelector('.price'), po = c.querySelector('.por');
+      if (id === 'shopList') {   /* tienda: se ve el aspecto tal cual es (nada de silueta ni candado) */
+        if (pr && /\d/.test(pr.textContent)) pr.innerHTML = '<img class="tp-coin" alt="" src="' + PX.coin + '">' + pr.textContent.match(/(\d[\d.]*)/)[1];
+        return;
+      }
       if (pr && !c.querySelector('[data-go]')) {   /* misión o evento: el texto explica cómo se desbloquea */
         c.classList.add('tp-quest'); pr.classList.add('tp-q');
         if (po) po.insertAdjacentHTML('beforeend', '<img class="tp-lk" alt="" src="' + PX.lock + '">');
