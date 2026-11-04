@@ -761,7 +761,7 @@ var UPS=[
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 85%)',ok:function(){return P.armor<.85-1e-9},f:function(){P.armor=Math.min(.85,P.armor+.07)}},
   {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 0,5% del daño infligido',f:function(){P.steal+=.005}},
   {n:'Pies ligeros',ic:'icono_pies_ligeros',c:'u',d:'+8% de velocidad de movimiento',f:function(){P.speed*=1.08}},
-  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida',f:function(){P.pick*=1.15}},
+  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida (máx. 50)',ok:function(){return P.pick<50-1e-9},f:function(){P.pick=Math.min(50,P.pick*1.15)}},
   {n:'Sabiduría',ic:'icono_sabiduria',c:'u',d:'+5% de experiencia ganada',f:function(){P.xpMul+=.05}}
 ];
 var CATS={o:'Ofensiva',d:'Defensa',u:'Utilidad',s:'Mejora especial'};
@@ -1492,13 +1492,13 @@ $('classGrid').addEventListener('click',function(e){
 
 /* ---------- Combate ---------- */
 function roll(m){var crit=Math.random()<P.crit;return {d:P.dmg*m*rnd(.9,1.1)*(crit?2:1),crit:crit}}
-function addText(x,y,s,col,size){if(texts.length>60)return;if(col==='#ffd25a'&&/^\d+!$/.test(s)){var dn=Math.abs(parseInt(s,10));if(dn>9999)col='#b266ff';else if(dn>999)col='#ff3b3b'}texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
+function addText(x,y,s,col,size){if(texts.length>60)return;if(col==='#ffd25a'&&/^\d+!$/.test(s)){var dn=Math.abs(parseInt(s,10));if(dn>=10000)col='#6c6c7c';else if(dn>=2500)col='#b266ff';else if(dn>=500)col='#ff3b3b'}texts.push({x:x,y:y,s:s,col:col,size:size||13,t:0})}
 function burst(x,y,col,n){if(parts.length>350)return;for(var i=0;i<n;i++){var a=Math.random()*6.28,v=rnd(1,3);parts.push({x:x,y:y,z:rnd(8,20),vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:rnd(20,70),life:rnd(.3,.6),t:0,col:col})}}
 function hitEnemy(e,r,kx,ky,kb,quiet){
   if(e.dead)return;
   if(e.armor)r={d:r.d*(1-e.armor),crit:r.crit};
   e.hp-=r.d;e.flash=.12;S(r.crit?'crit':'hit',e.x,e.y,0,quiet?.5:1);
-  var kk=kb*(e.boss?.1:1);e.kx+=kx*kk;e.ky+=ky*kk;
+  var kk=kb*.5*(e.boss?.1:1);e.kx+=kx*kk;e.ky+=ky*kk;
   if(!quiet||r.crit||Math.random()<.12)addText(e.x,e.y,String(Math.round(r.d))+(r.crit?'!':''),r.crit?'#ffd25a':'#f1e7d0',r.crit?19:13);
   if(P.steal)P.hp=Math.min(P.maxHp,P.hp+r.d*P.steal);
   burst(e.x,e.y,e.col,quiet?1:3);
@@ -2312,7 +2312,7 @@ function render(){
   ctx.textAlign='center';
   texts.forEach(function(f){
     var q=sp(f.x,f.y);ctx.globalAlpha=Math.min(1,(.8-f.t)*3);
-    ctx.font='700 '+f.size+'px Spectral,Georgia,serif';ctx.lineWidth=3;ctx.strokeStyle='#050809';
+    ctx.font='700 '+f.size+'px Spectral,Georgia,serif';ctx.lineWidth=3;ctx.strokeStyle=f.col==='#6c6c7c'?'#e4e4ee':'#050809';
     var yy=q.y-44-f.t*34;ctx.strokeText(f.s,q.x,yy);ctx.fillStyle=f.col;ctx.fillText(f.s,q.x,yy);
   });
   ctx.globalAlpha=1;ctx.lineWidth=1;
@@ -2350,7 +2350,7 @@ function statRows(){
   a('Armadura',pc(P.armor),P.armor>=.85-1e-9);
   a('Regeneración',r1(P.regen)+'/s');
   if(P.steal)a('Robo de vida',pc2(P.steal));
-  a('Radio de recogida',r1(P.pick));
+  a('Radio de recogida',r1(P.pick),P.pick>=50-1e-9);
   a('Exp. ganada','x'+r1(P.xpMul));
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR*(P.spec.terr?1.35:1)),P.auraR>=1.75-1e-9);
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
@@ -9255,7 +9255,7 @@ var EVT_CFG={
   entrega:{dur:30,velEnem:1.35,ataque:1.3,xp:2,extra:1.3},
   lectores:{dur:25,ojos:4,oroProb:.35,quieto:1.3,oleada:4,cd:12},
   ansiedad:{dur:18,oscuro:.72},
-  oferta:{dur:20,oroBase:40,oroMapa:15,vidaMenos:.2,dañoMas:.1,elegir:1.2},
+  oferta:{dur:20,oroBase:1000,oroMapa:500,vidaMenos:.2,dañoMas:.1,elegir:1.2},
   deprisa:{dur:15,vel:1.4,daño:1.2},
   cuota:{dur:25,base:25,porSeg:1/12,factor:1,elites:2},
   insomnio:{dur:20,falsos:.4,parpadeo:[2,4]}
@@ -10373,6 +10373,7 @@ function doRepulsion(r){
 }
 /* animaciones (sprites en runas/) */
 var AIMG={};['cupula','espinas_abajo_derecha','espinas_arriba_derecha','serpiente_fuego','vortice','onda','terremoto'].forEach(function(n){var i=new Image();i.src='runas/'+n+'.png';AIMG[n]=i});
+var THK=9/4.33;/* alcance total: 9 bloques */
 var TH_REACH=[.48,1.61,2.27,3.02,4.02,4.27,4.33,4.33,4.33,4.3,4.17,4.02];
 var TH_DIRS=[[1,0,'espinas_abajo_derecha',0],[0,-1,'espinas_arriba_derecha',0],[0,1,'espinas_abajo_derecha',1],[-1,0,'espinas_arriba_derecha',1]];
 function doEspinas(r){
@@ -10433,7 +10434,7 @@ function drawFx(f){
   }else if(f.k==='th'){
     im=AIMG[f.spr];if(!im.complete||!im.naturalWidth)return;
     fr=Math.min(11,Math.floor(f.age*14));
-    ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));if(f.flip)ctx.scale(-1,1);
+    ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));ctx.scale(THK,THK);if(f.flip)ctx.scale(-1,1);
     ctx.drawImage(im,fr*360,0,360,240,-(f.spr==='espinas_abajo_derecha'?32:32)/2,-(f.spr==='espinas_abajo_derecha'?72:196)/2,180,120);
     ctx.restore();
   }else if(f.k==='gh'){
@@ -10583,7 +10584,7 @@ playerStep=function(dt){
         var reach=TH_REACH[fr0];
         for(k=0;k<enemies.length;k++){var z=enemies[k];if(z.dead||f.hit.indexOf(z)>=0)continue;
           var ddx=z.x-f.x,ddy=z.y-f.y,tt=ddx*f.vx+ddy*f.vy,pp=Math.abs(ddx*f.vy-ddy*f.vx);
-          if(tt>-.3&&tt<reach+z.r&&pp<.9+z.r){f.hit.push(z);dmg(z,f.m,f.vx,f.vy,2)}}
+          if(tt>-.3&&tt<reach*THK+z.r&&pp<.9*Math.min(1.5,THK)+z.r){f.hit.push(z);dmg(z,f.m,f.vx,f.vy,2)}}
       }
     }else if(f.k==='dome'){if(f.age>=8/14+8/12+5/12)RUN.fx.splice(i,1)}
     else if(f.k==='ser'){if(f.age>=1.1+.8)RUN.fx.splice(i,1)}
@@ -10887,7 +10888,7 @@ render=function(){
      sitio, con los enemigos y orbes que habías dejado allí.
    Archivos: archivo/ (suelo, laberinto, pilares, estanterías, atril, muros, calcos) y efectos/portal.png.
    ========================================================================== */
-var ZV_CFG={min:600,max:1200,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5,dur:60,rango:2.2,dmin:4,dmax:7};   /* portal cada 10-20 min; jefe con el doble de vida y el triple de daño; +5 niveles */
+var ZV_CFG={min:300,max:420,n:30,escala:.7,tirar:1.4,salida:2.5,hp:2,dmg:3,niveles:5,dur:60,rango:2.2,dmin:4,dmax:7};   /* portal cada 5-7 min; jefe con el doble de vida y el triple de daño; +5 niveles */
 var ZV_PRUEBA=true;   /* SOLO PARA /online: el primer portal sale a los 8 s y sin exigir jefes previos; poner false para el ritmo real */
 function zvRand(){return ZV_CFG.min+Math.random()*(ZV_CFG.max-ZV_CFG.min)}
 var ZV_BOSSES=[];   /* {id,name,spawn(x,y)->enemigo} · los añaden los bloques de cada jefe */
@@ -12745,12 +12746,12 @@ render=function(){
 
 /* ==========================================================================
    ALTARES DE MALDICIÓN (solo modo infinito, tras el minuto 20; solo en solitario y cooperativo local)
-   · Cada ~2,5-3 min aparece un altar cerca del jugador (flecha morada en el borde si está lejos; dura 2 min).
+   · Cada ~1,6-2 min aparece un altar cerca del jugador (flecha morada en el borde si está lejos; dura 2 min).
    · E junto a él activa una maldición de riesgo durante 50 s (una regla que complica la partida).
      Si sobrevives hasta el final, el altar suelta un gran botín: experiencia legendaria y polvo rúnico.
    ========================================================================== */
-var ALT_CFG={first:25,min:150,max:185,life:120,openR:1.6,dur:50,xp:1.6,gold:[400,700],lv:2.5};
-var altars=[],altNext=-1,altId=0,altCurse=null;
+var ALT_CFG={first:25,min:95,max:125,life:120,openR:1.6,dur:50,xp:1.6,gold:[400,700],lv:1.4};
+var altars=[],altNext=-1,altId=0,altCurse=null,altLast='';
 function altOn(){return RUNINF&&!TW.on&&t>=1200&&!(typeof ON!=='undefined'&&ON.on)}
 var ALT_CURSES=[
   {id:'explo',n:'Maldición de pólvora',d:'Los enemigos explotan al morir: no te acerques'},
@@ -12772,7 +12773,7 @@ function altSpawn(){
   return false;
 }
 function altStart(a,p){
-  var c=ALT_CURSES[Math.floor(Math.random()*ALT_CURSES.length)];
+  var pool=ALT_CURSES.filter(function(q){return q.id!==altLast}),c=pool[Math.floor(Math.random()*pool.length)];altLast=c.id;
   altCurse={c:c,a:a,left:ALT_CFG.dur,acc:0,armor:[]};
   a.st=1;
   if(c.id==='frag')altLive().forEach(function(q){q.armor-=.35;altCurse.armor.push(q)});
@@ -12841,7 +12842,7 @@ window.addEventListener('keydown',function(e){
 });
 var cenoImg={};['espera','lectura','guardado','firmado','quemado'].forEach(function(k){try{var im=new Image();im.src=COF_SRC['cenotafio_'+k].src;cenoImg[k]=im}catch(e){}});
 var _altSR=startRun;
-startRun=function(){altars=[];altNext=-1;altCurse=null;return _altSR.apply(this,arguments)};
+startRun=function(){altars=[];altNext=-1;altCurse=null;altLast='';return _altSR.apply(this,arguments)};
 var _altED=window.EXTRADRAW;
 window.EXTRADRAW=function(list,seen){
   if(_altED)_altED(list,seen);
@@ -13092,7 +13093,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     if(!on()){return}
     if(window.ALHP!==1||al2.hpDone||enemies.some(function(q){return q.alh})){
       var hh=window.ALHP,k;al2.hpDone=hh!==1;
-      for(k=0;k<enemies.length;k++){var e=enemies[k];if(e.dead)continue;var ra=hh/(e.alh||1);if(ra!==1){e.hp*=ra;e.maxHp*=ra;e.alh=hh}if(e.boss&&e.dmg){var dd=1+AL2.bossDmg*al2.obN,rd=dd/(e.ald||1);if(rd!==1){e.dmg*=rd;e.ald=dd}}}
+      for(k=0;k<enemies.length;k++){var e=enemies[k];if(e.dead)continue;var he=e.zvBoss?1+(hh-1)*2:hh,ra=he/(e.alh||1);if(ra!==1){e.hp*=ra;e.maxHp*=ra;e.alh=he}if(e.boss&&e.dmg){var dd=1+AL2.bossDmg*al2.obN,rd=dd/(e.ald||1);if(rd!==1){e.dmg*=rd;e.ald=dd}}}
     }
     if(al2.next<0)al2.next=t+AL2.first+rnd(0,20);
     if(t>=al2.next){
@@ -13249,26 +13250,33 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     });
   };
   /* icono del Obelisco junto al botón de pausa (solo el icono; la explicación sale al pasar el ratón) */
-  var obEl=null,obKey='',obT=0;
+  var obEl=null,obTip=null,obKey='',obT=0;
   function obIcon(){
     var n=(state==='play'||state==='pause')?al2.obN:0;
-    if(!n){if(obEl&&obEl.style.display!=='none')obEl.style.display='none';obKey='';return}
+    if(!n){if(obEl&&obEl.style.display!=='none'){obEl.style.display='none';if(obTip)obTip.style.display='none'}obKey='';return}
     if(!obEl){
       obEl=document.createElement('div');obEl.id='al2Ico';
-      obEl.style.cssText='position:fixed;z-index:30;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(20,8,10,.78);border:2px solid #8a2a2a;box-shadow:0 0 10px rgba(255,70,50,.45);cursor:help;box-sizing:border-box';
+      obEl.style.cssText='position:fixed;z-index:9999;pointer-events:auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(20,8,10,.78);border:2px solid #8a2a2a;box-shadow:0 0 10px rgba(255,70,50,.45);cursor:help;box-sizing:border-box';
       var im=document.createElement('img');im.alt='';im.src=AL2_IMG.ico_mal;im.style.cssText='width:24px;height:24px;image-rendering:pixelated;display:block';obEl.appendChild(im);
       var bd=document.createElement('span');bd.style.cssText='position:absolute;right:-4px;bottom:-6px;font:700 11px sans-serif;color:#fff;text-shadow:0 0 3px #300,1px 1px 0 #300;display:none';bd.id='al2IcoN';obEl.appendChild(bd);
       document.body.appendChild(obEl);
+      obTip=document.createElement('div');obTip.id='al2Tip';
+      obTip.style.cssText='position:fixed;z-index:10000;display:none;max-width:260px;padding:6px 10px;background:rgba(14,8,10,.95);border:1px solid #8a2a2a;color:#ffd6c8;font:600 13px sans-serif;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.6)';
+      document.body.appendChild(obTip);
+      obEl.addEventListener('mouseenter',function(){var r=obEl.getBoundingClientRect();obTip.textContent=obEl.getAttribute('data-tip')||'';obTip.style.display='block';var w=obTip.offsetWidth;obTip.style.left=Math.max(6,Math.round(r.right-w))+'px';obTip.style.top=Math.round(r.bottom+8)+'px'});
+      obEl.addEventListener('mouseleave',function(){obTip.style.display='none'});
     }
     var tip=T2(TX.ob)+': '+fill(T2(TX.chip),{h:nf((window.ALHP-1)*100),x:nf((window.ALXP-1)*100)});
     var k=n+'|'+tip;
-    if(k!==obKey){obKey=k;obEl.title=tip;var bn=obEl.firstChild.nextSibling;bn.textContent='x'+n;bn.style.display=n>1?'block':'none'}
+    if(k!==obKey){obKey=k;obEl.setAttribute('data-tip',tip);if(obTip&&obTip.style.display==='block')obTip.textContent=tip;var bn=obEl.firstChild.nextSibling;bn.textContent='x'+n;bn.style.display=n>1?'block':'none'}
     obEl.style.display='flex';
-    if(t-obT>.5||obT>t){
+    if(t-obT>.5||obT>t||obT<-1e8){
       obT=t;var pb=document.getElementById('pauseBtn');
       if(pb){var r=pb.getBoundingClientRect();if(r.width){obEl.style.left=Math.round(r.left-34-8)+'px';obEl.style.top=Math.round(r.top+(r.height-34)/2)+'px'}}
     }
   }
+  setInterval(function(){try{obIcon()}catch(e){}},250);
+  window.addEventListener('resize',function(){obT=-1e9});
   var _rn=render;
   render=function(){
     _rn();
@@ -14325,7 +14333,8 @@ try {
   function setStage(s,animate){
     if(s===stage)return;var from=s==='maps'?cg:mp,to=s==='maps'?mp:cg;stage=s;scene.setAttribute('data-stage',s);
     clearTimeout(tm);$('pkMaps').parentNode.scrollTop=0;
-    function swap(){from.hidden=true;from.classList.remove('pk-out');to.hidden=false;if(animate)anim(to,'pk-in');sync()}
+    cg.classList.remove('pk-out');mp.classList.remove('pk-out');cg.classList.remove('pk-in');mp.classList.remove('pk-in');
+    function swap(){cg.classList.remove('pk-out');mp.classList.remove('pk-out');from.hidden=true;to.hidden=false;if(animate)anim(to,'pk-in');sync()}
     if(animate&&!reduce()){from.classList.add('pk-out');tm=setTimeout(swap,190)}else swap();
     if(s==='classes')show(sel);
   }
