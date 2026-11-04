@@ -11993,8 +11993,8 @@ var vl_startRun=startRun;startRun=function(key,mi){VL.fxl=[];VL.orbs=[];VL.dark=
    ========================================================================== */
 var VA_SRC={"src": "jefes/valeria.png", "fw": 380, "fh": 360, "fx": 196.4, "fy": 255.2, "filas": {"andar": 8, "estocadas": 6, "transforma": 6, "salto": 6, "grito": 6, "lluvia": 6}};
 var VA_WSRC={"src": "jefes/licantropa.png", "fw": 480, "fh": 440, "fx": 246.4, "fy": 306.9, "filas": {"andar": 8, "zarpazos": 8, "muerte": 8, "carga": 4, "fuego": 6, "grito": 6}};
-var VA_FX={"espinas": {"fw": 64, "fh": 72, "fx": 32, "fy": 60, "sale": 4, "hunde": 4}, "flecha": {"fw": 16, "fh": 40, "fx": 8, "fy": 38, "n": 2}, "bola": {"fw": 40, "fh": 40, "cx": 22, "cy": 20, "n": 4}, "estrella": {"fw": 96, "fh": 64, "cx": 48, "cy": 40, "n": 6}};
-var VA_CFG={k1:1.15,k2:1.25,hp:3.8,hp2:4.4,dmg:1.4,speed1:2.4,speed2:3.0,estoc:.4,salto:.8,saltoR:3.2,espinas:.6,espinasR:1.8,flecha:.3,zarpa:.28,carga:.6,estrella:.9,estrellaR:12.5,estrellaTip:2.4,estrellaCen:3.4,vcarga:30,bola:.6};
+var VA_FX={"espinas": {"fw": 64, "fh": 72, "fx": 32, "fy": 60, "sale": 4, "hunde": 4}, "flecha": {"fw": 16, "fh": 40, "fx": 8, "fy": 38, "n": 2}, "bola": {"fw": 40, "fh": 40, "cx": 22, "cy": 20, "n": 4}, "estrella": {"fw": 96, "fh": 64, "cx": 48, "cy": 40, "n": 6}, "grueso": {"fw": 320, "fh": 820, "fx": 160, "fy": 727}, "fino": {"fw": 128, "fh": 820, "fx": 64, "fy": 779}};
+var VA_CFG={k1:1.15,k2:1.25,hp:3.8,hp2:4.4,dmg:1.4,speed1:2.4,speed2:3.0,estoc:.4,salto:.8,saltoR:3.2,espinas:.6,espinasR:1.8,flecha:.3,zarpa:.28,carga:.6,estrella:.9,estrellaR:12.5,estrellaTip:1.5,estrellaCen:3.4,vcarga:30,bola:.6};
 var VA={spr:{},fx:{},fxl:[]};
 (function(){
   function load(src,key,F,rowsMap){
@@ -12008,6 +12008,7 @@ var VA={spr:{},fx:{},fxl:[]};
   }
   load(VA_SRC.src,'valeria',VA_SRC,6);load(VA_WSRC.src,'licantropa',VA_WSRC,VA_WSRC.filas.muerte);
   ['espinas','flecha','bolafuego','estrella'].forEach(function(k){var i2=new Image();i2.onload=function(){VA.fx[k]=i2};i2.src='efectos/fx_'+k+'.png'});
+  ['grueso','fino'].forEach(function(k){var i3=new Image();i3.onload=function(){VA.fx['l_'+k]=i3};i3.src='efectos/laser_'+k+'.png'});
 })();
 function vaEnsure(){if(VA.spr.valeria&&!ESPR.valeria)ESPR.valeria=VA.spr.valeria;if(VA.spr.licantropa&&!ESPR.licantropa)ESPR.licantropa=VA.spr.licantropa}
 /* vida total (las dos barras juntas) = ZV_CFG.hp × la de un jefe normal medio; se reparte en proporción hp:hp2 */
@@ -12137,13 +12138,12 @@ function vaAI(e,dt,d){
         var dl=Math.hypot(to.x-from.x,to.y-from.y),k3=Math.min(1,(e.zt-.18)/(dl/VA_CFG.vcarga+.05));
         e.x=from.x+(to.x-from.x)*k3;e.y=from.y+(to.y-from.y)*k3;
         PL.forEach(function(q){if(!q.dead&&Math.hypot(q.x-e.x,q.y-e.y)<.9&&!e['h'+e.di]){e['h'+e.di]=1;vaHurt(q,VA_CFG.carga)}});
-        if(k3>=1){if(e.di>0)VA.fxl.push({k:'trail',a:from,b:to,t:0,dur:6});e.di++;e.zt=0;S('claw',e.x,e.y);if(e.di>=5){e.step=2;e.zt=0;VA.fxl.push({k:'trail',a:e.pts[4],b:e.pts[0],t:0,dur:2})}}
+        if(k3>=1){if(e.di>0)VA.fxl.push({k:'trail',a:from,b:to,t:0,dur:6});e.di++;e.zt=0;S('claw',e.x,e.y);if(e.di>=5){e.step=2;e.zt=0;VA.fxl.push({k:'trail',a:e.pts[4],b:e.pts[0],t:0,dur:2});e.pts.forEach(function(p){VA.fxl.push({k:'beam',x:p.x,y:p.y,t:0})});VA.fxl.push({k:'beam',x:e.cx,y:e.cy,t:0,big:true})}}
       }
     }
     if(e.step===2&&e.zt>=1.0){         /* la estrella estalla */
       S('bossDie',e.cx,e.cy,0,.6);
-      e.pts.forEach(function(p){VA.fxl.push({k:'boom',x:p.x,y:p.y,t:0})});VA.fxl.push({k:'boom',x:e.cx,y:e.cy,t:0,big:true});
-      PL.forEach(function(q){if(q.dead)return;var hit=Math.hypot(q.x-e.cx,q.y-e.cy)<VA_CFG.estrellaCen;e.pts.forEach(function(p){if(Math.hypot(q.x-p.x,q.y-p.y)<VA_CFG.estrellaTip)hit=true});if(hit)vaHurt(q,VA_CFG.estrella)});
+            PL.forEach(function(q){if(q.dead)return;var hit=Math.hypot(q.x-e.cx,q.y-e.cy)<VA_CFG.estrellaCen;e.pts.forEach(function(p){if(Math.hypot(q.x-p.x,q.y-p.y)<VA_CFG.estrellaTip)hit=true});if(hit)vaHurt(q,VA_CFG.estrella)});
       VA.fxl=VA.fxl.filter(function(f){return f.k!=='starWarn'&&f.k!=='trail'});e.step=3;
     }
     if(e.step===3&&e.zt>1.6){vaSt(e,'walk');e.nx=cool}
@@ -12173,6 +12173,7 @@ function vaFxUpdate(dt){
       if(gone){VA.fxl.splice(i,1);VA.fxl.push({k:'boom',x:f.x,y:f.y,t:0})}
     }
     else if(f.k==='boom'){if(f.t>.6)VA.fxl.splice(i,1)}
+    else if(f.k==='beam'){if(f.t>2.3)VA.fxl.splice(i,1)}
     else if(f.t>f.dur)VA.fxl.splice(i,1);
   }
   vaPipsUpdate();
@@ -12193,7 +12194,7 @@ function vaDrawGround(){
 function vaItems(list){
   VA.fxl.forEach(function(f){
     if(f.t<0)return;
-    if(f.k==='thorn'||f.k==='arrow'||f.k==='fire'||f.k==='boom')list.push({d:f.x+f.y+.02,fx:{va:f,x:f.x,y:f.y}});
+    if(f.k==='thorn'||f.k==='arrow'||f.k==='fire'||f.k==='boom'||f.k==='beam')list.push({d:f.x+f.y+.02,fx:{va:f,x:f.x,y:f.y}});
   });
 }
 function vaDrawItem(f){
@@ -12207,6 +12208,15 @@ function vaDrawItem(f){
     ctx.globalAlpha=.35;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(p.x,p.y,10,5,0,0,6.283);ctx.fill();ctx.globalAlpha=1;
     var ang=Math.atan2((f.vx+f.vy)*16,(f.vx-f.vy)*32);
     ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y-40));ctx.rotate(ang);ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,-F.cx,-F.cy,F.fw,F.fh);ctx.restore()}
+  else if(f.k==='beam'){
+    im=VA.fx[f.big?'l_grueso':'l_fino'];F=VA_FX[f.big?'grueso':'fino'];if(!im)return;
+    var T=f.t,row,fr;
+    if(T<1.0){row=0;fr=Math.min(7,Math.floor(T/1.0*8))}
+    else if(T<1.125){row=1;fr=Math.min(2,Math.floor((T-1.0)/.125*3))}
+    else if(T<1.9){row=2;fr=Math.floor((T-1.125)*14)%8}
+    else if(T<2.15){row=3;fr=Math.min(4,Math.floor((T-1.9)/.25*5))}
+    else return;
+    ctx.drawImage(im,fr*F.fw,row*F.fh,F.fw,F.fh,Math.round(p.x-F.fx),Math.round(p.y-F.fy),F.fw,F.fh)}
   else if(f.k==='boom'){im=VA.fx.estrella;F=VA_FX.estrella;if(!im)return;c=Math.min(F.n-1,Math.floor(f.t/.6*F.n));var s=f.big?2.2:1.2;
     ctx.drawImage(im,c*F.fw,0,F.fw,F.fh,Math.round(p.x-F.cx*s),Math.round(p.y-F.cy*s),F.fw*s,F.fh*s)}
 }
