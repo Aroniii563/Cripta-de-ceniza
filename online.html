@@ -787,13 +787,13 @@ var META=[
   {k:'arm',n:'Armadura',e:'+1,5% de reducción de daño',cost:80},
   {k:'crit',n:'Crítico',e:'+1,5% de probabilidad de crítico',cost:80},
   {k:'reg',n:'Regeneración',e:'+0,1 de vida por segundo',cost:60},
-  {k:'ls',n:'Robo de vida',e:'+0,1% del daño infligido recuperado como vida',cost:90,max:5},
+  {k:'ls',n:'Robo de vida',e:'+0,1% del daño infligido recuperado como vida',cost:90,max:20},
   {k:'mag',n:'Imán',e:'+6% de radio de recogida',cost:40},
   {k:'xp',n:'Sabiduría',e:'+3% de experiencia',cost:90},
   {k:'gold',n:'Fortuna',e:'+10% de oro ganado por partida',cost:100}
 ];
 var META_MAX=8,metaCls='sorc';
-function metaCost(m,l){return Math.round(m.cost*Math.pow(1.4,l))}
+function metaCost(m,l){return Math.round(m.cost*Math.pow(m.k==='ls'?1.12:1.4,l))}
 /* Versión del formato de guardado: al sacar versiones nuevas se añaden aquí migraciones y el progreso de los jugadores se conserva. */
 var SAVE_V=2;
 function migrateMeta(m){
@@ -830,7 +830,7 @@ function loadMeta(){
 function metaMax(){syncOwned();var n=0;meta.owned.forEach(function(o){if(o)n++});return 10+2*(Math.max(1,n)-1)}
 var meta=loadMeta();
 function saveMeta(){try{localStorage.setItem('cripta_meta',JSON.stringify(meta))}catch(e){}}
-function lvOf(cls,k){var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(5,v):v}
+function lvOf(cls,k){var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(20,v):v}
 function mMax(m){return m.max||META_MAX}
 /* ---------- Aspectos: catálogo, tienda y vestuario ---------- */
 var SKINCAT=[
