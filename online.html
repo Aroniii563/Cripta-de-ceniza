@@ -438,6 +438,9 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 .grid>:nth-child(5),.skgrid>:nth-child(5),.maps>:nth-child(5),.mlist>:nth-child(5){animation-delay:.16s}
 .grid>:nth-child(n+6),.skgrid>:nth-child(n+6),.maps>:nth-child(n+6),.mlist>:nth-child(n+6){animation-delay:.2s}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* textos de las cartas más grandes y legibles */
+.up.fr.pxc>.ds{font-size:clamp(12px,7.5cqw,26px)!important;line-height:1.12!important;top:calc(var(--by) + .6%)!important;left:calc(var(--bx) - 1.6%)!important;width:calc(var(--bw) + 3.2%)!important;font-weight:600}
+.up.fr.pxc>.tag{display:none!important}
 /* cursor del ratón: pixel art dorado */
 html,body{cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAgCAYAAAAIXrg4AAAAvElEQVR4nM3Wuw3CMBSF4T+IMskEjMEGaVkjLcPQskYqJDZAoqZnAqA31ZEQUR4QX/ueKlIePp8TK6as6lBWdcAoK6sH9wawkpgL1jq4Xw4AbLb7APB6PooYA6QTKOfjDoCm7aJI0guUWJJ8AmWpJL9A+VfiR6D8KvEnUOZK/AqUKYk/QdN2o+f1V5Qkv0CNNdeK/5Ws5mqqr8TvSr5dT0C/+dKYC4rv3dxUc13/8S5G70snmDvnQ/vXbII3wIBt7Sx1RBYAAAAASUVORK5CYII=") 0 0,default}
 button,a[href],[data-k],[data-md],[role=button],.btn,.mapc,.mdcard,.card,label,select,summary,input[type=checkbox],input[type=range],.abtn,.stbtn{cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAeCAYAAAAy2w7YAAAA30lEQVR4nGNkIAB4ePn+I/O/fP7ESEgPNsBEjiZyAE7XwXzy5MwkBgYGBoab53cxMDAwMDinbmFgYCDdZ3TzEQshBTCfHDp0jiKL6Oaj4WcRwTjCBUjNX4PfR3tn+zAwMCBSY+NiBrw+pL+P0MOcXADzqXPqlv8MDAif0c9HhMo0dFAfK0WUOIwPizv6xxF6mYaequzsjLAagC6Oq0ykn49gqQKWStB9Qi1A/ziits8aFz9DMXfwVROHDp2jKN4GTysIV1zhyle4WkmDvz5CLzEIxd/AxxEMkFtPDVgcAQBYRm+kLowrGAAAAABJRU5ErkJggg==") 8 0,pointer!important}
@@ -713,7 +716,7 @@ var CLASSES={
     aura:{r:3,mult:.7},
     atk:'Aura espinosa',atkD:'Un círculo a su alrededor, con él en el centro, daña y ralentiza a los enemigos que lo pisan. Mejora su área y su daño. Armadura inicial 10%.'},
   necro:{key:'necro',name:'Nigromante',role:'Proyectiles de almas teledirigidos',col:'#b583e8',hp:44,speed:4.2,dmg:14,rate:1.0,crit:.08,armor:0,kind:'orbit',
-    orbit:{max:5,range:8,speed:7.5,pierce:1,mult:1.6},
+    orbit:{max:5,range:8,speed:7.5,pierce:0,mult:1.6},
     atk:'Proyectiles de almas',atkD:'Genera un proyectil cada segundo y los acumula girando a su alrededor hasta tener 5. Cuando detecta enemigos, los lanza todos y persiguen a su objetivo.'},
   bruja:{key:'bruja',name:'Bruja',role:'Esferas oscuras teledirigidas',col:'#b583e8',hp:42,speed:4.3,dmg:15,rate:1.25,crit:.06,armor:0,kind:'spheres',range:9,
     atk:'Esferas oscuras',atkD:'Invoca esferas oscuras a su alrededor (empieza con 2 a la vez, hasta 8). Giran poco a poco hacia un enemigo y estallan al tocarlo o a los 2 segundos y vuelven a estallar en el mismo sitio. Si no hay enemigos, no aparecen.'},
@@ -750,7 +753,7 @@ function addDmg(p,x){if(p.dmgB==null){p.dmgB=p.dmg;p.dmgA=0}var o=1+p.dmgA;p.dmg
 function reachCap(p){var m={barb:8,jinete:4.5}[p.c.key];return m?m/p.c.range:1e9}
 var UPS=[
   {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){addDmg(P,.08)}},
-  {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
+  {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'||P.rate<7.45-1e-9},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
   {n:'Ojo certero',ic:'icono_ojo_certero',c:'o',d:'+8% de crítico (daño x2, máx. 100%)',ok:function(){return P.crit<1-1e-9},f:function(){P.crit=Math.min(1,P.crit+.08)}},
   {n:'Descarga doble',ic:'icono_descarga_doble',c:'o',d:'+1 proyectil por ataque',ok:function(){return P.c.kind==='proj'&&!P.bounce&&!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN++}},
   {n:'Estallido',ic:'icono_estallido',c:'o',d:'+2 proyectiles por ataque, repartidos en círculo (máx. 20)',ok:function(){return !!P.c.proj&&!!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN=Math.min(PROJ_MAX,P.projN+2)}},
@@ -763,7 +766,7 @@ var UPS=[
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
   {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
-  {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp*=1.1}},
+  {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp+=(P.hp0||P.maxHp)*.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 75%)',ok:function(){return P.armor<.75-1e-9},f:function(){P.armor=Math.min(.75,P.armor+.07)}},
   {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 0,5% del daño infligido (máx. 3%)',ok:function(){return P.steal<.03-1e-9},f:function(){P.steal=Math.min(.03,P.steal+.005)}},
@@ -1406,6 +1409,8 @@ function genMap(){
 function solid(x,y){var tx=Math.floor(x),ty=Math.floor(y);if(tx<0||ty<0||tx>=N||ty>=N)return true;return map[ty*N+tx]===1}
 function blocked(x,y,r){return solid(x-r,y-r)||solid(x+r,y-r)||solid(x-r,y+r)||solid(x+r,y+r)}
 function moveEnt(e,dx,dy){
+  /* los jefes en plena embestida atraviesan obstáculos y enemigos */
+  if(e.boss&&e.dash>0){e._fr=1;e.x=Math.max(1.2,Math.min(N-1.2,e.x+dx));e.y=Math.max(1.2,Math.min(N-1.2,e.y+dy));return}
   /* contra las paredes cuenta como mucho .45 de radio: así los brutos y jefes caben por los pasillos de 1 casilla que el mapa de rutas da por buenos */
   var wr=e.r>.45?.45:e.r;
   var nx=e.x+dx;if(!blocked(nx,e.y,wr))e.x=nx;
@@ -1416,12 +1421,12 @@ function moveEnt(e,dx,dy){
 function mkPlayer(key,idx){
   var c=CLASSES[key];
   var p={key:key,c:c,idx:idx,x:N/2+.5,y:N/2+.5,r:.3,maxHp:c.hp,hp:c.hp,speed:c.speed,dmg:c.dmg,rate:c.rate,crit:c.crit,armor:c.armor,
-    regen:0,pick:3.2,steal:0,xpMul:1,projN:c.proj?c.proj.n:0,pierce:c.proj?c.proj.pierce:0,bounce:c.proj&&c.proj.bounce?c.proj.bounce:0,reach:1,zoneR:1,zoneDmg:1,zoneN:1,spec:{},
+    regen:0,pick:3.2,steal:0,xpMul:1,projN:c.proj?c.proj.n:0,pierce:c.proj?c.proj.pierce:(c.orbit?5:0),bounce:c.proj&&c.proj.bounce?c.proj.bounce:0,reach:1,zoneR:1,zoneDmg:1,zoneN:1,spec:{},
     auraR:1,auraDmg:1,orbMax:c.orbit?c.orbit.max:0,orbSpd:1,orbList:[],orbT:1,orbA:0,launchT:0,volley:false,orbGen:1,
     level:1,xp:0,need:xpNeed(1),atkCd:0,inv:0,pend:0,pendS:0,dead:false,reviveT:0,
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
   var L=function(k){return lvOf(key,k)};
-  p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.dmgB=p.dmg;p.dmgA=0;p.rate=c.rate*(1+.03*L('rate'));p.rate0=p.rate;
+  p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.hp0=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.dmgB=p.dmg;p.dmgA=0;p.rate=c.rate*(1+.03*L('rate'));p.rate0=p.rate;
   p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.75,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
   p.regen=.1*L('reg');p.steal=.001*L('ls');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
   p.skinId=skinFor(key);
@@ -1784,6 +1789,7 @@ function updateEnemies(dt){
     if(e.boss){var bm=bossAI(e,dt,d);var bw=e.wind>=0;if(e._bw&&!bw){S(bossSfxName(e),e.x,e.y);monkBossStrike(e)}e._bw=bw;if(MKL.length)monkBossContact(e,dt);s*=bm.s;if(bm.rev){ax=-ax;ay=-ay}}
     var bx=e.x,by=e.y;
     moveEnt(e,(ax*s+e.kx)*dt,(ay*s+e.ky)*dt);
+    if(e._fr&&!(e.dash>0)){e._fr=0;for(var tr=0;tr<16&&blocked(e.x,e.y,e.r*.6);tr++){e.x-=Math.cos(e.dA||0)*.3;e.y-=Math.sin(e.dA||0)*.3}}
     if(s>0&&Math.hypot(e.x-bx,e.y-by)<s*dt*.25)moveEnt(e,-ay*e.side*s*dt,ax*e.side*s*dt);
     /* antiatasco: si en casi un segundo apenas ha avanzado, sigue la ruta (sin fiarse de la línea recta) y cambia de lado al rodear */
     e.sT=(e.sT||0)+dt;
@@ -1805,6 +1811,7 @@ function updateEnemies(dt){
       for(j=0;j<cell.length;j++){
         o=cell[j];
         if(o.gi<=e.gi)continue;
+        if((e.boss&&e.dash>0)||(o.boss&&o.dash>0))continue;
         var ex=o.x-e.x,ey=o.y-e.y,m=e.r+o.r;
         if(Math.abs(ex)<m&&Math.abs(ey)<m){var dd=Math.hypot(ex,ey)||.01;
           if(dd<m){var p=(m-dd)*.5;moveEnt(e,-ex/dd*p*.5,-ey/dd*p*.5);moveEnt(o,ex/dd*p*.5,ey/dd*p*.5)}}
@@ -2362,7 +2369,7 @@ function statRows(){
   a('Exp. ganada','x'+r1(P.xpMul));
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR*(P.spec.terr?1.35:1)),P.auraR>=1.75-1e-9);
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
-  if(k==='orbit'){a('Proyectiles máx.',P.orbMax)}
+  if(k==='orbit'){a('Proyectiles máx.',P.orbMax);a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
   if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce,P.bounce>=10)}
   if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp*2*P.monkHp))}
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
@@ -10320,6 +10327,8 @@ function mkClone(p,gx,gy,em){
   for(k in p){v=p[k];c[k]=Array.isArray(v)?[]:v}
   c.x=gx;c.y=gy;c.gx=gx;c.gy=gy;c.dmg=p.dmg*em;c.atkCd=0;c.inv=1e9;c.dead=false;c.cl=true;c.regen=0;c.moving=false;
   c.life=CLIFE[p.c.kind]||.3;c.hp=c.maxHp=Math.max(1,p.maxHp);
+  /* las copias no lanzan mejoras especiales activas (relámpagos, tornados, cuervos…): solo conservan las que modifican su propio ataque */
+  var sp0=p.spec||{},ns={};['terr','echo','split','exec'].forEach(function(q){if(sp0[q])ns[q]=sp0[q]});c.spec=ns;
   var kd=p.c.kind;
   /* la copia lanza la mitad (redondeo hacia abajo, mínimo 1) de proyectiles / zonas / esferas / lanzas / urnas / meteoros */
   var CF=CLONE_N[kd];if(CF&&p[CF]>0)c[CF]=Math.max(1,Math.floor(p[CF]/2));
@@ -12550,7 +12559,7 @@ var CARTAS_PX={
   function marca(){var cs=document.querySelectorAll('#lvlCards .up.fr');for(var i=0;i<cs.length;i++){
     var m=/(?:^|\s)c-([a-z0-9_]+)/.exec(cs[i].className);if(m&&CARTAS_PX[m[1]])cs[i].classList.add('pxc')}fit()}
   function fit(){setTimeout(function(){var ts=document.querySelectorAll('#lvlCards .up.fr.pxc>.t');for(var i=0;i<ts.length;i++){var el=ts[i];el.style.removeProperty('font-size');var fs=parseFloat(getComputedStyle(el).fontSize)||14,n=0;while(el.scrollWidth>el.clientWidth+1&&fs>7&&n++<40){fs-=.5;el.style.setProperty('font-size',fs+'px','important')}}
-    var ds=document.querySelectorAll('#lvlCards .up.fr.pxc>.ds');for(var j=0;j<ds.length;j++){var d=ds[j],cd=d.parentNode,cst=getComputedStyle(cd),by=parseFloat(cst.getPropertyValue('--by')),bh=parseFloat(cst.getPropertyValue('--bh'));d.style.removeProperty('font-size');var f2=parseFloat(getComputedStyle(d).fontSize)||12,m=0,r0=cd.getBoundingClientRect(),lim=r0.top+r0.height*(by+bh-6.5)/100;while(d.getBoundingClientRect().bottom>lim&&f2>7&&m++<40){f2-=.5;d.style.setProperty('font-size',f2+'px','important')}}},60)}
+    var ds=document.querySelectorAll('#lvlCards .up.fr.pxc>.ds');for(var j=0;j<ds.length;j++){var d=ds[j],cd=d.parentNode,cst=getComputedStyle(cd),by=parseFloat(cst.getPropertyValue('--by')),bh=parseFloat(cst.getPropertyValue('--bh'));d.style.removeProperty('font-size');var f2=parseFloat(getComputedStyle(d).fontSize)||12,m=0,r0=cd.getBoundingClientRect(),lim=r0.top+r0.height*(by+bh-3)/100;while(d.getBoundingClientRect().bottom>lim&&f2>7&&m++<40){f2-=.5;d.style.setProperty('font-size',f2+'px','important')}}},60)}
   window.addEventListener('resize',fit)
   var box=document.getElementById('lvlCards');
   if(box)new MutationObserver(marca).observe(box,{childList:true});
@@ -12834,12 +12843,13 @@ function altEnd(ok){
   enemies.forEach(function(e){if(e._cf){e.speed/=1.35;e._cf=0}});
   if(!ok){a.st=3;a.fin=0;return}
   a.st=2;a.fin=0;
-  var lv=0;PL.forEach(function(z){lv+=z.level});lv=Math.round(lv/PL.length);
-  var need=0,k,w=ALT_CFG.lv;for(k=0;k<w;k++)need+=xpNeed(lv+k)*Math.min(1,w-k);
-  var tot=cofReward(2,a.x,a.y,need/(xpNeed(lv)*COF_CFG.xp[2])),gold=0;
+  /* recompensa exacta: siempre ALT_CFG.lv niveles (3), sin depender de la experiencia ganada ni de sus multiplicadores */
+  var tot=ALT_CFG.lv,gold=0;
+  PL.forEach(function(z){if(z.dead)return;for(var q=0;q<ALT_CFG.lv;q++){z.level++;z.need=xpNeed(z.level);z.pend++}});
+  try{S('level',a.x,a.y,0,.6)}catch(e){}
   try{gold=Math.round(rnd(ALT_CFG.gold[0],ALT_CFG.gold[1]));meta.gold=(meta.gold||0)+gold;saveMeta()}catch(e){gold=0}
   burst(a.x,a.y,'#ffd25a',30);ring(a.x,a.y,2.6,.7,'#ffd25a');try{S('level',a.x,a.y,0,.6)}catch(e){}
-  toast('Maldición superada: +'+tot+' XP'+(gold?' · +'+gold+' oro':''));
+  toast('Maldición superada: +'+tot+' niveles'+(gold?' · +'+gold+' oro':''));
 }
 var _altUE=updateEnemies;
 updateEnemies=function(dt){
@@ -15638,7 +15648,7 @@ try{
     l100: ['Gran maestro', 'Grand Master', 'Grão-Mestre', 'Grand maître', 'Великий мастер', '大達人'],
     l150: ['Ascendido', 'Ascended', 'Ascendido', 'Ascendé', 'Вознесённый', '昇華者']
   };
-  var CL = ['sorc', 'barb', 'rogue', 'pal', 'druid', 'necro', 'amazona', 'monja', 'angel', 'jinete', 'piro'];
+  var CL = ['sorc', 'barb', 'rogue', 'pal', 'druid', 'necro', 'bruja', 'amazona', 'monja', 'angel', 'jinete', 'piro'];
   var ART = {sorc: 'el hechicero', barb: 'el bárbaro', rogue: 'el pícaro', pal: 'el paladín', druid: 'el druida', necro: 'el nigromante', amazona: 'la amazona', monja: 'la monja', angel: 'el ángel', jinete: 'la jinete', piro: 'la piromántica'};
   var BNAME = {morvayne: ['al Conde Morvayne', 'Conde Morvayne'], noxarion: ['a Noxarion', 'Noxarion'], vael: ['a Vael, rey demonio', 'Vael, rey demonio'], valeria: ['a Valeria', 'Valeria'], estrella_fugaz: ['a Estrella fugaz', 'Estrella fugaz']};
   var MAPN = ['Cripta gris', 'Abismo azul', 'Pantano verde', 'Forja roja', 'Santuario púrpura', 'Librería sepia'];
@@ -17675,6 +17685,118 @@ try {
     revisa(); requestAnimationFrame(bucle); return true;
   }
   if (!engancha()) document.addEventListener('DOMContentLoaded', engancha);
+})();
+
+/* ==========================================================================
+   ONDA DE LA RUNA «DESPLAZAMIENTO» (Uruz) · animación en pixel art
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen». Sin archivos.
+   No toca la lógica (daño, radio y enfriamiento siguen igual): solo cambia lo que se ve.
+   Sustituye los dos anillos lisos que dibujaba la runa por:
+     1. Salida: un destello y una silueta de runa ᚢ que se deshace en el sitio de origen.
+     2. Rastro: una estela de luz violeta en zigzag desde el origen hasta el destino.
+     3. Llegada: la runa ᚢ se graba en el suelo, estalla una onda doble que se expande
+        hasta el radio real del golpe, con grietas, esquirlas que salen despedidas y polvo.
+   ========================================================================== */
+(function () {
+  var COL = '#c9b0ff', P = 3;
+  var V = ['#2a1050', '#5a2aa0', '#9a5ef0', '#c9b0ff', '#efe4ff', '#ffffff'];
+  var ondas = [], salida = null;
+  /* runa Uruz en una rejilla de 7×9 */
+  var URUZ = ['111....', '1..11..', '1....11', '1.....1', '1.....1', '1.....1', '1.....1', '1.....1', '1.....1'];
+  function rnd(i) { var x = Math.sin(i * 127.1 + 31.7) * 43758.5453; return x - Math.floor(x); }
+  /* se intercepta ring() solo para los dos anillos de esta runa */
+  if (typeof ring === 'function' && !ring._uz) {
+    var _ring = ring;
+    ring = function (x, y, r, dur, col) {
+      if (col === COL && Math.abs(r - 1.2) < .01 && Math.abs(dur - .3) < .01) { salida = {x: x, y: y, t: performance.now()}; return; }
+      if (col === COL && Math.abs(dur - .4) < .01 && r >= 3) {
+        var o = {x: x, y: y, r: r, t: 0, seed: Math.random() * 1000};
+        if (salida && performance.now() - salida.t < 80 && Math.hypot(salida.x - x, salida.y - y) > .5) { o.x0 = salida.x; o.y0 = salida.y; }
+        salida = null; ondas.push(o); return;
+      }
+      return _ring.apply(this, arguments);
+    };
+    ring._uz = 1;
+  }
+  function px(c, x, y, s, col, a) { c.globalAlpha = a; c.fillStyle = col; c.fillRect(Math.round(x / P) * P, Math.round(y / P) * P, (s || 1) * P, (s || 1) * P); }
+  function runa(c, cx, cy, esc, a, sq) {   // runa ᚢ tumbada en el suelo (sq = aplastado isométrico)
+    for (var j = 0; j < URUZ.length; j++) for (var i = 0; i < 7; i++) if (URUZ[j][i] === '1') {
+      var x = cx + (i - 3) * P * esc, y = cy + (j - 4) * P * esc * sq;
+      px(c, x, y, esc, V[3], a); if (a > .5) px(c, x - P, y - P, 1, V[5], a * .5);
+    }
+  }
+  function anillo(c, cx, cy, rx, ry, col, a, gros, seed, roto) {
+    var n = Math.max(24, Math.round(rx / 2.2));
+    for (var i = 0; i < n; i++) {
+      if (roto && rnd(seed + i) < roto) continue;
+      var an = i / n * 6.283, x = cx + Math.cos(an) * rx, y = cy + Math.sin(an) * ry;
+      px(c, x, y, gros, col, a);
+    }
+  }
+  function dibuja(o) {
+    var c = ctx, k = o.t / .75, p = sp(o.x, o.y), R = o.r * 45.25, sd = o.seed;
+    c.save(); c.imageSmoothingEnabled = false; c.globalCompositeOperation = 'lighter';
+    /* salida y rastro */
+    if (o.x0 !== undefined && k < .55) {
+      var q = sp(o.x0, o.y0), a0 = 1 - k / .55;
+      var g = c.createRadialGradient(q.x, q.y - 20, 0, q.x, q.y - 20, 60); g.addColorStop(0, 'rgba(201,176,255,' + (.6 * a0) + ')'); g.addColorStop(1, 'rgba(201,176,255,0)');
+      c.fillStyle = g; c.globalAlpha = 1; c.fillRect(q.x - 60, q.y - 80, 120, 120);
+      runa(c, q.x, q.y - 30 - k * 40, 2, a0, 1);
+      anillo(c, q.x, q.y, 30 + k * 40, 15 + k * 20, V[3], a0, 1, sd + 7, .3);
+      var n = 14;
+      for (var i = 0; i <= n; i++) {
+        var u = i / n, zz = Math.sin(u * 18 + sd) * 10 * (1 - Math.abs(u - .5) * 2), x = q.x + (p.x - q.x) * u + zz * .3, y = q.y + (p.y - q.y) * u - 22 + zz;
+        var ai = a0 * (u < k * 2 ? 1 : 0) * (.4 + .6 * u);
+        px(c, x, y, 2, V[i % 3 ? 3 : 4], ai); px(c, x - P * 2, y + P, 1, V[2], ai * .6);
+      }
+    }
+    /* llegada: destello, runa grabada, onda doble, grietas, esquirlas y polvo */
+    var g2 = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, R * 1.1); var fl = Math.max(0, 1 - k * 2.2);
+    g2.addColorStop(0, 'rgba(240,228,255,' + (.75 * fl) + ')'); g2.addColorStop(.5, 'rgba(154,94,240,' + (.35 * fl) + ')'); g2.addColorStop(1, 'rgba(90,42,160,0)');
+    c.save(); c.translate(p.x, p.y); c.scale(1, .5); c.fillStyle = g2; c.globalAlpha = 1; c.beginPath(); c.arc(0, 0, R * 1.1, 0, 6.283); c.fill(); c.restore();
+    runa(c, p.x, p.y + 14, 3, Math.max(0, 1 - k * 1.6) * .8, .45);
+    var e = 1 - Math.pow(1 - Math.min(1, k * 1.25), 3), rx = R * e, ry = rx * .5, af = Math.max(0, 1 - k);
+    anillo(c, p.x, p.y, rx, ry, V[4], af, 2, sd, 0);
+    anillo(c, p.x, p.y, rx * .82, ry * .82, V[3], af * .8, 1, sd + 3, .15);
+    anillo(c, p.x, p.y, rx * .6, ry * .6, V[2], af * .6, 1, sd + 5, .4);
+    /* grietas de energía en el suelo */
+    for (var gi = 0; gi < 8; gi++) {
+      var an = gi / 8 * 6.283 + rnd(sd + gi) * .5, L = R * (.45 + .4 * rnd(sd + gi + 9)) * Math.min(1, k * 3), x0 = p.x, y0 = p.y;
+      for (var s = 0; s < 6; s++) {
+        var x1 = p.x + Math.cos(an + (rnd(sd + gi * 7 + s) - .5) * .5) * L * (s + 1) / 6, y1 = p.y + Math.sin(an + (rnd(sd + gi * 5 + s) - .5) * .5) * L * (s + 1) / 6 * .5;
+        px(c, x1, y1, 1, V[s < 2 ? 4 : 3], Math.max(0, 1 - k * 1.4));
+      }
+    }
+    /* esquirlas de luz que salen despedidas */
+    for (var si = 0; si < 22; si++) {
+      var an2 = rnd(sd + si * 3) * 6.283, v = (.6 + .6 * rnd(sd + si)) * R * 1.1, d = v * e;
+      var x2 = p.x + Math.cos(an2) * d, y2 = p.y + Math.sin(an2) * d * .5 - Math.sin(k * 3.1) * 26 * rnd(sd + si + 2);
+      px(c, x2, y2, si % 4 ? 1 : 2, V[si % 3 ? 3 : 5], Math.max(0, 1 - k * 1.1));
+    }
+    /* polvo violeta que se levanta en el borde de la onda */
+    c.globalCompositeOperation = 'source-over';
+    for (var di = 0; di < 30; di++) {
+      var an3 = di / 30 * 6.283 + rnd(sd + di) * .2, x3 = p.x + Math.cos(an3) * rx, y3 = p.y + Math.sin(an3) * ry - k * 18 * rnd(sd + di + 4);
+      px(c, x3, y3, 1, V[1], Math.max(0, .7 - k) );
+    }
+    c.restore();
+  }
+  if (typeof render === 'function' && !render._uz) {
+    var _render = render, last = performance.now();
+    render = function () {
+      var r = _render.apply(this, arguments), now = performance.now(), dt = Math.min(.05, (now - last) / 1000); last = now;
+      if (!ondas.length) return r;
+      try {
+        if (typeof state !== 'undefined' && state === 'play') ondas.forEach(function (o) { o.t += dt; });
+        ondas = ondas.filter(function (o) { return o.t < .75; });
+        var cs = sp(cam.x, cam.y);
+        ctx.save(); ctx.setTransform(DPR * Z, 0, 0, DPR * Z, DPR * (W / 2 - cs.x * Z), DPR * (H / 2 - cs.y * Z));
+        ondas.forEach(dibuja); ctx.restore();
+      } catch (e) { try { softErr('uruz', e); } catch (e2) {} }
+      return r;
+    };
+    render._uz = 1;
+  }
 })();
 
 /* ---------- Música y volumen ---------- */
