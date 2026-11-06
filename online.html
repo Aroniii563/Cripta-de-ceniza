@@ -939,7 +939,7 @@ function portHtml(id,cls){
   if(d&&d.atlas)return '<span class="por"><span class="pa" style="aspect-ratio:'+d.aw+'/'+d.ah+';background:url('+d.atlas+') no-repeat;background-size:'+(d.aT/d.aw*100)+'% 100%;background-position:'+(d.aT>d.aw?d.ax/(d.aT-d.aw)*100:0)+'% 0"></span></span>';
   return '<span class="por">'+(src?'<img alt="" src="'+src+'">':'')+'</span>';
 }
-var menuTab='none',skinCls='pal';
+var menuTab='none',skinCls='sorc';
 /* ---------- Bestiario ---------- */
 var BEST=[
   {zone:0,type:'zombie',name:'Rastrero',desc:'Un cadáver reseco que aún no ha entendido que murió. Arrastra los brazos hacia ti sin prisa, pero siempre llegan en grupo.'},
@@ -1050,7 +1050,7 @@ function buildDiary(){
 }
 $('diaryList').addEventListener('click',function(e){var b=e.target.closest('[data-dp]');if(b){$('diaryBig').src=diaryImg(+b.getAttribute('data-dp')+1);$('diaryOv').hidden=false}});
 $('diaryOv').addEventListener('click',function(){$('diaryOv').hidden=true});
-var shopCls='pal';
+var shopCls='sorc';
 function buildShop(msg){
   $('shopMsg').textContent=msg||'';
   $('goldTxt').textContent=meta.gold;
@@ -2432,7 +2432,7 @@ cv.addEventListener('pointerup',function(){mouse.down=false});
 cv.addEventListener('pointercancel',function(){mouse.down=false});
 $('resumeBtn').addEventListener('click',function(){setPause(false)});
 $('pauseBtn').addEventListener('click',function(){this.blur();if(state==='play')setPause(true);else if(state==='pause')setPause(false)});
-$('quitBtn').addEventListener('click',function(){endRun('abandono');showMenu('stats')});
+$('quitBtn').addEventListener('click',function(){endRun('abandono');showMenu('play')});
 /* al cerrar o recargar la página con una partida en marcha, también cuenta */
 window.addEventListener('pagehide',function(){if(P&&!P.awarded&&state!=='menu')endRun('cierre')});
 $('againBtn').addEventListener('click',function(){startRun(lastKey,TW.on?CEN_MAP:curMap)});
@@ -7435,7 +7435,7 @@ $('roomBtn').addEventListener('click',function(){
     NET.bcast({t:'end',k:kills,bk:bossKills});
   }else{ON.paused=true;onSendIn()}
   ON.paused=false;$('pauseOv').hidden=true;
-  endRun('abandono');showMenu('stats');
+  endRun('abandono');showMenu('play');
 });
 var endRun_on=endRun;endRun=function(why){
   if(ON.on&&!ON.host){
