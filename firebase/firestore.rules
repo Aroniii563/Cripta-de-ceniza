@@ -53,7 +53,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['nick', 'eq', 'emb', 'st', 'ts'])
         && request.resource.data.nick == get(/databases/$(database)/documents/players/$(uid)).data.nick
         && request.resource.data.eq is list && request.resource.data.eq.size() <= 5
-        && request.resource.data.emb is list && request.resource.data.emb.size() <= 36
+        && request.resource.data.emb is list && request.resource.data.emb.size() <= 64
         && request.resource.data.st is map
         && request.resource.data.st.keys().hasOnly(['kills', 'time', 'gold', 'runs', 'bosses'])
         && request.resource.data.ts == request.time;
