@@ -1156,7 +1156,7 @@ function saveRankTw(a){try{localStorage.setItem(RK_KEY+'_torre',JSON.stringify(a
 function getNick(){try{return localStorage.getItem('cripta_nick')||''}catch(e){return ''}}
 function setNick(v){try{localStorage.setItem('cripta_nick',v)}catch(e){}}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-var RK_EXTRA=[];
+var RK_EXTRA=[{k:'online',n:'Online',col:'#7ee08a',asc:false},{k:'onlinetorre',n:'Online · Torre',col:'#d3a94a',asc:true}];
 function rkExtra(k){for(var i=0;i<RK_EXTRA.length;i++)if(RK_EXTRA[i].k===k)return RK_EXTRA[i];return null}
 function modeName(m){var x=rkExtra(m);return x?x.n:m==='coop'?'Cooperativo':m==='torre'?'Torre de ceniza':CLASSES[m].name}
 function clsLabel(c){return String(c).split('+').map(function(k){return CLASSES[k]?CLASSES[k].name:''}).filter(Boolean).join(' + ')}
@@ -7444,7 +7444,7 @@ var endRun_on=endRun;endRun=function(why){
     try{return endRun_on(why)}finally{PL=sPL;coop=sc}
   }
   return endRun_on(why)};
-RK_EXTRA.push({k:'online',n:'Online',col:'#7ee08a',asc:false},{k:'onlinetorre',n:'Online · Torre',col:'#d3a94a',asc:true});
+/* pestañas Online y Online · Torre: ahora se declaran en cripta.html */
 /* ranking online: cada jugador guarda su marca (con todo el equipo) en las categorías Online y Online · Torre */
 var postRank_on=postRank;postRank=function(l){
   if(!ON.on){return postRank_on(l)}
