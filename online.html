@@ -2371,7 +2371,7 @@ function statRows(){
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
   if(k==='orbit'){a('Proyectiles máx.',P.orbMax);a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
   if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce,P.bounce>=10)}
-  if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp*P.monkHp))}
+  if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp))}
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
   if(k==='melee')a('Alcance',r1(c.range*P.reach),P.reach>=reachCap(P)-1e-9);
   return r.join('');
@@ -5260,7 +5260,6 @@ doAttack=function(second){var k=P.c.kind;if(k==='monks'||k==='spheres')return;re
 UPS.push(
   {n:'Otro monje',ic:'icono_otro_monje',c:'o',d:'+1 monje invocado (máx. 10)',ok:function(){return P.c.kind==='monks'&&P.monkMax<10},f:function(){P.monkMax++}},
   {n:'Golpe ampliado',ic:'icono_golpe_ampliado',c:'o',d:'+10% de alcance y arco del golpe de tus monjes (máx. +50%)',ok:function(){return P.c.kind==='monks'&&P.monkReach<1.5-1e-9},f:function(){P.monkReach=Math.min(1.5,P.monkReach+.1)}},
-  {n:'Hábito reforzado',ic:'icono_habito_reforzado_defensa',c:'d',d:'+30% de vida de los monjes que invoques a partir de ahora',ok:function(){return P.c.kind==='monks'},f:function(){P.monkHp*=1.3}},
   {n:'Esfera extra',ic:'icono_esfera_extra',c:'o',d:'+1 esfera a la vez (máx. 8)',ok:function(){return P.c.kind==='spheres'&&P.sphMax<8},f:function(){P.sphMax++}},
   {n:'Esferas veloces',ic:'icono_esferas_veloces',c:'o',d:'+15% de velocidad de vuelo de las esferas (máx. 8)',ok:function(){return P.c.kind==='spheres'&&5.5*P.sphSpd<8-1e-6},f:function(){P.sphSpd=Math.min(8/5.5,P.sphSpd*1.15)}},
   {n:'Estallido ampliado',ic:'icono_estallido_ampliado',c:'o',d:'+20% de radio de la explosión de tus esferas',ok:function(){return P.c.kind==='spheres'},f:function(){P.sphRad*=1.2}}
@@ -5291,7 +5290,7 @@ function monkTarget(m){
 function spawnMonk(){
   var a=Math.random()*6.283,x=P.x+Math.cos(a)*1.1,y=P.y+Math.sin(a)*1.1;
   if(blocked(x,y,.3)){x=P.x;y=P.y}
-  var hp=P.maxHp*P.monkHp;
+  var hp=P.maxHp;
   P.monks.push({x:x,y:y,r:.3,hp:hp,maxHp:hp,flip:false,wt:0,pt:-1,cd:.3,spawn:0,flash:0,dying:false,dt:0,tgt:null,tgtT:0,ph:Math.random()*6});
   ring(x,y,1.1,.4,'#ffd75a');
 }
@@ -5302,6 +5301,8 @@ function hurtMonk(m,d){
 }
 function updateMonks(dt){
   var i,m,e,n;
+  /* la vida de los monjes sube junto con la de la Monja */
+  for(i=0;i<P.monks.length;i++){m=P.monks[i];if(m.maxHp!==P.maxHp){var f=m.hp/m.maxHp;m.maxHp=P.maxHp;m.hp=m.dying?m.hp:P.maxHp*f}}
   /* cola de renacimiento: tras 4 s, de uno en uno */
   n=P.monks.length+P.monkQ.length;
   while(n<P.monkMax){P.monkQ.push(P.monks.length+P.monkQ.length===0?.2:.6);n++}
