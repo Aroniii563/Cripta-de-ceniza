@@ -9783,35 +9783,39 @@ render=function(){
 /* ==========================================================================
    FONDO ANIMADO · TIENDA DE EVENTOS DE LANZAMIENTO  «El Primer Capítulo»
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
-   Archivo: fondos/tienda_lanzamiento.webp
+   Archivos: fondos/tienda_lanzamiento_fondo.webp (fondo sin las páginas sueltas)
+             fondos/tienda_lanzamiento_paginas.png (las páginas del dibujo, recortadas)
+             fondos/tienda_lanzamiento.webp (la imagen completa, por si la quieres estática)
    Uso:  var f = fondoLanzamiento(document.getElementById('tuPanelDeTienda'));
          ... y al cerrar la tienda:  f.stop();
    Crea un <canvas> como primera capa del contenedor (detrás del contenido, sin
    recibir clics) que cubre todo el panel como un background-size:cover.
    Animación (todo pixelado a la escala del dibujo):
    · el haz de luz late, con vetas que suben y rayos de luz girando despacio;
-   · cada ~7 s el libro «despierta»: destello, onda de luz y ráfaga de páginas;
-   · páginas que se desprenden del libro y suben en espiral, algunas ardiendo;
+   · cada ~7 s el libro «despierta»: destello, onda de luz y las páginas se elevan;
+   · las páginas del dibujo flotan, se mecen y giran un poco, cada una a su ritmo,
+     y sus bordes ardiendo parpadean; al despertar el libro, todas se elevan a la vez;
    · runas de oro que suben por el haz y runas del cielo que laten;
    · círculos rúnicos de las páginas del libro que brillan y giran;
-   · nubes moradas que se desplazan y humo de las chimeneas de la forja;
+   · humo de las chimeneas de la forja;
    · velas, farol y fuegos de la forja que parpadean;
    · brasas, pétalos rojos al viento y un destello morado en la pluma.
    Con «reducir movimiento» del sistema se queda la imagen quieta.
    ========================================================================== */
 var fondoLanzamiento = (function () {
-  var SRC = 'fondos/tienda_lanzamiento.webp', W = 1672, H = 941, PX = 3, w = Math.ceil(W / PX), h = Math.ceil(H / PX);
+  var SRC = 'fondos/tienda_lanzamiento_fondo.webp', SPR = 'fondos/tienda_lanzamiento_paginas.png', W = 1672, H = 941, PX = 3, w = Math.ceil(W / PX), h = Math.ceil(H / PX);
   var BX = 835, BY = 470;                                  /* costura del libro, de donde nace el haz */
   var VELAS = [[553,640,1.2],[533,660,.9],[571,668,.9],[630,685,1],[656,705,.9],[612,746,.8],[352,775,1.2],[382,820,1],[322,810,.8],
                [1040,660,1],[1053,676,.9],[1116,685,1],[1098,705,.8],[1131,705,.8],[1242,757,1.2],[1194,786,1.2],[1219,805,.9],[1173,822,.9]];
   var RUNAS = [[1155,70],[1395,150],[1415,270],[655,55],[660,285],[965,135],[1010,205],[560,210],[745,75],[1060,310]];
-  var LLAMAS = [[1065,75],[610,140],[525,240],[1330,185],[930,20],[1100,210]];   /* bordes de páginas ardiendo */
+  /* páginas recortadas del dibujo: posición original, tamaño, x en la hoja y llamas pegadas a ellas */
+  var PAGINAS = [{"x":471,"y":203,"w":143,"h":129,"sx":0,"f":[[525,240],[490,215]]},{"x":576,"y":122,"w":165,"h":117,"sx":145,"f":[[610,140],[635,128]]},{"x":730,"y":178,"w":88,"h":75,"sx":312,"f":[]},{"x":793,"y":95,"w":91,"h":50,"sx":402,"f":[]},{"x":884,"y":0,"w":64,"h":48,"sx":495,"f":[[930,8]]},{"x":992,"y":20,"w":106,"h":79,"sx":561,"f":[[1065,30],[1080,60]]},{"x":1253,"y":95,"w":97,"h":102,"sx":669,"f":[[1330,190]]},{"x":1017,"y":201,"w":103,"h":90,"sx":768,"f":[[1100,210]]},{"x":850,"y":267,"w":63,"h":48,"sx":873,"f":[]},{"x":915,"y":311,"w":79,"h":69,"sx":938,"f":[]},{"x":1121,"y":320,"w":44,"h":55,"sx":1019,"f":[]},{"x":660,"y":21,"w":23,"h":37,"sx":1065,"f":[]},{"x":672,"y":368,"w":36,"h":27,"sx":1090,"f":[]},{"x":1017,"y":377,"w":37,"h":38,"sx":1128,"f":[]}];
   var FORJA = [[1520,550,26],[1570,640,22],[1500,660,20],[1600,600,16]], FAROL = [1615,485];
   var CHIMENEAS = [[1510,425],[1550,415]];
   var CIRCULOS = [[662,545,30],[995,545,30],[1088,600,20]];
   var GLIFOS = [[[0,-1,0,1],[0,.4,.7,1],[0,-.1,.7,.5]],[[0,-1,0,1],[0,1,.6,.5],[.6,.5,0,0],[0,0,.6,-1]],[[0,-1,0,1],[0,.3,-.6,1],[0,.3,.6,1]],
                 [[-.5,-1,-.5,1],[.5,-1,.5,1],[-.5,1,.5,-.2]],[[0,-1,0,1],[-.6,.6,.6,-.6]],[[0,1,0,-1],[-.6,-.2,0,.3],[0,.3,.6,-.2]]];
-  var img = null;
+  var img = null, spr = null;
   function rnd(a, b) { return a + Math.random() * (b - a); }
 
   return function (host) {
@@ -9824,58 +9828,33 @@ var fondoLanzamiento = (function () {
     var ctx = cv.getContext('2d');
     var ln = document.createElement('canvas'); ln.width = w; ln.height = h; var cn = ln.getContext('2d');   /* capa normal, baja resolución */
     var la = document.createElement('canvas'); la.width = w; la.height = h; var ca = la.getContext('2d');   /* capa de luz (aditiva) */
-    if (!img) { img = new Image(); img.src = SRC; }
+    if (!img) { img = new Image(); img.src = SRC; spr = new Image(); spr.src = SPR; }
     var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var vivo = true, t0 = performance.now(), last = 0, raf = 0;
 
     /* ---------- partículas ---------- */
-    var pag = [], bra = [], pet = [], run = [], hum = [], nub = [], ondas = [], prox = 2.5;
-    function nuevaPag(rafaga) {
-      var lado = Math.random() < .5 ? -1 : 1;
-      pag.push({x: BX / PX + lado * rnd(2, 40), y: BY / PX + rnd(-6, 6), vx: lado * rnd(.2, 1.2) * (rafaga ? 2 : 1), vy: -rnd(.6, 1.3) * (rafaga ? 1.6 : 1),
-        a: rnd(0, 6.28), va: rnd(-.06, .06), f: rnd(0, 6.28), vf: rnd(.08, .2), s: rnd(.7, 1.15), arde: Math.random() < .45, t: 0, fase: rnd(0, 6.28)});
-    }
-    for (var i = 0; i < 9; i++) { nuevaPag(); var p = pag[i]; for (var k = 0; k < i * 25; k++) mover(p, 1); }
-    for (i = 0; i < 9; i++) nub.push({x: rnd(0, w), y: rnd(4, 95), r: rnd(14, 34), v: rnd(.05, .14) * (Math.random() < .5 ? 1 : -1), o: rnd(.18, .34)});
-    function mover(p, d) {
-      p.t += d; p.x += (p.vx + Math.sin(p.t * .03 + p.fase) * .5) * d; p.y += p.vy * d; p.vy -= .002 * d;
-      p.a += p.va * d; p.f += p.vf * d; p.s += .0012 * d;
-    }
+    var bra = [], pet = [], run = [], hum = [], nub = [], ondas = [], prox = 2.5, alza = 0;
+    var i;
+    PAGINAS.forEach(function (p, k) { p.ph = k * 1.93 + .4; p.vel = .55 + (k * .37) % .45; p.amp = 2.2 + (p.w + p.h) / 70; });
 
-    function dibPag(p) {
-      var al = Math.min(1, p.t / 20) * Math.max(0, Math.min(1, (p.y + 10) / 40));
-      if (al <= 0) return;
-      var cf = Math.cos(p.f), sw = 8 * p.s * Math.abs(cf), sh = 10.5 * p.s, ca_ = Math.cos(p.a), sa = Math.sin(p.a), cur = Math.sin(p.f * .7) * 2;
-      function pt(u, v) { return [p.x + u * ca_ - v * sa, p.y + u * sa + v * ca_]; }
-      var q = [pt(-sw, -sh), pt(sw, -sh * .9 + cur), pt(sw * .95, sh), pt(-sw, sh * .95 - cur)];
-      var luz = Math.max(0, 1 - Math.abs(p.x - BX / PX) / 70);          /* más claras cerca del haz */
-      cn.globalAlpha = al;
-      cn.beginPath(); cn.moveTo(q[0][0], q[0][1]); for (var j = 1; j < 4; j++) cn.lineTo(q[j][0], q[j][1]); cn.closePath();
-      var g = cn.createLinearGradient(q[0][0], q[0][1], q[2][0], q[2][1]);
-      if (cf > 0) { g.addColorStop(0, '#e4c48a'); g.addColorStop(.6, '#c09058'); g.addColorStop(1, '#7a5028'); }
-      else { g.addColorStop(0, '#c89a5c'); g.addColorStop(1, '#6e4624'); }
-      cn.fillStyle = g; cn.fill(); cn.strokeStyle = '#3a2214'; cn.lineWidth = 1; cn.stroke();
-      if (sw > 3) { cn.fillStyle = cf > 0 ? '#6a4024' : '#4a2c18';      /* letra manuscrita */
-        for (j = -3; j <= 3; j++) for (var k = 0; k < 4; k++) { if ((j * 7 + k * 3 + (p.fase * 10 | 0)) % 5 === 0) continue;
-          var u = -sw * .7 + k * sw * .36, v = j * sh * .24, e = pt(u, v); cn.fillRect(Math.round(e[0]), Math.round(e[1]), Math.max(1, Math.round(sw * .28)), 1); } }
-      if (p.arde) { var c0 = pt(sw * .95, sh), c1 = pt(sw * .3, sh * .97);    /* esquina quemada */
-        cn.fillStyle = '#2a140a'; cn.fillRect(Math.round(c0[0]) - 2, Math.round(c0[1]) - 2, 3, 3); cn.fillRect(Math.round(c1[0]) - 1, Math.round(c1[1]) - 1, 3, 2); }
-      cn.globalAlpha = al * .5 * (1 - luz); cn.fillStyle = '#2a1036';       /* lejos del haz, sombra morada */
-      cn.beginPath(); cn.moveTo(q[0][0], q[0][1]); for (j = 1; j < 4; j++) cn.lineTo(q[j][0], q[j][1]); cn.closePath(); cn.fill();
-      cn.globalAlpha = 1;
-      if (luz > 0) { ca.globalAlpha = al * luz * .35; ca.fillStyle = '#ffcf80'; ca.beginPath(); ca.moveTo(q[0][0], q[0][1]); for (j = 1; j < 4; j++) ca.lineTo(q[j][0], q[j][1]); ca.closePath(); ca.fill(); }
-      if (p.arde) {                                       /* borde ardiendo */
-        var e2 = pt(sw * .95, sh), fl = .6 + .4 * Math.sin(p.t * .5 + p.fase);
-        ca.globalAlpha = al; glow(ca, e2[0], e2[1], 5 + 2 * fl, 'rgba(255,120,30,A)', .6);
-        ca.fillStyle = '#ff7a1a'; ca.fillRect(Math.round(e2[0]) - 2, Math.round(e2[1]) - 2, 4, 3);
-        ca.fillStyle = '#ffd36a'; ca.fillRect(Math.round(e2[0]) - 1, Math.round(e2[1]) - 3 - Math.round(fl * 3), 2, 2 + Math.round(fl * 3));
-        if (Math.random() < .25) bra.push({x: e2[0], y: e2[1], vx: rnd(-.3, .3), vy: -rnd(.3, .8), t: 0, l: rnd(30, 60), c: Math.random() < .5 ? '#ffb040' : '#ff6a20'});
-      }
-      ca.globalAlpha = 1;
+    /* cada página flota en su sitio: sube y baja, se mece y gira un poco; con «alza» todas se elevan */
+    function pagina(p, t) {
+      var ph = p.ph, v = p.vel, cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+      var dy = Math.sin(t * v + ph) * p.amp - alza * (7 + p.amp), dx = Math.sin(t * v * .63 + ph * 1.7) * p.amp * .6;
+      var rot = (Math.sin(t * v * .8 + ph + 1) * 1.6 + alza * Math.sin(ph) * 3) * Math.PI / 180;
+      var sx = 1 - .035 * (.5 + .5 * Math.sin(t * v * 1.9 + ph * 2.3));     /* la hoja «respira» al ondear */
+      return {cx: cx + dx, cy: cy + dy, rot: rot, sx: sx};
     }
-    function glow(c, x, y, r, col, a) {
-      var g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0));
-      c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+    function pos(p, m, x, y) { var u = (x - p.x - p.w / 2) * m.sx, v = y - p.y - p.h / 2, c = Math.cos(m.rot), s = Math.sin(m.rot);
+      return [m.cx + u * c - v * s, m.cy + u * s + v * c]; }
+    var GL = [];   /* los halos se pintan a resolución completa (suaves), no pixelados */
+    function glow(c, x, y, r, col, a) { if (a > .01) GL.push(x * PX, y * PX, r * PX, col, Math.min(1, a)); }
+    function pintaHalos() {
+      ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.45, col.replace('A', a * .45)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0;
     }
     function glifo(c, x, y, s, k, col) {
       c.fillStyle = col; GLIFOS[k % GLIFOS.length].forEach(function (g) {
@@ -9886,31 +9865,30 @@ var fondoLanzamiento = (function () {
     function frame(now) {
       if (!vivo) return;
       raf = requestAnimationFrame(frame);
+      if (host.offsetParent === null || document.hidden || window.__noBgAnim) { last = 0; return; }   /* oculto: no gastes CPU */
       if (now - last < 33) return;
       var d = Math.min(3, (now - (last || now)) / 33.3); last = now;
       var t = (now - t0) / 1000;
       if (!img.complete || !img.naturalWidth) return;
       ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
       ctx.drawImage(img, 0, 0, W, H);
-      if (quieto) { vivo = false; return; }
+      if (quieto) { if (spr.complete && spr.naturalWidth) PAGINAS.forEach(function (p) { ctx.drawImage(spr, p.sx, 0, p.w, p.h, p.x, p.y, p.w, p.h); }); else return; vivo = false; return; }
       cn.clearRect(0, 0, w, h); ca.clearRect(0, 0, w, h);
       var bx = BX / PX, by = BY / PX;
 
       /* despertar del libro cada ~7 s */
       prox -= d / 30;
       var surge = 0;
-      if (prox <= 0) { prox = rnd(6.5, 8); ondas.push({r: 2, t: 0}); for (i = 0; i < 7; i++) nuevaPag(true);
+      if (prox <= 0) { prox = rnd(6.5, 8); ondas.push({r: 2, t: 0});
         for (i = 0; i < 40; i++) bra.push({x: bx + rnd(-8, 8), y: by + rnd(-4, 4), vx: rnd(-2, 2), vy: -rnd(.5, 2.5), t: 0, l: rnd(40, 80), c: Math.random() < .5 ? '#fff0b0' : '#ffb040'}); }
       ondas.forEach(function (o) { surge = Math.max(surge, Math.max(0, 1 - o.t / 25)); });
+      var obj = 0; ondas.forEach(function (o) { obj = Math.max(obj, o.t < 18 ? 1 : 0); });
+      alza += (obj - alza) * Math.min(1, (obj > alza ? .12 : .035) * d);      /* suben rápido y bajan despacio */
 
-      /* nubes moradas que se desplazan */
-      nub.forEach(function (n) {
-        n.x += n.v * d; if (n.x > w + 40) n.x = -40; if (n.x < -40) n.x = w + 40;
-        cn.globalAlpha = n.o * Math.max(0, Math.min(1, (Math.abs(n.x - BX / PX) - 25) / 45));
-        for (var j = 0; j < 5; j++) { var ox = Math.cos(j * 1.9) * n.r * .7, oy = Math.sin(j * 2.3) * n.r * .25;
-          cn.fillStyle = j % 2 ? '#1e0e2a' : '#2c1438'; cn.beginPath(); cn.ellipse(Math.round(n.x + ox), Math.round(n.y + oy), n.r * .6, n.r * .28, 0, 0, 6.28); cn.fill(); }
-      });
-      cn.globalAlpha = 1;
+      /* páginas del dibujo */
+      if (spr.complete && spr.naturalWidth) PAGINAS.forEach(function (p) { var m = pagina(p, t);
+        ctx.save(); ctx.translate(m.cx, m.cy); ctx.rotate(m.rot); ctx.scale(m.sx, 1); ctx.imageSmoothingEnabled = true;
+        ctx.drawImage(spr, p.sx, 0, p.w, p.h, -p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); });
 
       /* rayos de luz que giran y haz que late */
       var lat = .75 + .25 * Math.sin(t * 2.1) + .5 * surge;
@@ -9944,19 +9922,16 @@ var fondoLanzamiento = (function () {
       run = run.filter(function (r) { return r.t < r.l; });
       RUNAS.forEach(function (r, k) { var p_ = .5 + .5 * Math.sin(t * 1.3 + k * 1.1); glow(ca, r[0] / PX, r[1] / PX, 9, 'rgba(255,200,90,A)', .15 + .35 * p_); });
 
-      /* páginas que suben en espiral */
-      if (Math.random() < .045 * d && pag.length < 22) nuevaPag();
-      pag.forEach(function (p) { mover(p, d); dibPag(p); });
-      pag = pag.filter(function (p) { return p.y > -20 && p.x > -20 && p.x < w + 20; });
-
       /* bordes ardiendo de las páginas del dibujo */
-      LLAMAS.forEach(function (l, k) { var f = .5 + .5 * Math.sin(t * 9 + k * 3) * Math.sin(t * 5.3 + k); glow(ca, l[0] / PX, l[1] / PX, 6 + 3 * f, 'rgba(255,140,40,A)', .35 + .35 * f);
-        if (Math.random() < .08 * d) bra.push({x: l[0] / PX + rnd(-2, 2), y: l[1] / PX, vx: rnd(-.2, .2), vy: -rnd(.2, .6), t: 0, l: rnd(25, 45), c: '#ff9a30'}); });
+      PAGINAS.forEach(function (p, k) { if (!p.f.length) return; var m = pagina(p, t);
+        p.f.forEach(function (l, j) { var e = pos(p, m, l[0], l[1]), x = e[0] / PX, y = e[1] / PX, f = .5 + .5 * Math.sin(t * 9 + k * 3 + j) * Math.sin(t * 5.3 + k + j * 2);
+          glow(ca, x, y, 6 + 3 * f, 'rgba(255,140,40,A)', .35 + .35 * f);
+          if (Math.random() < .1 * d) bra.push({x: x + rnd(-2, 2), y: y, vx: rnd(-.2, .2), vy: -rnd(.2, .6), t: 0, l: rnd(25, 45), c: Math.random() < .5 ? '#ffb040' : '#ff7a20'}); }); });
 
       /* humo de la forja, fuegos y farol */
       CHIMENEAS.forEach(function (c) { if (Math.random() < .12 * d) hum.push({x: c[0] / PX + rnd(-1, 1), y: c[1] / PX, r: rnd(2, 3.5), t: 0, l: rnd(110, 160)}); });
       hum.forEach(function (s) { s.t += d; s.y -= .28 * d; s.x -= .12 * d + Math.sin(s.t * .04) * .05; s.r += .03 * d;
-        cn.globalAlpha = .45 * Math.sin(Math.PI * s.t / s.l); cn.fillStyle = s.t < 15 ? '#4a2020' : '#241426';
+        cn.globalAlpha = .3 * Math.sin(Math.PI * s.t / s.l); cn.fillStyle = s.t < 15 ? '#4a2020' : '#241426';
         cn.beginPath(); cn.arc(Math.round(s.x), Math.round(s.y), s.r, 0, 6.28); cn.fill(); });
       cn.globalAlpha = 1; hum = hum.filter(function (s) { return s.t < s.l; });
       FORJA.forEach(function (f, k) { var p_ = .6 + .4 * Math.sin(t * 3 + k * 2) * Math.sin(t * 7.1 + k); glow(ca, f[0] / PX, f[1] / PX, f[2] / PX * 1.6, 'rgba(255,70,30,A)', .25 + .25 * p_); });
@@ -9990,11 +9965,13 @@ var fondoLanzamiento = (function () {
 
       ctx.drawImage(ln, 0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(la, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      pintaHalos();
     }
     raf = requestAnimationFrame(frame);
     return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
   };
 })();
+
 
 /* ==========================================================================
    TIENDA · SECCIÓN «EVENTOS» (primer evento: «El Primer Capítulo»)
@@ -10026,7 +10003,7 @@ var EV_LANZ = {inicio: null, fin: null};
   /* FONDOS_MENU se define más abajo en el script: se añade al terminar de cargar */
   setTimeout(function () {
     if (typeof FONDOS_MENU === 'undefined' || FONDOS_MENU.some(function (f) { return f.id === 'lanzamiento'; })) return;
-    FONDOS_MENU.push({id: 'lanzamiento', nombre: 'El Primer Capítulo', src: 'fondos/tienda_lanzamiento.webp', pos: 'center 55%',
+    FONDOS_MENU.push({id: 'lanzamiento', nombre: 'El Primer Capítulo', src: 'fondos/tienda_lanzamiento.webp', pos: 'center 55%', anim: function (h) { return fondoLanzamiento(h); },
       req: TXT.req.es, ok: function () { return false; }});
     if (typeof pintaFondos === 'function') pintaFondos();
   }, 0);
@@ -14622,7 +14599,7 @@ var FONDO_FX = {
       return '<button type="button" data-f="' + f.id + '" aria-pressed="' + sel + '"' + (abierto ? '' : ' disabled') + '>' +
         '<img alt="" loading="lazy" src="' + f.src + '">' +
         (abierto ? '' : '<span class="lk">' + LOCK + '<span>' + (f.req || 'Bloqueado') + '</span></span>') +
-        '<span>' + f.nombre + '</span>' + (f.fx ? '<span class="an">Animado</span>' : '') + '</button>';
+        '<span>' + f.nombre + '</span>' + ((f.fx || f.anim) ? '<span class="an">Animado</span>' : '') + '</button>';
     }).join('') + '</div>';
   }
   window.pintaFondos = function () { revisa(); pintaPanel(); };
@@ -14797,7 +14774,10 @@ var FONDO_FX = {
     var m = new Motor(f); host.style.opacity = '0';
     m.listo.then(function () {
       setTimeout(function () {
+        if (window.__menuCustom) { try { window.__menuCustom.stop(); } catch (e) {} window.__menuCustom = null; }
+        cv.style.display = '';
         cur = m; last = 0; m.dibuja((performance.now() - T0) / 1000, 0); host.style.opacity = '1';
+        if (f.anim && !REDUCE) { try { window.__menuCustom = f.anim(host); if (window.__menuCustom && window.__menuCustom.canvas) cv.style.display = 'none'; } catch (e) { window.__menuCustom = null; } }
         if (m.fx && !REDUCE && !window.__noBgAnim && !raf) raf = requestAnimationFrame(bucle);
       }, cur ? 250 : 0);
     });
