@@ -13036,8 +13036,12 @@ function myEq(){
 function css(){
   if($('embCss'))return;var s=document.createElement('style');s.id='embCss';
   s.textContent='#pStats{position:relative}'+
-  '#embBox{position:relative;height:clamp(190px,27vw,310px);margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
-  '#embBox .bnUi{position:absolute;left:14px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 12px 8px;background:linear-gradient(90deg,rgba(8,4,20,.82),rgba(8,4,20,.55) 80%,rgba(8,4,20,0));border-radius:6px}'+
+  '#embBox{position:relative;aspect-ratio:2048/768;margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
+  '#embBox .bnUi{position:absolute;left:12px;bottom:10px;width:62%;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(90deg,rgba(8,4,20,.86),rgba(8,4,20,.6) 85%,rgba(8,4,20,0));border-radius:6px}'+
+  '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:6px}'+
+  '#embBox #statTotals{width:100%;margin:0!important}#embBox #statTotals .mlist{gap:8px!important}'+
+  '#embBox #statTotals .mrow{background-color:rgba(8,4,20,.72)!important;padding:4px 2px!important}'+
+  '#embBox #statTotals .mrow .nm{font-size:16px!important}#embBox #statTotals .mrow .ef{font-size:8px!important;letter-spacing:.12em}#embBox #statTotals .mrow .st-i{width:22px;height:22px}'+
   '#embBox .bnUi .embRow{justify-content:flex-start}'+
   '#embBox .bnUi button{margin:0!important}'+
   '.embRow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}'+
@@ -13062,7 +13066,7 @@ function css(){
   '.embCell.mine.ok{cursor:pointer}.embCell.mine.ok:hover{background:#1c1710}'+
   '.embSum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}'+
   '.embSum div{border:1px solid #3a3326;background:#0e0c08;padding:8px;text-align:center;font-size:11px;color:#a99d80}.embSum b{display:block;font-size:17px;color:#e8d9a8;font-family:var(--display,inherit)}'+
-  '@media (max-width:700px){#embBox{height:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;padding:8px 0;background:none;margin-top:6px}}'+
+  '@media (max-width:700px){#embBox{aspect-ratio:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;width:auto;padding:8px 0;background:none;margin-top:6px}#embBox #statTotals .mrow .nm{font-size:20px!important}#embBox #statTotals .mrow .ef{font-size:10px!important}}'+
   '@media (max-width:520px){.embRow{gap:6px;flex-wrap:nowrap}.embSlot{width:46px;height:46px}.embSlot .emI{width:52px;height:55px}}';
   document.head.appendChild(s);
 }
@@ -13076,9 +13080,9 @@ var bnInst=null;
 function openBox(){
   css();var pS=$('pStats');if(!pS)return;
   var b=$('embBox');
-  if(!b){b=document.createElement('div');b.id='embBox';b.innerHTML='<div class="bnHost" style="position:absolute;inset:0"></div><div class="bnUi"></div>';pS.insertBefore(b,pS.firstChild)}
+  if(!b){b=document.createElement('div');b.id='embBox';b.innerHTML='<div class="bnHost" style="position:absolute;inset:0"></div><div class="bnUi"><div id="embTop"></div></div>';var st=$('statTotals');pS.insertBefore(b,st||pS.firstChild);if(st)b.querySelector('.bnUi').appendChild(st)}
   if(!bnInst||!bnInst.canvas.parentNode){try{bnInst=bannerPerfil(b.querySelector('.bnHost'),'biblioteca_arcana')}catch(e){bnInst=null}}
-  b.querySelector('.bnUi').innerHTML=slots(myEq())+'<button class="btn alt" type="button" id="embBtn" style="padding:4px 14px;font-size:12px">Ver emblemas</button>';
+  $('embTop').innerHTML=slots(myEq())+'<button class="btn alt" type="button" id="embBtn" style="padding:4px 14px;font-size:12px">Ver emblemas</button>';
   $('embBtn').onclick=function(){showColl(null)};
 }
 function ov(){
