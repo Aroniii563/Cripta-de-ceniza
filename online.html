@@ -13037,8 +13037,8 @@ function css(){
   if($('embCss'))return;var s=document.createElement('style');s.id='embCss';
   s.textContent='#pStats{position:relative}'+
   '#embBox{position:relative;aspect-ratio:2048/768;margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
-  '#embBox .bnUi{position:absolute;left:12px;bottom:10px;width:62%;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(90deg,rgba(8,4,20,.86),rgba(8,4,20,.6) 85%,rgba(8,4,20,0));border-radius:6px}'+
-  '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:6px}'+
+  '#embBox .bnUi{position:absolute;left:0;right:0;bottom:0;width:auto;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(0deg,rgba(8,4,20,.88),rgba(8,4,20,.62) 70%,rgba(8,4,20,0));padding-top:22px}'+
+  '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:4px}#embBox .bnPick{position:absolute;top:10px;left:12px;z-index:3;padding:5px 12px;font-size:12px;background:rgba(8,4,20,.78)}'+
   '#embBox #statTotals{width:100%;margin:0!important}#embBox #statTotals .mlist{gap:8px!important}'+
   '#embBox #statTotals .mrow{background-color:rgba(8,4,20,.72)!important;padding:4px 2px!important}'+
   '#embBox #statTotals .mrow .nm{font-size:16px!important}#embBox #statTotals .mrow .ef{font-size:8px!important;letter-spacing:.12em}#embBox #statTotals .mrow .st-i{width:22px;height:22px}'+
@@ -13066,7 +13066,7 @@ function css(){
   '.embCell.mine.ok{cursor:pointer}.embCell.mine.ok:hover{background:#1c1710}'+
   '.embSum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}'+
   '.embSum div{border:1px solid #3a3326;background:#0e0c08;padding:8px;text-align:center;font-size:11px;color:#a99d80}.embSum b{display:block;font-size:17px;color:#e8d9a8;font-family:var(--display,inherit)}'+
-  '@media (max-width:700px){#embBox{aspect-ratio:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;width:auto;padding:8px 0;background:none;margin-top:6px}#embBox #statTotals .mrow .nm{font-size:20px!important}#embBox #statTotals .mrow .ef{font-size:10px!important}}'+
+  '@media (max-width:700px){#embBox{aspect-ratio:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;width:auto;padding:8px 0;background:none;margin-top:6px}#embBox .bnPick{top:10px}#embBox #statTotals .mrow .nm{font-size:20px!important}#embBox #statTotals .mrow .ef{font-size:10px!important}}'+
   '@media (max-width:520px){.embRow{gap:6px;flex-wrap:nowrap}.embSlot{width:46px;height:46px}.embSlot .emI{width:52px;height:55px}}';
   document.head.appendChild(s);
 }
@@ -13077,11 +13077,48 @@ function slots(ids){
   return h+'</div>';
 }
 var bnInst=null;
+var BT={
+ pick:{es:'Cambiar banner',en:'Change banner',pt:'Mudar banner',fr:'Changer de bannière',ru:'Сменить баннер',ja:'バナー変更'},
+ tit:{es:'Elige tu banner',en:'Choose your banner',pt:'Escolha seu banner',fr:'Choisis ta bannière',ru:'Выбери баннер',ja:'バナーを選ぶ'},
+ gris:{es:'Banner básico',en:'Basic banner',pt:'Banner básico',fr:'Bannière de base',ru:'Базовый баннер',ja:'基本バナー'},
+ arc:{es:'La Biblioteca Arcana',en:'The Arcane Library',pt:'A Biblioteca Arcana',fr:'La Bibliothèque Arcane',ru:'Тайная библиотека',ja:'秘術の図書館'},
+ free:{es:'Todos lo tienen',en:'Everyone has it',pt:'Todos têm',fr:'Pour tout le monde',ru:'У всех есть',ja:'全員所持'},
+ soon:{es:'Próximamente',en:'Coming soon',pt:'Em breve',fr:'Bientôt',ru:'Скоро',ja:'近日公開'},
+ sel:{es:'En uso',en:'In use',pt:'Em uso',fr:'Utilisé',ru:'Выбран',ja:'使用中'},
+ cl:{es:'Cerrar',en:'Close',pt:'Fechar',fr:'Fermer',ru:'Закрыть',ja:'閉じる'}
+};
+function bt(k){var l=(typeof LANG!=='undefined'&&LANG)||'es';return BT[k][l]||BT[k].es}
+/* banners de perfil: el gris lo tiene todo el mundo; los demás, recompensas (de momento solo en la versión de pruebas) */
+var BANN=[{id:'gris',nm:'gris',mini:null,ok:function(){return true},ds:'free'},
+          {id:'biblioteca_arcana',nm:'arc',mini:'banners/biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'}];
+function bannSel(){var id=meta&&meta.bannerSel,b=BANN.filter(function(x){return x.id===id})[0];return (b&&b.ok())?b.id:'gris'}
+var GRIS='background:linear-gradient(135deg,#4a4a52,#2a2a30 55%,#1d1d21)';
+function aplicaBanner(){
+  var b=$('embBox');if(!b)return;var h=b.querySelector('.bnHost'),id=bannSel();
+  if(bnInst){try{bnInst.stop()}catch(e){}bnInst=null}
+  if(id==='biblioteca_arcana'){h.style.background='';try{bnInst=bannerPerfil(h,id)}catch(e){bnInst=null}}
+  else h.style.cssText='position:absolute;inset:0;'+GRIS+',repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 6px,transparent 6px 12px)';
+  b.setAttribute('data-bn',id);
+}
+function pickBanner(){
+  css();var o=ov(),w=$('embWin'),cur=bannSel();
+  var h='<div class="eh"><h2>'+bt('tit')+'</h2><button class="btn alt" type="button" id="embX">'+bt('cl')+'</button></div><div class="embGrid" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))">';
+  BANN.forEach(function(x){var ok=x.ok();
+    h+='<div class="embCell'+(ok?' ok mine':' lock')+(x.id===cur?' eqd':'')+'" data-b="'+x.id+'" style="padding:8px">'+
+      '<span style="display:block;width:100%;aspect-ratio:2048/768;'+(x.mini?'background:url('+x.mini+') center/cover':GRIS)+';border:1px solid #3a3326;'+(ok?'':'filter:grayscale(.7) brightness(.6)')+'"></span>'+
+      '<b>'+bt(x.nm)+'</b><span>'+(x.id===cur?bt('sel'):ok?(x.ds==='free'?bt('free'):''):bt('soon'))+'</span></div>';});
+  w.innerHTML=h+'</div>';o.hidden=false;
+  $('embX').onclick=function(){o.hidden=true};
+  w.onclick=function(ev){var c=ev.target.closest&&ev.target.closest('.embCell.ok[data-b]');if(!c)return;
+    meta.bannerSel=c.getAttribute('data-b');try{saveMeta()}catch(x){}aplicaBanner();o.hidden=true;};
+}
+
 function openBox(){
   css();var pS=$('pStats');if(!pS)return;
   var b=$('embBox');
-  if(!b){b=document.createElement('div');b.id='embBox';b.innerHTML='<div class="bnHost" style="position:absolute;inset:0"></div><div class="bnUi"><div id="embTop"></div></div>';var st=$('statTotals');pS.insertBefore(b,st||pS.firstChild);if(st)b.querySelector('.bnUi').appendChild(st)}
-  if(!bnInst||!bnInst.canvas.parentNode){try{bnInst=bannerPerfil(b.querySelector('.bnHost'),'biblioteca_arcana')}catch(e){bnInst=null}}
+  if(!b){b=document.createElement('div');b.id='embBox';b.innerHTML='<div class="bnHost" style="position:absolute;inset:0"></div><button class="btn alt bnPick" type="button" id="bnPick"></button><div class="bnUi"><div id="embTop"></div></div>';var st=$('statTotals');pS.insertBefore(b,st||pS.firstChild);if(st)b.querySelector('.bnUi').appendChild(st)}
+  var bp=$('bnPick');bp.textContent=bt('pick');bp.onclick=pickBanner;
+  if(b.getAttribute('data-bn')!==bannSel()||(bannSel()!=='gris'&&(!bnInst||!bnInst.canvas.parentNode)))aplicaBanner();
   $('embTop').innerHTML=slots(myEq())+'<button class="btn alt" type="button" id="embBtn" style="padding:4px 14px;font-size:12px">Ver emblemas</button>';
   $('embBtn').onclick=function(){showColl(null)};
 }
