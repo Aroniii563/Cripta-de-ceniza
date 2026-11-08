@@ -12860,6 +12860,155 @@ var CARTAS_PX={
 
 /* ---------- Emblemas: 3 por personaje (500.000 bajas, desafío y Escritor en difícil). Se ven en Estadísticas y en el perfil de otros jugadores ---------- */
 (function(){
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «La Biblioteca Arcana»
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
+   Archivos (carpeta banners/):
+     biblioteca_arcana_fondo.webp  — la imagen sin los libros que flotan
+     biblioteca_arcana_libros.png  — los libros recortados del dibujo
+     biblioteca_arcana.webp        — la imagen completa (miniaturas, selector, etc.)
+   Uso:  var b = bannerPerfil(contenedor, 'biblioteca_arcana');   ...   b.stop();
+   El banner llena el contenedor como un background-size:cover (centrado en el mago).
+   Animación:
+   · los libros del dibujo flotan, se mecen y giran un poco, cada uno a su ritmo;
+   · la esfera del báculo late y el remolino de magia gira a su alrededor;
+   · la esfera armilar del fondo palpita con chispas en órbita;
+   · el estandarte de la izquierda ondea y el bajo de la capa del mago se agita;
+   · el libro del mago brilla y suelta runas; corrientes de magia recorren el suelo;
+   · velas moradas, ventanales y farol que parpadean; motas arcanas en el aire.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.biblioteca_arcana = {nombre: 'La Biblioteca Arcana', mini: 'banners/biblioteca_arcana.webp'};
+var bannerPerfil = (function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX;
+  var FONDO = 'banners/biblioteca_arcana_fondo.webp', LIBROS = 'banners/biblioteca_arcana_libros.png';
+  var SPR = [{"x":1198,"y":201,"w":107,"h":104,"sx":0},{"x":757,"y":304,"w":85,"h":75,"sx":109},{"x":1352,"y":417,"w":66,"h":47,"sx":196},{"x":1242,"y":483,"w":83,"h":75,"sx":264},{"x":1215,"y":630,"w":97,"h":85,"sx":349},{"x":1321,"y":82,"w":58,"h":45,"sx":448},{"x":1736,"y":228,"w":95,"h":82,"sx":508},{"x":1828,"y":160,"w":78,"h":103,"sx":605},{"x":1840,"y":222,"w":151,"h":114,"sx":685}];
+  var ORBE = [1460, 120], ESFERA = [1022, 198], LIBRO_MAGO = [1785, 365], FAROL = [1135, 318];
+  var VELAS = [[134, 348], [160, 384], [104, 392], [466, 512], [524, 548], [552, 581], [1986, 466], [1956, 503], [1858, 582], [2021, 522]];
+  var VENTANAS = [[752, 120, 38], [752, 400, 30], [935, 455, 36], [1000, 240, 60], [865, 95, 28]];
+  var ESTANDARTE = [362, 0, 118, 318];               /* x, y, ancho, alto */
+  var CAPA = [1370, 455, 260, 175];                   /* bajo de la capa */
+  var CORRIENTES = [[[1690, 470], [1520, 520], [1330, 575], [1120, 620], [930, 650], [760, 690]],
+                    [[1600, 330], [1450, 300], [1320, 360], [1180, 450], [1010, 520]],
+                    [[1700, 560], [1560, 610], [1400, 640], [1250, 690], [1120, 740]]];
+  var fondo = null, libros = null;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function punto(c, u) { var n = c.length - 1, f = Math.min(n - 1e-6, Math.max(0, u * n)), i = f | 0, k = f - i;
+    return [c[i][0] + (c[i + 1][0] - c[i][0]) * k, c[i][1] + (c[i + 1][1] - c[i][1]) * k]; }
+
+  return function (host, id) {
+    if (!host) return {stop: function () {}};
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#12082a';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');   /* chispas pixeladas (aditivas) */
+    if (!fondo) { fondo = new Image(); fondo.src = FONDO; libros = new Image(); libros.src = LIBROS; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var orb = [], mot = [], cor = [], run = [], spk = [];
+    SPR.forEach(function (p, k) { p.ph = k * 2.17 + .3; p.vel = .5 + (k * .41) % .5; p.amp = 2 + (p.w + p.h) / 75; });
+    for (var i = 0; i < 70; i++) orb.push({a: rnd(0, 6.28), r: rnd(.45, 1.05), v: rnd(.6, 1.4), c: Math.random() < .2 ? '#ffffff' : (Math.random() < .5 ? '#d68cff' : '#a64dff'), s: Math.random() < .25 ? 2 : 1});
+    for (i = 0; i < 70; i++) mot.push({x: rnd(0, w), y: rnd(0, h), vx: rnd(-.08, .08), vy: rnd(-.25, -.05), f: rnd(0, 6.28)});
+
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = a; ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+
+    /* tela que ondea: se redibuja por franjas horizontales desplazadas (más cuanto más lejos del punto de agarre) */
+    function ondea(r, t, amp, vel, onda, desde) {
+      var x = r[0], y0 = r[1], ww = r[2], hh = r[3];
+      for (var y = 0; y < hh; y += 2) { var k = Math.max(0, (y - desde) / (hh - desde)); if (k <= 0) continue;
+        var dx = Math.round(amp * Math.pow(k, 1.3) * Math.sin(t * vel - y * onda) * 2) / 2;
+        if (dx) ctx.drawImage(fondo, x, y0 + y, ww, 2, x + dx, y0 + y, ww, 2); }
+    }
+    function libro(p, t) { var dy = Math.sin(t * p.vel + p.ph) * p.amp, dx = Math.sin(t * p.vel * .6 + p.ph * 1.7) * p.amp * .6,
+        rot = Math.sin(t * p.vel * .8 + p.ph + 1) * 1.8 * Math.PI / 180;
+      ctx.save(); ctx.translate(p.x + p.w / 2 + dx, p.y + p.h / 2 + dy); ctx.rotate(rot);
+      ctx.drawImage(libros, p.sx, 0, p.w, p.h, -p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); }
+
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (host.offsetParent === null || document.hidden || window.__noBgAnim) { last = 0; return; }   /* oculto: no gastes CPU */
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now;
+      var t = (now - t0) / 1000;
+      if (!fondo.complete || !fondo.naturalWidth || !libros.complete || !libros.naturalWidth) return;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      ctx.drawImage(fondo, 0, 0);
+      if (quieto) { SPR.forEach(function (p) { ctx.drawImage(libros, p.sx, 0, p.w, p.h, p.x, p.y, p.w, p.h); }); vivo = false; return; }
+      ondea(ESTANDARTE, t, 3, 1.5, .022, 20);
+      ondea(CAPA, t, 2.5, 2.4, .05, 40);
+      SPR.forEach(function (p) { libro(p, t); });
+      ca.clearRect(0, 0, w, h);
+
+      /* esfera del báculo y remolino */
+      var lat = .6 + .4 * Math.sin(t * 2.6) * Math.sin(t * 1.1 + 1);
+      glow(ORBE[0], ORBE[1], 120, 'rgba(150,60,255,A)', .35 + .2 * lat);
+      glow(ORBE[0], ORBE[1], 40, 'rgba(240,190,255,A)', .5 + .35 * lat);
+      glow(ORBE[0], ORBE[1], 12, 'rgba(255,255,255,A)', .7 + .3 * lat);
+      var dest = 10 + 8 * lat, ga = t * .6;            /* destello en cruz que gira despacio */
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(ORBE[0], ORBE[1]); ctx.rotate(ga);
+      ctx.fillStyle = 'rgba(255,235,255,' + (.55 + .3 * lat) + ')'; ctx.fillRect(-dest * 2, -1, dest * 4, 2); ctx.fillRect(-1, -dest * 2, 2, dest * 4);
+      ctx.rotate(.785); ctx.fillStyle = 'rgba(220,170,255,' + (.3 + .2 * lat) + ')'; ctx.fillRect(-dest, -1, dest * 2, 2); ctx.fillRect(-1, -dest, 2, dest * 2); ctx.restore();
+      orb.forEach(function (o) { o.a += o.v * .035 * d; var rx = 30 + 120 * o.r, ry = 10 + 42 * o.r, ca_ = Math.cos(-.18), sa = Math.sin(-.18);
+        var x = Math.cos(o.a) * rx, y = Math.sin(o.a) * ry, X = ORBE[0] - 15 + x * ca_ - y * sa, Y = ORBE[1] - 8 + x * sa + y * ca_;
+        var fr = .45 + .55 * (Math.sin(o.a) * .5 + .5);    /* más brillante por delante */
+        px(X, Y, o.c, fr, o.s); px(X - Math.cos(o.a + 1.57) * 4, Y - Math.sin(o.a + 1.57) * 1.5, o.c, fr * .4, 1); });
+
+      /* esfera armilar del fondo */
+      var la = .5 + .5 * Math.sin(t * 1.7);
+      glow(ESFERA[0], ESFERA[1], 90, 'rgba(130,60,255,A)', .2 + .15 * la);
+      glow(ESFERA[0], ESFERA[1], 22, 'rgba(235,200,255,A)', .45 + .3 * la);
+      for (i = 0; i < 3; i++) { var a = t * (.7 + i * .25) + i * 2.1, X = ESFERA[0] + Math.cos(a) * (95 - i * 22), Y = ESFERA[1] + Math.sin(a) * (30 + i * 8) * (i === 1 ? -1 : 1);
+        glow(X, Y, 10, 'rgba(210,150,255,A)', .5); px(X, Y, '#ffffff', .9, 1); }
+      glow(FAROL[0], FAROL[1], 26, 'rgba(190,110,255,A)', .25 + .15 * Math.sin(t * 3.3));
+
+      /* ventanales que respiran */
+      VENTANAS.forEach(function (v, k) { glow(v[0], v[1], v[2] * 2, 'rgba(160,110,255,A)', .08 + .07 * Math.sin(t * .9 + k * 1.7)); });
+
+      /* velas moradas */
+      VELAS.forEach(function (v, k) { var f = .55 + .45 * Math.sin(t * (7 + k % 3) + k) * Math.sin(t * 12.1 + k * 2);
+        glow(v[0], v[1], 28 + 8 * f, 'rgba(190,90,255,A)', .25 + .2 * f); glow(v[0], v[1], 7, 'rgba(255,220,255,A)', .35 + .3 * f); });
+
+      /* libro del mago: brillo y runas que suben */
+      var lb = .5 + .5 * Math.sin(t * 2.2);
+      glow(LIBRO_MAGO[0], LIBRO_MAGO[1], 55, 'rgba(170,80,255,A)', .25 + .2 * lb);
+      if (Math.random() < .08 * d) run.push({x: LIBRO_MAGO[0] + rnd(-25, 25), y: LIBRO_MAGO[1] - 15, t: 0, l: rnd(50, 80), k: (Math.random() * 4) | 0});
+      run.forEach(function (r) { r.t += d; r.y -= .7 * d; r.x += Math.sin(r.t * .08) * .3; var a = Math.sin(Math.PI * r.t / r.l), X = r.x / PX, Y = r.y / PX;
+        ca.globalAlpha = a; ca.fillStyle = '#e2b4ff';
+        if (r.k === 0) { ca.fillRect(X | 0, (Y | 0) - 2, 1, 5); ca.fillRect((X | 0) - 1, (Y | 0) - 1, 3, 1); }
+        else if (r.k === 1) { ca.fillRect((X | 0) - 1, (Y | 0) - 2, 1, 5); ca.fillRect(X | 0, (Y | 0) - 1, 1, 1); ca.fillRect((X | 0) + 1, Y | 0, 1, 1); }
+        else if (r.k === 2) { ca.fillRect((X | 0) - 1, (Y | 0) - 1, 3, 1); ca.fillRect((X | 0) - 1, (Y | 0) + 1, 3, 1); ca.fillRect(X | 0, Y | 0, 1, 1); }
+        else { ca.fillRect(X | 0, (Y | 0) - 2, 1, 5); ca.fillRect((X | 0) - 1, (Y | 0) + 1, 1, 1); ca.fillRect((X | 0) + 1, (Y | 0) + 1, 1, 1); }
+        glow(r.x, r.y, 9, 'rgba(200,120,255,A)', .35 * a); });
+      run = run.filter(function (r) { return r.t < r.l; });
+
+      /* corrientes de magia por el suelo */
+      if (Math.random() < .9 * d) cor.push({c: (Math.random() * CORRIENTES.length) | 0, u: 0, v: rnd(.004, .009), o: rnd(-12, 12), t: rnd(0, 6), col: Math.random() < .3 ? '#f0d0ff' : (Math.random() < .5 ? '#c070ff' : '#8f3dff')});
+      cor.forEach(function (c) { c.u += c.v * d; c.t += d * .1; var p = punto(CORRIENTES[c.c], c.u), a = Math.sin(Math.PI * Math.min(1, c.u));
+        px(p[0], p[1] + c.o + Math.sin(c.t * 2) * 4, c.col, a * .9, 1); });
+      cor = cor.filter(function (c) { return c.u < 1; }); if (cor.length > 400) cor.splice(0, cor.length - 400);
+
+      /* motas arcanas */
+      mot.forEach(function (m) { m.x += (m.vx + Math.sin(t * .5 + m.f) * .05) * d; m.y += m.vy * d; if (m.y < -2) { m.y = h + 2; m.x = rnd(0, w); }
+        px(m.x * PX, m.y * PX, '#b88cff', .25 + .35 * (.5 + .5 * Math.sin(t * 2 + m.f)), 1); });
+
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  };
+})();
 var ALL=[{"id": "k_sorc", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/bajas/emblema_bajas_sorc.png", "an": "emblemas/bajas/emblema_bajas_sorc_anim.png", "t": "d:k_sorc", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_barb", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/bajas/emblema_bajas_barb.png", "an": "emblemas/bajas/emblema_bajas_barb_anim.png", "t": "d:k_barb", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_rogue", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/bajas/emblema_bajas_rogue.png", "an": "emblemas/bajas/emblema_bajas_rogue_anim.png", "t": "d:k_rogue", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_pal", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/bajas/emblema_bajas_pal.png", "an": "emblemas/bajas/emblema_bajas_pal_anim.png", "t": "d:k_pal", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_druid", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/bajas/emblema_bajas_druid.png", "an": "emblemas/bajas/emblema_bajas_druid_anim.png", "t": "d:k_druid", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_necro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/bajas/emblema_bajas_necro.png", "an": "emblemas/bajas/emblema_bajas_necro_anim.png", "t": "d:k_necro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_bruja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/bajas/emblema_bajas_bruja.png", "an": "emblemas/bajas/emblema_bajas_bruja_anim.png", "t": "d:k_bruja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_amazona", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/bajas/emblema_bajas_amazona.png", "an": "emblemas/bajas/emblema_bajas_amazona_anim.png", "t": "d:k_amazona", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_monja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/bajas/emblema_bajas_monja.png", "an": "emblemas/bajas/emblema_bajas_monja_anim.png", "t": "d:k_monja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_angel", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/bajas/emblema_bajas_angel.png", "an": "emblemas/bajas/emblema_bajas_angel_anim.png", "t": "d:k_angel", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_jinete", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/bajas/emblema_bajas_jinete.png", "an": "emblemas/bajas/emblema_bajas_jinete_anim.png", "t": "d:k_jinete", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_piro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/bajas/emblema_bajas_piro.png", "an": "emblemas/bajas/emblema_bajas_piro_anim.png", "t": "d:k_piro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "ex_sorc", "g": "Desafío", "nm": "Un único círculo", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/desafios/emblema_sorc.png", "an": "emblemas/desafios/emblema_sorc_anim.png", "t": "d:ex_sorc", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_barb", "g": "Desafío", "nm": "Corto y letal", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/desafios/emblema_barb.png", "an": "emblemas/desafios/emblema_barb_anim.png", "t": "d:ex_barb", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_rogue", "g": "Desafío", "nm": "Cuatro filos", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/desafios/emblema_rogue.png", "an": "emblemas/desafios/emblema_rogue_anim.png", "t": "d:ex_rogue", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_pal", "g": "Desafío", "nm": "Escudo único", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/desafios/emblema_pal.png", "an": "emblemas/desafios/emblema_pal_anim.png", "t": "d:ex_pal", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_druid", "g": "Desafío", "nm": "Raíz y garra", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/desafios/emblema_druid.png", "an": "emblemas/desafios/emblema_druid_anim.png", "t": "d:ex_druid", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_necro", "g": "Desafío", "nm": "Calaveras contadas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/desafios/emblema_necro.png", "an": "emblemas/desafios/emblema_necro_anim.png", "t": "d:ex_necro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_bruja", "g": "Desafío", "nm": "Magia desnuda", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/desafios/emblema_bruja.png", "an": "emblemas/desafios/emblema_bruja_anim.png", "t": "d:ex_bruja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_amazona", "g": "Desafío", "nm": "Pura lanza", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/desafios/emblema_amazona.png", "an": "emblemas/desafios/emblema_amazona_anim.png", "t": "d:ex_amazona", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_monja", "g": "Desafío", "nm": "Fe sin símbolos", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/desafios/emblema_monja.png", "an": "emblemas/desafios/emblema_monja_anim.png", "t": "d:ex_monja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_angel", "g": "Desafío", "nm": "Dúo de luz", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/desafios/emblema_angel.png", "an": "emblemas/desafios/emblema_angel_anim.png", "t": "d:ex_angel", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_jinete", "g": "Desafío", "nm": "Jinete sin ataduras", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/desafios/emblema_jinete.png", "an": "emblemas/desafios/emblema_jinete_anim.png", "t": "d:ex_jinete", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_piro", "g": "Desafío", "nm": "Fuego contado", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/desafios/emblema_piro.png", "an": "emblemas/desafios/emblema_piro_anim.png", "t": "d:ex_piro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ew_sorc", "g": "Escritor en difícil", "nm": "Tsukuyomi", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/escritor_dificil/emblema_escritor_sorc.png", "an": "emblemas/escritor_dificil/emblema_escritor_sorc_anim.png", "t": "d:ew_sorc", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_barb", "g": "Escritor en difícil", "nm": "Perún", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/escritor_dificil/emblema_escritor_barb.png", "an": "emblemas/escritor_dificil/emblema_escritor_barb_anim.png", "t": "d:ew_barb", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_rogue", "g": "Escritor en difícil", "nm": "Loki", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/escritor_dificil/emblema_escritor_rogue.png", "an": "emblemas/escritor_dificil/emblema_escritor_rogue_anim.png", "t": "d:ew_rogue", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_pal", "g": "Escritor en difícil", "nm": "Ra", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/escritor_dificil/emblema_escritor_pal.png", "an": "emblemas/escritor_dificil/emblema_escritor_pal_anim.png", "t": "d:ew_pal", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_druid", "g": "Escritor en difícil", "nm": "Cernunnos", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/escritor_dificil/emblema_escritor_druid.png", "an": "emblemas/escritor_dificil/emblema_escritor_druid_anim.png", "t": "d:ew_druid", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_necro", "g": "Escritor en difícil", "nm": "Mictlantecuhtli", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/escritor_dificil/emblema_escritor_necro.png", "an": "emblemas/escritor_dificil/emblema_escritor_necro_anim.png", "t": "d:ew_necro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_bruja", "g": "Escritor en difícil", "nm": "Hécate", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/escritor_dificil/emblema_escritor_bruja.png", "an": "emblemas/escritor_dificil/emblema_escritor_bruja_anim.png", "t": "d:ew_bruja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_amazona", "g": "Escritor en difícil", "nm": "Atenea", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/escritor_dificil/emblema_escritor_amazona.png", "an": "emblemas/escritor_dificil/emblema_escritor_amazona_anim.png", "t": "d:ew_amazona", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_monja", "g": "Escritor en difícil", "nm": "Brígida", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/escritor_dificil/emblema_escritor_monja.png", "an": "emblemas/escritor_dificil/emblema_escritor_monja_anim.png", "t": "d:ew_monja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_angel", "g": "Escritor en difícil", "nm": "Niké", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/escritor_dificil/emblema_escritor_angel.png", "an": "emblemas/escritor_dificil/emblema_escritor_angel_anim.png", "t": "d:ew_angel", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_jinete", "g": "Escritor en difícil", "nm": "Tiamat", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/escritor_dificil/emblema_escritor_jinete.png", "an": "emblemas/escritor_dificil/emblema_escritor_jinete_anim.png", "t": "d:ew_jinete", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_piro", "g": "Escritor en difícil", "nm": "Agni", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/escritor_dificil/emblema_escritor_piro.png", "an": "emblemas/escritor_dificil/emblema_escritor_piro_anim.png", "t": "d:ew_piro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "mapa_cripta", "g": "Victoria por mapa", "nm": "Cripta gris", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_cripta.png", "an": "emblemas/mapas/emblema_mapa_cripta_anim.png", "t": "d:w0", "ds": "Gana una partida en Cripta gris"}, {"id": "mapa_abismo", "g": "Victoria por mapa", "nm": "Abismo azul", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_abismo.png", "an": "emblemas/mapas/emblema_mapa_abismo_anim.png", "t": "d:w1", "ds": "Gana una partida en Abismo azul"}, {"id": "mapa_pantano", "g": "Victoria por mapa", "nm": "Pantano verde", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_pantano.png", "an": "emblemas/mapas/emblema_mapa_pantano_anim.png", "t": "d:w2", "ds": "Gana una partida en Pantano verde"}, {"id": "mapa_forja", "g": "Victoria por mapa", "nm": "Forja roja", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_forja.png", "an": "emblemas/mapas/emblema_mapa_forja_anim.png", "t": "d:w3", "ds": "Gana una partida en Forja roja"}, {"id": "mapa_santuario", "g": "Victoria por mapa", "nm": "Santuario púrpura", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_santuario.png", "an": "emblemas/mapas/emblema_mapa_santuario_anim.png", "t": "d:w4", "ds": "Gana una partida en Santuario púrpura"}, {"id": "mapa_libreria", "g": "Victoria por mapa", "nm": "Librería sepia", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_libreria.png", "an": "emblemas/mapas/emblema_mapa_libreria_anim.png", "t": "d:w5", "ds": "Gana una partida en Librería sepia"}, {"id": "jefe_morvayne", "g": "Jefes del modo infinito", "nm": "Conde Morvayne", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_morvayne.png", "an": "emblemas/jefes_infinito/emblema_jefe_morvayne_anim.png", "t": "bi:morvayne", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_noxarion", "g": "Jefes del modo infinito", "nm": "Noxarion", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_noxarion.png", "an": "emblemas/jefes_infinito/emblema_jefe_noxarion_anim.png", "t": "bi:noxarion", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_vael", "g": "Jefes del modo infinito", "nm": "Vael", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_vael.png", "an": "emblemas/jefes_infinito/emblema_jefe_vael_anim.png", "t": "bi:vael", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_valeria", "g": "Jefes del modo infinito", "nm": "Valeria", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_valeria.png", "an": "emblemas/jefes_infinito/emblema_jefe_valeria_anim.png", "t": "bi:valeria", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_estrella", "g": "Jefes del modo infinito", "nm": "Estrella fugaz", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_estrella.png", "an": "emblemas/jefes_infinito/emblema_jefe_estrella_anim.png", "t": "bi:estrella_fugaz", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "modo_dificil", "g": "Victoria por modo", "nm": "Victoria en Difícil", "col": "#ff3a2a", "pj": "", "src": "emblemas/modos/emblema_modo_dificil.png", "an": "emblemas/modos/emblema_modo_dificil_anim.png", "t": "hw", "ds": "Gana una partida en Difícil"}, {"id": "modo_mutaciones", "g": "Victoria por modo", "nm": "Victoria con Mutaciones", "col": "#3aff5a", "pj": "", "src": "emblemas/modos/emblema_modo_mutaciones.png", "an": "emblemas/modos/emblema_modo_mutaciones_anim.png", "t": "f:mw", "ds": "Gana una partida con Mutaciones"}, {"id": "modo_infinito", "g": "Victoria por modo", "nm": "Victoria en Infinito", "col": "#b45aff", "pj": "", "src": "emblemas/modos/emblema_modo_infinito.png", "an": "emblemas/modos/emblema_modo_infinito_anim.png", "t": "f:iw", "ds": "Derrota al jefe del minuto 20 en el modo Infinito"}, {"id": "col_aspectos", "g": "Colección", "nm": "Todos los aspectos", "col": "#ffd84a", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_aspectos.png", "an": "emblemas/coleccion/emblema_coleccion_aspectos_anim.png", "t": "dall:s_", "ds": "Consigue todos los aspectos de todos los personajes"}, {"id": "col_bestiario", "g": "Colección", "nm": "Bestiario completo", "col": "#4affb0", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_bestiario.png", "an": "emblemas/coleccion/emblema_coleccion_bestiario_anim.png", "t": "d:best", "ds": "Completa el Bestiario"}, {"id": "col_runas", "g": "Colección", "nm": "Runas completas", "col": "#9a7aff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_runas.png", "an": "emblemas/coleccion/emblema_coleccion_runas_anim.png", "t": "d:runes", "ds": "Consigue todas las runas"}, {"id": "col_fondos", "g": "Colección", "nm": "Fondos completos", "col": "#4ac8ff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_fondos.png", "an": "emblemas/coleccion/emblema_coleccion_fondos_anim.png", "t": "d:fondos", "ds": "Consigue todos los fondos"}, {"id": "col_diario", "g": "Colección", "nm": "Diario completo", "col": "#e8b878", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_diario.png", "an": "emblemas/coleccion/emblema_coleccion_diario_anim.png", "t": "d:pages", "ds": "Completa todas las páginas del Diario"}, {"id": "clan_top50", "g": "Clanes", "nm": "Top 50 de clanes", "col": "#ff4a2a", "pj": "", "src": "emblemas/clanes/emblema_clan_top50.png", "an": "emblemas/clanes/emblema_clan_top50_anim.png", "t": "f:clanTop", "ds": "Que tu clan acabe la semana en el top 50 de clanes"}];
 var GR=["500.000 bajas", "Desafío", "Escritor en difícil", "Victoria por mapa", "Jefes del modo infinito", "Victoria por modo", "Colección", "Clanes"];
 var BYID={};ALL.forEach(function(e){BYID[e.id]=e});
@@ -12887,7 +13036,10 @@ function myEq(){
 function css(){
   if($('embCss'))return;var s=document.createElement('style');s.id='embCss';
   s.textContent='#pStats{position:relative}'+
-  '#embBox{position:absolute;top:-6px;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 10px;max-width:calc(100% - 330px)}'+
+  '#embBox{position:relative;height:clamp(190px,27vw,310px);margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
+  '#embBox .bnUi{position:absolute;left:14px;bottom:12px;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 12px 8px;background:linear-gradient(90deg,rgba(8,4,20,.82),rgba(8,4,20,.55) 80%,rgba(8,4,20,0));border-radius:6px}'+
+  '#embBox .bnUi .embRow{justify-content:flex-start}'+
+  '#embBox .bnUi button{margin:0!important}'+
   '.embRow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}'+
   '.embSlot{width:56px;height:56px;border-radius:50%;border:2px solid #4a4a52;background:radial-gradient(circle,#2a2a30,#17171b);box-shadow:inset 0 0 8px #000;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative}'+
   '.embSlot.on{border-color:var(--gold,#d3a94a);background:radial-gradient(circle,#2b2418,#14110b);box-shadow:0 0 10px rgba(211,169,74,.35)}'+
@@ -12910,7 +13062,7 @@ function css(){
   '.embCell.mine.ok{cursor:pointer}.embCell.mine.ok:hover{background:#1c1710}'+
   '.embSum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}'+
   '.embSum div{border:1px solid #3a3326;background:#0e0c08;padding:8px;text-align:center;font-size:11px;color:#a99d80}.embSum b{display:block;font-size:17px;color:#e8d9a8;font-family:var(--display,inherit)}'+
-  '@media (max-width:900px){#embBox{position:static;max-width:none;margin:0 0 10px;align-items:flex-start}}'+
+  '@media (max-width:700px){#embBox{height:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;padding:8px 0;background:none;margin-top:6px}}'+
   '@media (max-width:520px){.embRow{gap:6px;flex-wrap:nowrap}.embSlot{width:46px;height:46px}.embSlot .emI{width:52px;height:55px}}';
   document.head.appendChild(s);
 }
@@ -12920,10 +13072,13 @@ function slots(ids){
   for(var i=0;i<5;i++){var e=BYID[ids[i]];h+=e?'<div class="embSlot on" title="'+esc(e.nm+(e.pj?' · '+e.pj:''))+'">'+img(e,true)+'</div>':'<div class="embSlot"></div>'}
   return h+'</div>';
 }
+var bnInst=null;
 function openBox(){
   css();var pS=$('pStats');if(!pS)return;
-  var b=$('embBox');if(!b){b=document.createElement('div');b.id='embBox';pS.insertBefore(b,pS.firstChild)}
-  b.innerHTML=slots(myEq())+'<button class="btn alt" type="button" id="embBtn" style="padding:4px 14px;font-size:12px;margin-bottom:6px">Ver emblemas</button>';
+  var b=$('embBox');
+  if(!b){b=document.createElement('div');b.id='embBox';b.innerHTML='<div class="bnHost" style="position:absolute;inset:0"></div><div class="bnUi"></div>';pS.insertBefore(b,pS.firstChild)}
+  if(!bnInst||!bnInst.canvas.parentNode){try{bnInst=bannerPerfil(b.querySelector('.bnHost'),'biblioteca_arcana')}catch(e){bnInst=null}}
+  b.querySelector('.bnUi').innerHTML=slots(myEq())+'<button class="btn alt" type="button" id="embBtn" style="padding:4px 14px;font-size:12px">Ver emblemas</button>';
   $('embBtn').onclick=function(){showColl(null)};
 }
 function ov(){
