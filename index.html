@@ -9800,6 +9800,7 @@ render=function(){
   ctx.restore();ctx.globalAlpha=1;ctx.textAlign='left';
 };
 
+
 /* ==========================================================================
    GOBLIN DEL TESORO — enemigo especial que huye y no ataca
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
@@ -12983,8 +12984,8 @@ render=function(){
      (el contador se pausa si nadie está dentro; mientras se aguanta llegan refuerzos). Premio: oro y un cofre aleatorio.
    · Obelisco de la Tirada (E junto a él): desaparece al cogerlo. Hasta el final de la partida los enemigos (y los jefes) tienen
      +25% de vida y se gana un 7,5% más de experiencia. Da oro al activarse. Se acumula (varios obeliscos suman).
-   · Clepsidra (E junto a ella): invoca muchas mini muertes alrededor. Si mueren todas: oro y un cofre.
-   · Maniquí: mini jefe (lo invoca el evento de los ojos si te quedas quieto); sus sprites y los de las mini muertes se registran aquí.
+   · Clepsidra (E junto a ella): invoca muchos Tachones (antes «mini muertes») alrededor. Si mueren todas: oro y un cofre.
+   · Maniquí: mini jefe (lo invoca el evento de los ojos si te quedas quieto); sus sprites y los de los Tachones se registran aquí.
    Cooperativo online: el anfitrión simula; los invitados reciben el estado (window.al2Pack / al2Net), piden activar con {t:'alt'}
    y reciben el oro con {t:'alg'}.
    ========================================================================== */
@@ -13006,7 +13007,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     zko:['El tintero se ha apagado','The inkwell has gone dark','O tinteiro se apagou','L\'encrier s\'est éteint','Чернильница погасла','インク壺の光が消えた'],
     sn:['Clepsidra','Hourglass','Ampulheta','Clepsydre','Клепсидра','水時計'],
     sap:['Ha aparecido una Clepsidra','An Hourglass has appeared','Apareceu uma Ampulheta','Une Clepsydre est apparue','Появилась Клепсидра','水時計が現れた'],
-    sgo:['¡Las mini muertes despiertan! Acaba con todas','The mini reapers awaken! Defeat them all','As mini ceifadoras despertam! Derrote todas','Les mini faucheuses s\'éveillent ! Élimine-les toutes','Мини-жнецы пробудились! Убейте всех','ミニ死神が目覚めた！全員倒せ'],
+    sgo:['¡Los Tachones despiertan! Acaba con todos','The Tachones awaken! Defeat them all','Os Tachones despertam! Derrote todos','Les Tachones s\'éveillent ! Élimine-les tous','Тачоны пробудились! Убейте всех','タチョンが目覚めた！全員倒せ'],
     sct:['Clepsidra · quedan {n}','Hourglass · {n} left','Ampulheta · restam {n}','Clepsydre · il en reste {n}','Клепсидра · осталось {n}','水時計 · 残り{n}体'],
     sok:['Clepsidra completada: +{g} oro y un cofre','Hourglass complete: +{g} gold and a chest','Ampulheta completa: +{g} de ouro e um baú','Clepsydre terminée : +{g} or et un coffre','Клепсидра завершена: +{g} золота и сундук','水時計クリア：+{g}ゴールドと宝箱'],
     sko:['La clepsidra se ha vaciado','The hourglass has run out','A ampulheta esvaziou','La clepsydre s\'est vidée','Клепсидра опустела','水時計の砂が尽きた'],
@@ -13097,7 +13098,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     burst(z.x,z.y,'#6fe8ff',30);ring(z.x,z.y,2.8,.7,'#6fe8ff');try{S('level',z.x,z.y,0,.7)}catch(e){}
     try{toast(fill(T2(TX.zok),{g:g}))}catch(e){}
   }
-  /* ---------- enemigos con sprite propio: mini muerte y maniquí (campo e.xs) ---------- */
+  /* ---------- enemigos con sprite propio: Tachón (mini muerte) y maniquí (campo e.xs) ---------- */
   var XD={mini_muerte:{fw:144,fh:144,fx:60,fy:124,top:32,walk:8,attack:6,death:8,spawn:6,w:1152,h:576,name:'mini_muerte'},
           maniqui:{fw:288,fh:312,fx:132,fy:288,top:36,walk:8,attack:6,death:8,glitch:6,w:2304,h:1248,name:'maniqui'}};
   var XS={},XSC={mini_muerte:.85,maniqui:1.05};
@@ -13198,7 +13199,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
       else if(z.prog>=AL2.hold)zoneDone(z,true);
       else if(z.left<=0)zoneDone(z,false);
     }
-    /* mini muertes ancladas mientras nacen */
+    /* Tachones anclados mientras nacen */
     for(i=0;i<enemies.length;i++){var q=enemies[i];if(q.sp0!==undefined&&!q.dead&&t-q.sp0<.6){q.x=q.sx;q.y=q.sy;q.cd=Math.max(q.cd||0,.3)}}
     var g=al2.sg;
     if(g){
@@ -14179,7 +14180,7 @@ var FONDO_FX = {
       return '<button type="button" data-f="' + f.id + '" aria-pressed="' + sel + '"' + (abierto ? '' : ' disabled') + '>' +
         '<img alt="" loading="lazy" src="' + f.src + '">' +
         (abierto ? '' : '<span class="lk">' + LOCK + '<span>' + (f.req || 'Bloqueado') + '</span></span>') +
-        '<span>' + f.nombre + '</span>' + (f.fx ? '<span class="an">Animado</span>' : '') + '</button>';
+        '<span>' + f.nombre + '</span>' + ((f.fx || f.anim) ? '<span class="an">Animado</span>' : '') + '</button>';
     }).join('') + '</div>';
   }
   window.pintaFondos = function () { revisa(); pintaPanel(); };
@@ -14354,7 +14355,10 @@ var FONDO_FX = {
     var m = new Motor(f); host.style.opacity = '0';
     m.listo.then(function () {
       setTimeout(function () {
+        if (window.__menuCustom) { try { window.__menuCustom.stop(); } catch (e) {} window.__menuCustom = null; }
+        cv.style.display = '';
         cur = m; last = 0; m.dibuja((performance.now() - T0) / 1000, 0); host.style.opacity = '1';
+        if (f.anim && !REDUCE) { try { window.__menuCustom = f.anim(host); if (window.__menuCustom && window.__menuCustom.canvas) cv.style.display = 'none'; } catch (e) { window.__menuCustom = null; } }
         if (m.fx && !REDUCE && !window.__noBgAnim && !raf) raf = requestAnimationFrame(bucle);
       }, cur ? 250 : 0);
     });
