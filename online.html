@@ -9980,7 +9980,7 @@ var fondoLanzamiento = (function () {
    Para fijar el día de lanzamiento: EV_LANZ.inicio = 'AAAA-MM-DD' (y opcionalmente EV_LANZ.fin).
    Mientras no haya fecha, el canje solo está disponible en la versión de pruebas (window.TEST_BUILD).
    ========================================================================== */
-var EV_LANZ = {inicio: null, fin: null};
+var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
 (function () {
   var shop = document.getElementById('pShop'); if (!shop) return;
   var TXT = {
@@ -10066,6 +10066,150 @@ var EV_LANZ = {inicio: null, fin: null};
   var showTab_ev = showTab;
   showTab = function (tab) { var r = showTab_ev.apply(this, arguments); if (tab !== 'shop' && fondo) { fondo.stop(); fondo = null; } else if (tab === 'shop') aplica(); return r; };
   aplica();
+})();
+
+
+/* ==========================================================================
+   CALENDARIO DE LANZAMIENTO · 7 días. Tarjeta en «Jugar». Quien entra un día tarde cobra también los anteriores.
+   Premios: 5000 oro · 300 polvo · 10000 oro · 500 polvo · 15000 oro · una runa · lote de 12 skins.
+   ========================================================================== */
+(function () {
+  var EV_SKINS = [];   /* ids de las 12 skins del día 7 (pendiente) */
+  var DIAS = [{t: 'oro', n: 5000}, {t: 'polvo', n: 300}, {t: 'oro', n: 10000}, {t: 'polvo', n: 500}, {t: 'oro', n: 15000}, {t: 'runa', n: 1}, {t: 'skins', n: 12}];
+  var CT = {
+    tit: {es: 'Calendario de lanzamiento', en: 'Launch calendar', pt: 'Calendário de lançamento', fr: 'Calendrier de lancement', ru: 'Календарь запуска', ja: 'ローンチカレンダー'},
+    sub: {es: 'Entra cada día durante la primera semana. Si te saltas días, cobras también los anteriores.', en: 'Log in every day during the first week. If you miss days, you collect the earlier ones too.', pt: 'Entre todos os dias na primeira semana. Se perder dias, recebe também os anteriores.', fr: 'Connecte-toi chaque jour la première semaine. Si tu rates des jours, tu récupères aussi les précédents.', ru: 'Заходи каждый день первую неделю. Если пропустишь дни, получишь и прежние награды.', ja: '最初の1週間は毎日ログイン。逃した日の分もまとめて受け取れます。'},
+    day: {es: 'Día', en: 'Day', pt: 'Dia', fr: 'Jour', ru: 'День', ja: '日目'},
+    oro: {es: 'de oro', en: 'gold', pt: 'de ouro', fr: "d'or", ru: 'золота', ja: 'ゴールド'},
+    polvo: {es: 'de polvo rúnico', en: 'rune dust', pt: 'de pó rúnico', fr: 'de poussière runique', ru: 'рунной пыли', ja: 'ルーンの粉'},
+    runa: {es: 'Una runa cualquiera', en: 'Any rune', pt: 'Uma runa qualquer', fr: 'Une rune au hasard', ru: 'Любая руна', ja: '好きなルーン1つ'},
+    skins: {es: 'Lote de 12 skins', en: 'Bundle of 12 skins', pt: 'Pacote de 12 skins', fr: 'Lot de 12 skins', ru: 'Набор из 12 скинов', ja: 'スキン12個セット'},
+    got: {es: 'Reclamado', en: 'Claimed', pt: 'Recebido', fr: 'Récupéré', ru: 'Получено', ja: '受取済み'},
+    lock: {es: 'Aún no', en: 'Not yet', pt: 'Ainda não', fr: 'Pas encore', ru: 'Ещё рано', ja: 'まだ'},
+    soon: {es: 'Próximamente', en: 'Coming soon', pt: 'Em breve', fr: 'Bientôt', ru: 'Скоро', ja: '近日公開'},
+    claim: {es: 'Reclamar', en: 'Claim', pt: 'Receber', fr: 'Récupérer', ru: 'Забрать', ja: '受け取る'},
+    none: {es: 'Nada por reclamar hoy', en: 'Nothing to claim today', pt: 'Nada para receber hoje', fr: "Rien à récupérer aujourd'hui", ru: 'Сегодня нечего забирать', ja: '今日は受け取るものがありません'},
+    kick: {es: 'Lanzamiento', en: 'Launch', pt: 'Lançamento', fr: 'Lancement', ru: 'Запуск', ja: 'ローンチ'},
+    cl: {es: 'Cerrar', en: 'Close', pt: 'Fechar', fr: 'Fermer', ru: 'Закрыть', ja: '閉じる'},
+    pend: {es: 'por reclamar', en: 'to claim', pt: 'para receber', fr: 'à récupérer', ru: 'к получению', ja: '受取可能'},
+    test: {es: 'Avanzar un día (prueba)', en: 'Advance one day (test)', pt: 'Avançar um dia (teste)', fr: 'Avancer un jour (test)', ru: 'Следующий день (тест)', ja: '1日進める(テスト)'},
+    ok: {es: '¡Recompensas reclamadas!', en: 'Rewards claimed!', pt: 'Recompensas recebidas!', fr: 'Récompenses récupérées !', ru: 'Награды получены!', ja: '報酬を受け取りました!'}
+  };
+  function T(k) { var l = (typeof LANG !== 'undefined' && LANG) || 'es'; return CT[k][l] || CT[k].es; }
+  function $(i) { return document.getElementById(i); }
+  function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+  function hoy() {   /* día actual del calendario (0 = no empezó, 7 máx.) */
+    var E = window.EV_LANZ || {};
+    if (E.inicio) {
+      var t0 = +new Date(E.inicio), n = Date.now();
+      if (n < t0) return 0;
+      return Math.min(7, Math.floor((n - t0) / 864e5) + 1);
+    }
+    return window.TEST_BUILD ? Math.min(7, Math.max(1, (meta.calTest | 0) || 1)) : 0;
+  }
+  function activo() {
+    var E = window.EV_LANZ || {};
+    if (E.fin && Date.now() > +new Date(E.fin)) return false;
+    return hoy() > 0;
+  }
+  function cobrados() { return meta.calDias | 0; }                /* días ya cobrados (siempre son los primeros N) */
+  function listo(d) { return d < 7 || EV_SKINS.length > 0; }       /* el día 7 espera a tener las skins */
+  function pendientes() { var h = hoy(), c = cobrados(), r = []; for (var d = c + 1; d <= h; d++) { if (!listo(d)) break; r.push(d); } return r; }
+
+  function da(d) {
+    var r = DIAS[d - 1], m = meta, msg = '';
+    if (r.t === 'oro') { m.gold += r.n; var g = $('goldTxt'); if (g) g.textContent = m.gold; msg = num(r.n) + ' ' + T('oro'); }
+    else if (r.t === 'polvo') {
+      var R = window.CriptaRunas; if (R) { R.R().dust += r.n; } else { m.runes = m.runes || {inv: {}, eq: {o: [null], d: [null, null, null]}, pity: 0, n: 0, seen: {}}; m.runes.dust = (m.runes.dust || 0) + r.n; }
+      msg = num(r.n) + ' ' + T('polvo');
+    }
+    else if (r.t === 'runa') {
+      var R2 = window.CriptaRunas;
+      if (R2) { var id = R2.pool[Math.floor(Math.random() * R2.pool.length)]; R2.give(id); msg = R2.name(id) || id; }
+    }
+    else if (r.t === 'skins') {
+      m.skins = m.skins || [];
+      EV_SKINS.forEach(function (id) { if (m.skins.indexOf(id) < 0) m.skins.push(id); });
+      msg = T('skins');
+    }
+    return msg;
+  }
+  function reclama() {
+    var p = pendientes(); if (!p.length) return;
+    var out = [];
+    p.forEach(function (d) { out.push(da(d)); meta.calDias = d; });
+    try { saveMeta(); } catch (e) {}
+    try { toast(T('ok') + ' ' + out.join(' · ')); } catch (e) {}
+    pinta(); resumen();
+  }
+
+  function lbl(r) {
+    if (r.t === 'oro') return '<b>' + num(r.n) + '</b><span>' + T('oro') + '</span>';
+    if (r.t === 'polvo') return '<b>' + num(r.n) + '</b><span>' + T('polvo') + '</span>';
+    if (r.t === 'runa') return '<b>1</b><span>' + T('runa') + '</span>';
+    return '<b>12</b><span>' + T('skins') + '</span>';
+  }
+  function pinta() {
+    var L = $('calList'); if (!L) return;
+    var h = hoy(), c = cobrados(), html = '';
+    for (var d = 1; d <= 7; d++) {
+      var r = DIAS[d - 1], st = d <= c ? 'got' : (d <= h ? (listo(d) ? 'ok' : 'soon') : 'lock');
+      html += '<div class="cal ' + st + (d === 7 ? ' last' : '') + '"><small>' + T('day') + ' ' + d + '</small>' + lbl(r) +
+        '<em>' + (st === 'got' ? T('got') : st === 'ok' ? T('claim') : st === 'soon' ? T('soon') : T('lock')) + '</em></div>';
+    }
+    L.innerHTML = html;
+    var n = pendientes().length, b = $('calClaim');
+    b.disabled = !n; b.textContent = n ? T('claim') + ' (' + n + ')' : T('none');
+    var tb = $('calTest'); if (tb) { tb.hidden = !(window.TEST_BUILD && !(window.EV_LANZ && window.EV_LANZ.inicio)); tb.textContent = T('test'); }
+    $('calT').textContent = T('tit'); $('calS').textContent = T('sub'); $('calX').textContent = T('cl');
+  }
+  function resumen() {
+    var s = $('calSum'); if (!s) return;
+    var n = pendientes().length, h = hoy();
+    s.textContent = T('day') + ' ' + h + '/7' + (n ? ' · ' + n + ' ' + T('pend') : '');
+    s.className = n ? 'new' : '';
+    var nm = document.querySelector('#calOpen .nm'); if (nm) nm.textContent = T('tit');
+  }
+  function abre() { pinta(); $('calOv').hidden = false; }
+  function cierra() { $('calOv').hidden = true; }
+
+  var st = document.createElement('style');
+  st.textContent = '#calOv{position:fixed;inset:0;z-index:70;background:rgba(5,8,12,.9);display:flex;align-items:center;justify-content:center}#calOv[hidden]{display:none}' +
+    '.calp{width:min(860px,94vw);max-height:92vh;overflow:auto;background:var(--panel,#0c1415);border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 8px 40px rgba(0,0,0,.7);padding:22px;display:flex;flex-direction:column;gap:14px}' +
+    '.calp h2{margin:0;color:var(--gold);font-weight:400;font-size:28px}.calp p{margin:0;color:var(--muted);font-size:14px}' +
+    '#calList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}@media(max-width:620px){#calList{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
+    '.cal{border:1px solid var(--line,#3a3326);background:rgba(10,14,20,.7);padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-height:112px}' +
+    '.cal small{color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.cal b{font-family:var(--display);font-size:24px;font-weight:400;color:#f1d98c;text-shadow:2px 2px 0 #000}.cal span{font-size:12px;color:#cfc6ad}.cal em{font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8d8570}' +
+    '.cal.ok{border-color:#d2a84a;box-shadow:0 0 14px rgba(210,168,74,.35)}.cal.ok em{color:#f1d98c}.cal.got{opacity:.55}.cal.got em{color:#7fd08a}.cal.lock{opacity:.7}' +
+    '.cal.last{grid-column:span 2;background:linear-gradient(135deg,rgba(80,40,140,.45),rgba(10,14,20,.8))}.cal.last b{color:#e2b4ff}' +
+    '#calOpen #calSum.new{color:var(--gold)}.calbtns{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}';
+  document.head.appendChild(st);
+  var ov = document.createElement('div'); ov.id = 'calOv'; ov.hidden = true;
+  ov.innerHTML = '<div class="calp" role="dialog" aria-modal="true"><h2 id="calT"></h2><p id="calS"></p><div id="calList"></div><div class="calbtns"><button class="btn" id="calClaim" type="button"></button><button class="btn alt" id="calTest" type="button" hidden></button><button class="btn alt" id="calX" type="button"></button></div></div>';
+  document.body.appendChild(ov);
+  $('calX').addEventListener('click', cierra);
+  $('calClaim').addEventListener('click', reclama);
+  $('calTest').addEventListener('click', function () { meta.calTest = Math.min(7, ((meta.calTest | 0) || 1) + 1); try { saveMeta(); } catch (e) {} pinta(); resumen(); });
+  ov.addEventListener('click', function (e) { if (e.target === ov) cierra(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) { cierra(); e.stopPropagation(); } }, true);
+
+  function boton() {
+    var b = $('modeBar'); if (!b || typeof twStage === 'undefined' || twStage !== 'modes' || $('calOpen') || !activo()) return;
+    var c = document.createElement('button'); c.id = 'calOpen'; c.type = 'button'; c.className = 'mdcard mc mc-w';
+    c.style.cssText = '--ac:226,180,255';
+    var dg = document.querySelector('#dailyOpen .mc-go'), ico = '<svg viewBox="0 0 16 16" width="38" height="38" shape-rendering="crispEdges" style="image-rendering:pixelated"><path fill="#c9a85a" d="M2 3h12v11H2z"/><path fill="#0c0d0e" d="M3 6h10v7H3z"/><path fill="#e2b4ff" d="M4 7h2v2H4zM7 7h2v2H7zM10 7h2v2h-2zM4 10h2v2H4zM7 10h2v2H7z"/><path fill="#f1d98c" d="M4 1h2v3H4zM10 1h2v3h-2z"/></svg>';
+    c.innerHTML = '<span class="mc-ico">' + ico + '</span><span class="mc-body"><span class="mc-kick">' + T('kick') + '</span><span class="nm"></span><span class="mc-row"><span id="calSum"></span></span></span>' + (dg ? '<span class="mc-go">' + dg.innerHTML + '</span>' : '');
+    c.addEventListener('click', abre);
+    var d = $('dailyOpen'); if (d && d.nextSibling) b.insertBefore(c, d.nextSibling); else b.appendChild(c);
+    resumen();
+    setTimeout(function () { var g = document.querySelector('#dailyOpen .mc-go'), me = document.querySelector('#calOpen'); if (g && me && !me.querySelector('.mc-go')) { var s = document.createElement('span'); s.className = 'mc-go'; s.innerHTML = g.innerHTML; me.appendChild(s); } }, 80);
+  }
+  setTimeout(function () {
+    if (typeof twBar !== 'function') return;
+    var tb = twBar; twBar = function () { tb.apply(this, arguments); try { boton(); } catch (e) {} };
+    try { twBar(); } catch (e) {}
+  }, 0);
 })();
 
 /* ==========================================================================
@@ -10462,6 +10606,7 @@ function buyRune(){
   return give(id);
 }
 function owned(id){var m=R(),n=m.inv[key(id)]||0;['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k&&parse(k).id===id)n++})});return n}
+window.CriptaRunas={give:give,pool:ORDER,name:function(id){return RUNES[id]&&RUNES[id].n},R:R};
 function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
