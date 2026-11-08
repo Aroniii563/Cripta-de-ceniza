@@ -10023,9 +10023,13 @@ var EV_LANZ = {inicio: null, fin: null};
   function T(k) { var l = (typeof LANG !== 'undefined' && LANG) || 'es'; return (TXT[k][l] || TXT[k].es); }
 
   /* el fondo también existe como fondo de menú (se desbloquea al canjearlo) */
-  if (typeof FONDOS_MENU !== 'undefined' && !FONDOS_MENU.some(function (f) { return f.id === 'lanzamiento'; }))
+  /* FONDOS_MENU se define más abajo en el script: se añade al terminar de cargar */
+  setTimeout(function () {
+    if (typeof FONDOS_MENU === 'undefined' || FONDOS_MENU.some(function (f) { return f.id === 'lanzamiento'; })) return;
     FONDOS_MENU.push({id: 'lanzamiento', nombre: 'El Primer Capítulo', src: 'fondos/tienda_lanzamiento.webp', pos: 'center 55%',
       req: TXT.req.es, ok: function () { return false; }});
+    if (typeof pintaFondos === 'function') pintaFondos();
+  }, 0);
 
   var css = document.createElement('style');
   css.textContent =
