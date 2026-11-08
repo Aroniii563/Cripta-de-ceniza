@@ -10126,7 +10126,7 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
     }
     else if (r.t === 'runa') {
       var R2 = window.CriptaRunas;
-      if (R2) { var id = R2.pool[Math.floor(Math.random() * R2.pool.length)]; R2.give(id); msg = R2.name(id) || id; }
+      if (R2) { var id = R2.pool[Math.floor(Math.random() * R2.pool.length)]; da.nw = R2.owned(id) < 1; R2.give(id); msg = R2.name(id) || id; da.rune = id; }
     }
     else if (r.t === 'skins') {
       m.skins = m.skins || [];
@@ -10138,24 +10138,33 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
   function reclama() {
     var p = pendientes(); if (!p.length) return;
     var out = [];
+    da.rune = null;
     p.forEach(function (d) { out.push(da(d)); meta.calDias = d; });
     try { saveMeta(); } catch (e) {}
     try { toast(T('ok') + ' ' + out.join(' · ')); } catch (e) {}
     pinta(); resumen();
+    if (da.rune && window.CriptaRunas) { var rid = da.rune; setTimeout(function () { try { window.CriptaRunas.reveal(rid, da.nw); } catch (e) {} }, 350); }
   }
 
+  function svg(p) { return '<svg viewBox="0 0 16 16" width="44" height="44" shape-rendering="crispEdges" style="image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #000)">' + p + '</svg>'; }
+  var IC_POLVO = svg('<path fill="#0c0d0e" d="M3 13h10v1H3zM4 11h8v2H4zM6 9h4v2H6z"/><path fill="#8f3dff" d="M4 12h8v1H4zM5 10h6v2H5zM7 8h2v2H7z"/><path fill="#c9a0ff" d="M6 11h2v1H6zM8 9h1v1H8zM10 12h1v1h-1z"/><path fill="#fff" d="M7 3h2v2H7zM6 4h4v1H6zM3 6h1v1H3zM12 5h1v1h-1zM11 8h1v1h-1z"/>');
+  var IC_SKIN = svg('<path fill="#0c0d0e" d="M1 4l3-2h2c0 1 1 2 2 2s2-1 2-2h2l3 2-2 3-1-1v8H4V6L3 7z"/><path fill="#c9a85a" d="M2 4l2-1.2h1.5c.3 1.4 1.4 2.2 2.5 2.2s2.2-.8 2.5-2.2H12L14 4l-1.4 2L12 5.4V14H4V5.4L3.4 6z"/><path fill="#f0d890" d="M5 6h1v7H5z"/><path fill="#8f3dff" d="M7 8h2v2H7z"/>');
+  var IC_RUNA = '<img alt="" src="runas/fehu.png" style="width:44px;height:44px;image-rendering:pixelated;object-fit:contain;filter:drop-shadow(2px 2px 0 #000)">';
+  function coin() { var i = document.querySelector('.mgold .gl img'); return i && i.src ? '<img alt="" src="' + i.src + '" style="width:44px;height:44px;image-rendering:pixelated;filter:drop-shadow(2px 2px 0 #000)">' : svg('<path fill="#0c0d0e" d="M4 2h8v1h2v10h-2v1H4v-1H2V3h2z"/><path fill="#e8b84a" d="M4 3h8v1h1v8h-1v1H4v-1H3V4h1z"/><path fill="#fff2a8" d="M5 4h4v1H5zM4 5h1v3H4z"/>'); }
+  function ico(r) { return r.t === 'oro' ? coin() : r.t === 'polvo' ? IC_POLVO : r.t === 'runa' ? IC_RUNA : IC_SKIN; }
   function lbl(r) {
-    if (r.t === 'oro') return '<b>' + num(r.n) + '</b><span>' + T('oro') + '</span>';
-    if (r.t === 'polvo') return '<b>' + num(r.n) + '</b><span>' + T('polvo') + '</span>';
-    if (r.t === 'runa') return '<b>1</b><span>' + T('runa') + '</span>';
-    return '<b>12</b><span>' + T('skins') + '</span>';
+    var i = '<i class="calic">' + ico(r) + '</i>';
+    if (r.t === 'oro') return i + '<b>' + num(r.n) + '</b><span>' + T('oro') + '</span>';
+    if (r.t === 'polvo') return i + '<b>' + num(r.n) + '</b><span>' + T('polvo') + '</span>';
+    if (r.t === 'runa') return i + '<b>1</b><span>' + T('runa') + '</span>';
+    return i + '<b>12</b><span>' + T('skins') + '</span>';
   }
   function pinta() {
     var L = $('calList'); if (!L) return;
     var h = hoy(), c = cobrados(), html = '';
     for (var d = 1; d <= 7; d++) {
       var r = DIAS[d - 1], st = d <= c ? 'got' : (d <= h ? (listo(d) ? 'ok' : 'soon') : 'lock');
-      html += '<div class="cal ' + st + (d === 7 ? ' last' : '') + '"><small>' + T('day') + ' ' + d + '</small>' + lbl(r) +
+      html += '<div class="dq cal ' + st + (d === 7 ? ' last' : '') + (st === 'ok' ? ' ok' : '') + '"><small>' + T('day') + ' ' + d + '</small>' + lbl(r) +
         '<em>' + (st === 'got' ? T('got') : st === 'ok' ? T('claim') : st === 'soon' ? T('soon') : T('lock')) + '</em></div>';
     }
     L.innerHTML = html;
@@ -10175,18 +10184,22 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
   function cierra() { $('calOv').hidden = true; }
 
   var st = document.createElement('style');
-  st.textContent = '#calOv{position:fixed;inset:0;z-index:70;background:rgba(5,8,12,.9);display:flex;align-items:center;justify-content:center}#calOv[hidden]{display:none}' +
-    '.calp{width:min(860px,94vw);max-height:92vh;overflow:auto;background:var(--panel,#0c1415);border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 8px 40px rgba(0,0,0,.7);padding:22px;display:flex;flex-direction:column;gap:14px}' +
-    '.calp h2{margin:0;color:var(--gold);font-weight:400;font-size:28px}.calp p{margin:0;color:var(--muted);font-size:14px}' +
-    '#calList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}@media(max-width:620px){#calList{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
-    '.cal{border:1px solid var(--line,#3a3326);background:rgba(10,14,20,.7);padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-height:112px}' +
-    '.cal small{color:var(--muted);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.cal b{font-family:var(--display);font-size:24px;font-weight:400;color:#f1d98c;text-shadow:2px 2px 0 #000}.cal span{font-size:12px;color:#cfc6ad}.cal em{font-style:normal;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8d8570}' +
-    '.cal.ok{border-color:#d2a84a;box-shadow:0 0 14px rgba(210,168,74,.35)}.cal.ok em{color:#f1d98c}.cal.got{opacity:.55}.cal.got em{color:#7fd08a}.cal.lock{opacity:.7}' +
-    '.cal.last{grid-column:span 2;background:linear-gradient(135deg,rgba(80,40,140,.45),rgba(10,14,20,.8))}.cal.last b{color:#e2b4ff}' +
+  st.textContent = '#calOv{position:fixed;inset:0;z-index:70;background:rgba(5,6,7,.82);display:flex;align-items:center;justify-content:center}#calOv[hidden]{display:none}' +
+    '.calp{width:min(860px,94vw)!important;max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:14px;padding:18px 22px!important}' +
+    '.calp h2{margin:0}.calp p{margin:0;font-size:14px}' +
+    '#calList{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}@media(max-width:620px){#calList{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
+    '.cal{position:relative;display:flex!important;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-height:150px;text-align:center}' +
+    '.cal .calic{display:flex;height:46px;align-items:center;justify-content:center;margin-bottom:2px;font-style:normal}' +
+    '.cal small{color:rgba(232,225,208,.55);font-size:11px;letter-spacing:.22em;text-transform:uppercase}.cal b{font-family:var(--display);font-size:24px;font-weight:400;color:#f0d890;text-shadow:2px 2px 0 #000}.cal span{font-size:12px;color:rgba(232,225,208,.75)}' +
+    '.cal em{font-style:normal;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(232,225,208,.45)}' +
+    '.cal.ok em{color:#f0d890}.cal.ok .calic{animation:calPulse 1.6s ease-in-out infinite}@keyframes calPulse{50%{transform:translateY(-3px)}}' +
+    '.cal.got .calic,.cal.got b,.cal.got span{opacity:.4}.cal.got em{color:#a8d8a8}.cal.got::after{content:"";position:absolute;right:8px;top:8px;width:18px;height:18px;background:#78af7d;box-shadow:0 0 0 2px #0c0d0e;clip-path:polygon(0 55%,15% 40%,38% 62%,82% 12%,100% 28%,38% 90%)}' +
+    '.cal.lock .calic{opacity:.35;filter:grayscale(1)}.cal.lock b,.cal.lock span{opacity:.5}' +
+    '.cal.last{grid-column:span 2}.cal.last b{color:#e2b4ff}' +
     '#calOpen #calSum.new{color:var(--gold)}.calbtns{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}';
   document.head.appendChild(st);
   var ov = document.createElement('div'); ov.id = 'calOv'; ov.hidden = true;
-  ov.innerHTML = '<div class="calp" role="dialog" aria-modal="true"><h2 id="calT"></h2><p id="calS"></p><div id="calList"></div><div class="calbtns"><button class="btn" id="calClaim" type="button"></button><button class="btn alt" id="calTest" type="button" hidden></button><button class="btn alt" id="calX" type="button"></button></div></div>';
+  ov.innerHTML = '<div class="dqpanel calp" role="dialog" aria-modal="true"><h2 id="calT"></h2><p id="calS"></p><div id="calList"></div><div class="calbtns"><button class="btn" id="calClaim" type="button"></button><button class="btn alt" id="calTest" type="button" hidden></button><button class="btn alt" id="calX" type="button"></button></div></div>';
   document.body.appendChild(ov);
   $('calX').addEventListener('click', cierra);
   $('calClaim').addEventListener('click', reclama);
@@ -10606,7 +10619,7 @@ function buyRune(){
   return give(id);
 }
 function owned(id){var m=R(),n=m.inv[key(id)]||0;['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k&&parse(k).id===id)n++})});return n}
-window.CriptaRunas={give:give,pool:ORDER,name:function(id){return RUNES[id]&&RUNES[id].n},R:R};
+window.CriptaRunas={give:give,owned:owned,reveal:function(id,nw){rollBox({id:id,r:RR[id]},nw!==false)},pool:ORDER,name:function(id){return RUNES[id]&&RUNES[id].n},R:R};
 function on(){return !(typeof ON!=='undefined'&&ON.on)}
 /* ---------- pestaña ---------- */
 var st=document.createElement('style');
