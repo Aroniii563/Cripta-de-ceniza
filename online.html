@@ -10210,7 +10210,7 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
   function boton() {
     var b = $('modeBar'); if (!b || typeof twStage === 'undefined' || twStage !== 'modes' || $('calOpen') || !activo()) return;
     var c = document.createElement('button'); c.id = 'calOpen'; c.type = 'button'; c.className = 'mdcard mc mc-w';
-    c.style.cssText = '--ac:226,180,255';
+    c.style.cssText = '--ac:226,180,255;grid-column:1/-1';
     var dg = document.querySelector('#dailyOpen .mc-go'), ico = '<svg viewBox="0 0 16 16" width="38" height="38" shape-rendering="crispEdges" style="image-rendering:pixelated"><path fill="#c9a85a" d="M2 3h12v11H2z"/><path fill="#0c0d0e" d="M3 6h10v7H3z"/><path fill="#e2b4ff" d="M4 7h2v2H4zM7 7h2v2H7zM10 7h2v2h-2zM4 10h2v2H4zM7 10h2v2H7z"/><path fill="#f1d98c" d="M4 1h2v3H4zM10 1h2v3h-2z"/></svg>';
     c.innerHTML = '<span class="mc-ico">' + ico + '</span><span class="mc-body"><span class="mc-kick">' + T('kick') + '</span><span class="nm"></span><span class="mc-row"><span id="calSum"></span></span></span>' + (dg ? '<span class="mc-go">' + dg.innerHTML + '</span>' : '');
     c.addEventListener('click', abre);
