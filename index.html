@@ -3394,7 +3394,7 @@ function drawSwampAtmos(){
   var dx2=((pp.x-cs.x)*Z+W/2)/q,dy2=((pp.y-16-cs.y)*Z+H/2)/q,R=Math.max(cw,ch);
   var ck=coop?1.4:1,dg=g.createRadialGradient(dx2,dy2,R*.16*ck,dx2,dy2,R*.68*ck);
   dg.addColorStop(0,'rgba(1,4,1,0)');dg.addColorStop(.6,'rgba(1,4,1,.45)');dg.addColorStop(1,'rgba(0,2,0,.85)');
-  g.fillStyle=dg;g.fillRect(0,0,cw,ch);
+  if(!window.SWNODARK){g.fillStyle=dg;g.fillRect(0,0,cw,ch)}
   /* musgo colgante en primer plano, arriba de la pantalla, meciéndose */
   g.fillStyle='rgba(6,12,6,.85)';
   for(var s=0;s<22;s++){
@@ -8566,6 +8566,9 @@ buildMenu=function(){buildMenu_tw.apply(this,arguments);twBar()};
 var TW_H1=null,TW_LEAD=null;
 var openMaps_tw=openMaps;
 openMaps=function(k){
+  var h1=document.querySelector('#mapOv h1'),ld=document.querySelector('#mapOv .maphead .lead');
+  /* el texto de la Torre sustituía el contenido de «lead» (con #mapChar y #mapGold): se restaura antes, o buildMaps fallaba y el personaje quedaba bloqueado */
+  if(TW_H1===null){TW_H1=h1.textContent;TW_LEAD=ld.innerHTML}else{h1.textContent=TW_H1;ld.innerHTML=TW_LEAD}
   openMaps_tw(k);
   var h1=document.querySelector('#mapOv h1'),ld=document.querySelector('#mapOv .maphead .lead');
   if(TW_H1===null){TW_H1=h1.textContent;TW_LEAD=ld.innerHTML}
