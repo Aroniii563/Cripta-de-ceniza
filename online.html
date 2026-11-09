@@ -1,4 +1,4 @@
-<meta charset="utf-8"><title>Cripta de Ceniza online</title><link rel="icon" type="image/png" href="/icono.png?v=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Cripta de Ceniza online</title><link rel="icon" type="image/png" href="/icono.png?v=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sekuya&family=Grenze+Gotisch:wght@600;800&family=Spectral:wght@400;600&display=swap">
@@ -438,6 +438,51 @@ h3{font-family:var(--display);font-weight:800;font-size:24px;margin:20px 0 6px}
 .grid>:nth-child(5),.skgrid>:nth-child(5),.maps>:nth-child(5),.mlist>:nth-child(5){animation-delay:.16s}
 .grid>:nth-child(n+6),.skgrid>:nth-child(n+6),.maps>:nth-child(n+6),.mlist>:nth-child(n+6){animation-delay:.2s}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ===== móvil en horizontal ===== */
+#rotOv{display:none}
+html.mobpor #rotOv{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#05080c;color:#e8e1d0;font-family:var(--display,serif);text-align:center;padding:24px;font-size:18px;letter-spacing:.04em}
+#rotOv .rotIc{width:64px;height:104px;border:4px solid #d3a94a;border-radius:10px;position:relative;animation:rotPh 2.4s ease-in-out infinite}
+#rotOv .rotIc::after{content:"";position:absolute;left:50%;bottom:6px;width:14px;height:4px;margin-left:-7px;background:#d3a94a;border-radius:2px}
+@keyframes rotPh{0%,25%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
+/* ---- menú en horizontal ---- */
+html.mob #menu{padding:6px 12px}
+html.mob .mhead{padding-top:0}
+html.mob .mhead h1{font-size:34px!important}
+html.mob .mwrap{grid-template-columns:200px minmax(0,1fr);gap:6px 14px}
+html.mob .mnav{overflow-y:auto;overflow-x:hidden;min-height:0;gap:8px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:2px}
+html.mob .mtabs{overflow:visible;gap:5px;flex:none}
+html.mob .mt{padding:7px 10px!important;font-size:14px!important;gap:8px!important}
+html.mob .mt .mt-ic{width:24px;height:24px}html.mob .mt .mt-ic img{width:17px;height:17px}
+html.mob .mgold{flex:none;margin-top:0;padding:6px 10px}
+html.mob #menu{overflow:hidden}html.mob .mwrap{height:100%}html.mob .mtabs{flex-direction:column;overflow-x:visible;padding-bottom:0}html.mob .mt{white-space:normal}html.mob .mt i{display:block}html.mob .mmain{overflow:auto}html.mob .mcopy{display:none}
+html.mob .mmain{padding:10px}
+/* ---- selección de personaje: 2 por fila ---- */
+html.mob #pickScene #classGrid,html.mob #pickScene #classGrid.cqg{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+html.mob #pickScene{grid-template-columns:minmax(150px,30%) minmax(0,1fr)}
+/* ---- al elegir mapa desaparece el personaje ---- */
+html.mob #pickScene[data-stage="maps"]{grid-template-columns:minmax(0,1fr)}
+html.mob #pickScene[data-stage="maps"] .pkhero{display:none}
+/* ---- mejoras: datos a todo el ancho, reembolso debajo ---- */
+html.mob #metaSec .mu-head{display:grid!important;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;align-items:center;margin:8px 0 10px;padding:8px 12px}
+html.mob #metaSec .mu-head>span:nth-child(2){min-width:0;width:100%}
+html.mob #metaSec .mu-por{width:60px;height:78px}
+html.mob #metaSec .mu-hn{font-size:24px}
+html.mob #metaSec .mu-kpi{gap:3px 18px;margin-top:6px}
+html.mob #metaSec .mu-bar{margin:10px 4px 2px;max-width:none}
+html.mob #metaSec .mu-head #refundBtn{grid-column:1/-1;justify-self:center;margin:2px 0 0!important}
+/* ---- runas: 2 por fila ---- */
+html.mob #pRunas .rgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px 12px!important}
+/* ---- pausa: botones centrados en 2 columnas ---- */
+html.mob #pauseOv .btns{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:520px;margin:0 auto}
+html.mob #pauseOv .btns>.btn{flex:0 0 calc(50% - 5px);margin:0;white-space:normal}
+html.mob #pauseOv .btns>[hidden]{display:none!important}
+/* ---- estadísticas en partida ---- */
+html.mob #statp .stbody{display:none!important}
+#mobStatOv{z-index:60}
+#mobStatOv .mbx{width:min(92vw,640px);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:10px;align-items:center}
+#mobStatOv .stbody{display:block;width:100%;column-count:2;column-gap:16px;box-sizing:border-box}
+#mobStatOv .stbody .r{break-inside:avoid}
+
 /* textos de las cartas más grandes y legibles */
 .up.fr.pxc>.ds{font-size:clamp(12px,7.5cqw,26px)!important;line-height:1.12!important;top:calc(var(--by) + .6%)!important;left:calc(var(--bx) - 1.6%)!important;width:calc(var(--bw) + 3.2%)!important;font-weight:600}
 .up.fr.pxc>.tag{display:none!important}
@@ -1248,6 +1293,7 @@ function buildRank(){
 /* el título del menú ocupa todo el ancho libre a la izquierda de los botones */
 function fitTitle(){
   var t=document.querySelector('.mhead h1'),hd=t&&t.parentNode;if(!t||!hd||$('menu').hidden)return;
+  if(isMob()){t.style.setProperty('font-size','34px','important');t.style.maxWidth='none';return}
   var tb=$('tbRow').getBoundingClientRect(),hr=hd.getBoundingClientRect();
   var narrow=window.innerWidth<=800,avail=narrow?hr.width:Math.min(hr.width,tb.left-hr.left-20);
   t.style.setProperty('font-size','100px','important');t.style.maxWidth='none';
@@ -1450,14 +1496,14 @@ function startRun(key,mi){
   enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];
   t=0;kills=0;spawnT=1;cam.x=P.x;cam.y=P.y;
   zones=[];later=[];sfx=[];corpses=[];haz=[];specialMode=false;bossN=0;nextBoss=300;bossAlive=null;boomDepth=0;bossKills=0;window.FBN=0;won=false;fromSoul=false;snapT=10;fcellA=[-1,-1,-1,-1];
-  statsOpen=W>=700;applyStatsOpen();
+  statsOpen=W>=700&&!isMob();applyStatsOpen();
   $('toast').hidden=true;
   $('hudClass').textContent=(coop?'J1 · ':'')+c.name+' · '+MAPS[curMap].n+(RUNHARD?' · Difícil':'')+(RUNINF?' · Infinito':'')+(RUNMUT?' · Mutaciones':'');$('hudClass').style.color=c.col;
   $('hud2').hidden=!coop;
   if(coop){$('hud2Class').textContent='J2 · '+CLASSES[coopCls].name;$('hud2Class').style.color=CLASSES[coopCls].col}
   $('helpTxt').innerHTML=coop?'J1: WASD · J2: flechas · ataque automático<br>P pausa · C estadísticas':'WASD mover · el ataque es automático<br>P pausa · C estadísticas';
   $('atkName').textContent=c.atk;
-  ['menu','mapOv','lvlOv','pauseOv','deadOv'].forEach(function(id){$(id).hidden=true});
+  ['menu','mapOv','lvlOv','pauseOv','deadOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true}catch(e){}
   $('hud').hidden=false;state='play';
   loadMapAssets(curMap);setMapMusic(curMap);playMusic();
   /* mapa 6: al empezar eliges ya una mejora especial */
@@ -1466,7 +1512,7 @@ function startRun(key,mi){
 function showMenu(tab){
   if(typeof tab!=='string')tab='none';
   state='menu';P=null;PL=[];coop=false;enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];zones=[];later=[];sfx=[];corpses=[];haz=[];bossAlive=null;$('toast').hidden=true;
-  ['mapOv','lvlOv','pauseOv','deadOv','diaryOv'].forEach(function(id){$(id).hidden=true});
+  ['mapOv','lvlOv','pauseOv','deadOv','diaryOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true}catch(e){}
   $('hud').hidden=true;$('menu').hidden=false;playMenuMusic();buildMenu();showTab(tab);curMap=0;applyMap(0);genMap();carpet=null;cryptGen();cam.x=cam.y=N/2;
 }
 function fmt(s){s=Math.floor(s);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r}
@@ -2354,7 +2400,29 @@ var statsOpen=true,stHtml='';
 function applyStatsOpen(){$('statBody').hidden=!statsOpen;$('statBtn').setAttribute('aria-pressed',String(statsOpen))}
 function toggleStats(){statsOpen=!statsOpen;applyStatsOpen();stHtml='';}
 $('statBtn').style.pointerEvents='auto';
-$('statBtn').addEventListener('click',toggleStats);
+function isMob(){return document.documentElement.classList.contains('mob')}
+/* móvil: el panel pequeño no se usa; el botón abre las estadísticas a pantalla completa y pausa la partida */
+function mobStats(){
+  var ov=$('mobStatOv');
+  if(!ov){
+    ov=document.createElement('div');ov.id='mobStatOv';ov.className='ov center';ov.hidden=true;
+    ov.innerHTML='<div class="mbx"><h2 id="mobStatT"></h2><div class="stbody" id="mobStatBody"></div><button class="btn" id="mobStatX" type="button"></button></div>';
+    document.body.appendChild(ov);
+    $('mobStatX').addEventListener('click',closeMobStats);
+  }
+  var tt=$('statBtn').textContent.replace(/\s*\([^)]*\)\s*$/,'');
+  $('mobStatT').textContent=tt;$('mobStatX').textContent=($('resumeBtn')&&$('resumeBtn').textContent)||'OK';
+  ov.setAttribute('data-res',state==='play'?'1':'');
+  if(state==='play')setPause(true);
+  var sh=statRows().replace(/<div class="r">(?:(?!<\/div>)[\s\S])*?(?:rayos|bolts|raios|éclairs|молни|雷)(?:(?!<\/div>)[\s\S])*?<\/div>/gi,'');
+  $('mobStatBody').innerHTML=sh;
+  $('pauseOv').hidden=true;ov.hidden=false;
+}
+function closeMobStats(){
+  var ov=$('mobStatOv');if(!ov||ov.hidden)return;ov.hidden=true;
+  if(ov.getAttribute('data-res')==='1')setPause(false);else if(state==='pause')$('pauseOv').hidden=false;
+}
+$('statBtn').addEventListener('click',function(){if(isMob())mobStats();else toggleStats()});
 function r1(v){return (Math.round(v*10)/10).toString().replace('.',',')}
 function pc(v){return Math.round(v*100)+'%'}
 function pc2(v){return (Math.round(v*1000)/10).toString().replace('.',',')+'%'}
@@ -22040,5 +22108,35 @@ function frame(now){
 }
 recoverRun();resize();showMenu();
 requestAnimationFrame(frame);
+})();
+</script>
+<script>
+(function(){
+  var de=document.documentElement;
+  function mobile(){try{return matchMedia('(pointer:coarse)').matches&&Math.min(window.innerWidth,window.innerHeight)<=600}catch(e){return false}}
+  function upd(){
+    var m=mobile();de.classList.toggle('mob',m);
+    de.classList.toggle('mobpor',m&&window.innerHeight>window.innerWidth);
+  }
+  upd();window.addEventListener('resize',upd);window.addEventListener('orientationchange',function(){setTimeout(upd,200)});
+  /* aviso para girar el móvil */
+  if(!document.getElementById('rotOv')){
+    var r=document.createElement('div');r.id='rotOv';
+    r.innerHTML='<div class="rotIc"></div><p>Gira el móvil en horizontal para jugar</p>';
+    document.body.appendChild(r);
+  }
+  /* intentar bloquear en horizontal (Android: exige pantalla completa; en iOS no existe) */
+  var tried=false;
+  function lock(){
+    if(tried||!de.classList.contains('mob'))return;tried=true;
+    try{
+      var f=de.requestFullscreen||de.webkitRequestFullscreen;
+      var p=f?f.call(de):null;
+      var go=function(){try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(function(){})}catch(e){}};
+      if(p&&p.then)p.then(go,go);else go();
+    }catch(e){}
+  }
+  document.addEventListener('touchend',lock,{once:true,passive:true});
+  document.addEventListener('click',lock,{once:true});
 })();
 </script>
