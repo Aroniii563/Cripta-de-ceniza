@@ -9980,7 +9980,7 @@ var fondoLanzamiento = (function () {
    Para fijar el día de lanzamiento: EV_LANZ.inicio = 'AAAA-MM-DD' (y opcionalmente EV_LANZ.fin).
    Mientras no haya fecha, el canje solo está disponible en la versión de pruebas (window.TEST_BUILD).
    ========================================================================== */
-var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
+var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: null};   /* viernes 13 a las 17:30 (hora de Canarias = UTC) */ window.EV_LANZ = EV_LANZ;
 (function () {
   var shop = document.getElementById('pShop'); if (!shop) return;
   var TXT = {
@@ -10032,14 +10032,15 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
   function hoy() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function estado() {
     if (meta.fondos && meta.fondos.indexOf('lanzamiento') >= 0) return 'own';
-    var h = hoy();
-    if (EV_LANZ.inicio) { if (h < EV_LANZ.inicio) return window.TEST_BUILD ? 'ok' : 'soon'; if (EV_LANZ.fin && h > EV_LANZ.fin) return 'over'; return 'ok'; }
+    if (window.TEST_BUILD) return 'ok';
+    var n = Date.now();
+    if (EV_LANZ.inicio) { if (n < +new Date(EV_LANZ.inicio)) return 'soon'; if (EV_LANZ.fin && n > +new Date(EV_LANZ.fin)) return 'over'; return 'ok'; }
     return window.TEST_BUILD ? 'ok' : 'soon';
   }
   function pintaEv() {
     var s = estado();
     var ac = s === 'ok' ? '<button class="btn buy" type="button" data-evc="1">' + T('claim') + '</button>' :
-      '<span class="st">' + (s === 'own' ? T('own') : s === 'over' ? T('over') : T('soon') + (EV_LANZ.inicio ? ' · ' + EV_LANZ.inicio : '')) + '</span>';
+      '<span class="st">' + (s === 'own' ? T('own') : s === 'over' ? T('over') : T('soon') + (EV_LANZ.inicio ? ' · ' + new Date(EV_LANZ.inicio).toLocaleString([], {day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}) : '')) + '</span>';
     ev.innerHTML = '<div class="evc"><h2 class="evh">' + T('tit') + '</h2><p class="evl">' + T('lead') + '</p></div><div class="evsp"></div>' +
       '<div class="evc evk"><img src="fondos/tienda_lanzamiento.webp" alt=""><div><span class="nm">' + T('item') + '</span><span class="pr">' + T('free') + '</span>' + ac + '</div></div>';
     if (fondo && fondo.canvas && fondo.canvas.parentNode !== ev) ev.insertBefore(fondo.canvas, ev.firstChild);
@@ -10201,13 +10202,12 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
   function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
   function hoy() {   /* día actual del calendario (0 = no empezó, 7 máx.) */
+    if (window.TEST_BUILD) return Math.min(7, Math.max(1, (meta.calTest | 0) || 1));
     var E = window.EV_LANZ || {};
-    if (E.inicio) {
-      var t0 = +new Date(E.inicio), n = Date.now();
-      if (n < t0) return 0;
-      return Math.min(7, Math.floor((n - t0) / 864e5) + 1);
-    }
-    return window.TEST_BUILD ? Math.min(7, Math.max(1, (meta.calTest | 0) || 1)) : 0;
+    if (!E.inicio) return 0;
+    var n = Date.now(), t0 = +new Date(E.inicio);
+    if (n < t0) return 0;
+    return Math.min(7, Math.floor((n - t0) / 864e5) + 1);
   }
   function activo() {
     var E = window.EV_LANZ || {};
@@ -10271,7 +10271,7 @@ var EV_LANZ = {inicio: null, fin: null}; window.EV_LANZ = EV_LANZ;
     L.innerHTML = html;
     var n = pendientes().length, b = $('calClaim');
     b.disabled = !n; b.textContent = n ? T('claim') + ' (' + n + ')' : T('none');
-    var tb = $('calTest'); if (tb) { tb.hidden = !(window.TEST_BUILD && !(window.EV_LANZ && window.EV_LANZ.inicio)); tb.textContent = T('test'); }
+    var tb = $('calTest'); if (tb) { tb.hidden = !window.TEST_BUILD; tb.textContent = T('test'); }
     $('calT').textContent = T('tit'); $('calS').textContent = T('sub'); $('calX').textContent = T('cl');
   }
   function resumen() {
