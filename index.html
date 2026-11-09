@@ -704,9 +704,14 @@ input[type=text],input[type=search],input[type=email],input[type=password],texta
 var $=function(id){return document.getElementById(id)};
 var cv=$('cv'),ctx=cv.getContext('2d');
 var W=800,H=600,DPR=1,Z=1;
+var QS=1,QS_LAST=0,QS_OK=0;
 function resize(){
   DPR=Math.min(2,window.devicePixelRatio||1);
   W=cv.clientWidth||800;H=cv.clientHeight||600;
+  /* resolución interna: pantallas HiDPI/4K tendrían 4 veces más píxeles que dibujar; se limita a un presupuesto y baja sola si va lento */
+  var d=Math.min(2,window.devicePixelRatio||1),budget=2600000;
+  if(d*d*W*H>budget)d=Math.sqrt(budget/(W*H));
+  DPR=Math.max(.5,Math.min(2,d*QS));
   cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
   Z=Math.max(.85,Math.min(1.8,Math.min(W,H)/720*1.4));
 }
@@ -16549,6 +16554,8 @@ document.addEventListener('click',function(e){
 var _bs=buildStats;
 buildStats=function(){var r=_bs.apply(this,arguments);try{openBox()}catch(e){}return r};
 setInterval(function(){push(false)},45000);
+/* los fondos animados solo corren mientras se ven (no gastan en partida) */
+setInterval(function(){try{var o=$('embOv');if(pbInst&&(!o||o.hidden)){pbInst.stop();pbInst=null}if(bnInst&&typeof state!=='undefined'&&state==='play'){bnInst.stop();bnInst=null}}catch(x){}},1000);
 setTimeout(function(){push(false)},6000);
 window.__emb={all:ALL,got:got,eq:myEq,showColl:showColl,showProfile:showProfile,push:push};
 })();
@@ -21888,7 +21895,11 @@ function frame(now){
   if(state==='play'){
     /* Control de rendimiento: si los fotogramas tardan, baja el número de enemigos; si sobra margen, lo recupera. */
     fpsAvg=fpsAvg*.97+Math.min(.1,raw)*.03;
-    if(fpsAvg>.026)capScale=Math.max(.35,capScale-dt*.08);
+    /* 1.º se baja la resolución del dibujo (no cambia el juego); solo si ya está al mínimo se limitan los enemigos */
+    if(fpsAvg>.026&&now-QS_LAST>2500&&QS>.55){QS=Math.max(.55,QS-.12);QS_LAST=now;QS_OK=0;fpsAvg=.022;try{resize()}catch(e){}}
+    else if(fpsAvg<.014&&QS<1){QS_OK+=raw;if(QS_OK>12&&now-QS_LAST>2500){QS=Math.min(1,QS+.12);QS_LAST=now;QS_OK=0;fpsAvg=.018;try{resize()}catch(e){}}}
+    else QS_OK=0;
+    if(fpsAvg>.026&&QS<=.56)capScale=Math.max(.35,capScale-dt*.08);
     else if(fpsAvg<.019)capScale=Math.min(1,capScale+dt*.04);
     try{update(dt)}catch(e){softErr('juego',e);P=PL[0]||P}
     try{dailyTick(dt)}catch(e){}
