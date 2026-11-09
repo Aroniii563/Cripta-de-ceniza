@@ -455,6 +455,11 @@ html.mob .mt{padding:7px 10px!important;font-size:14px!important;gap:8px!importa
 html.mob .mt .mt-ic{width:24px;height:24px}html.mob .mt .mt-ic img{width:17px;height:17px}
 html.mob .mgold{flex:none;margin-top:0;padding:6px 10px}
 html.mob #menu{overflow:hidden}html.mob .mwrap{height:100%}html.mob .mtabs{flex-direction:column;overflow-x:visible;padding-bottom:0}html.mob .mt{white-space:normal}html.mob .mt i{display:block}html.mob .mmain{overflow:auto}html.mob .mcopy{display:none}
+html.mob #hud #bossBar{top:30px!important;width:min(340px,46vw)!important;padding:14px 14px 0!important}
+html.mob #hud #bossBar .bar{height:10px!important}
+html.mob #hud #bossBar .bn{font-size:10px!important;letter-spacing:.12em;margin:3px auto 0!important;padding:0 10px!important;border-width:5px!important;border-image-width:5px!important;line-height:1.3}
+html.mob #hud #bossBar .hv-bw{margin:0 -4px}
+
 html.mob .mmain{padding:10px}
 /* ---- selección de personaje: 2 por fila ---- */
 html.mob #pickScene #classGrid,html.mob #pickScene #classGrid.cqg{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
@@ -1503,7 +1508,7 @@ function startRun(key,mi){
   if(coop){$('hud2Class').textContent='J2 · '+CLASSES[coopCls].name;$('hud2Class').style.color=CLASSES[coopCls].col}
   $('helpTxt').innerHTML=coop?'J1: WASD · J2: flechas · ataque automático<br>P pausa · C estadísticas':'WASD mover · el ataque es automático<br>P pausa · C estadísticas';
   $('atkName').textContent=c.atk;
-  ['menu','mapOv','lvlOv','pauseOv','deadOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true}catch(e){}
+  ['menu','mapOv','lvlOv','pauseOv','deadOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true;joyOff()}catch(e){}
   $('hud').hidden=false;state='play';
   loadMapAssets(curMap);setMapMusic(curMap);playMusic();
   /* mapa 6: al empezar eliges ya una mejora especial */
@@ -1512,7 +1517,7 @@ function startRun(key,mi){
 function showMenu(tab){
   if(typeof tab!=='string')tab='none';
   state='menu';P=null;PL=[];coop=false;enemies=[];shots=[];orbs=[];fxs=[];texts=[];parts=[];zones=[];later=[];sfx=[];corpses=[];haz=[];bossAlive=null;$('toast').hidden=true;
-  ['mapOv','lvlOv','pauseOv','deadOv','diaryOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true}catch(e){}
+  ['mapOv','lvlOv','pauseOv','deadOv','diaryOv'].forEach(function(id){$(id).hidden=true});try{var mso=$('mobStatOv');if(mso)mso.hidden=true;joyOff()}catch(e){}
   $('hud').hidden=true;$('menu').hidden=false;playMenuMusic();buildMenu();showTab(tab);curMap=0;applyMap(0);genMap();carpet=null;cryptGen();cam.x=cam.y=N/2;
 }
 function fmt(s){s=Math.floor(s);var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r}
@@ -1920,7 +1925,7 @@ function playerStep(dt){
   if(lf){mx-=1;my+=1}
   if(rt){mx+=1;my-=1}
   var mw=s2w(mouse.x,mouse.y),attacking=false;
-  if(mine&&touchMode&&mouse.down){var tx=mw.x-P.x,ty=mw.y-P.y;if(Math.hypot(tx,ty)>.5){mx=tx;my=ty}}
+  if(mine&&touchMode&&joy.on){var jdx=joy.x-joy.ax,jdy=joy.y-joy.ay;if(Math.hypot(jdx,jdy)>10){var jw0=s2w(W/2,H/2),jw1=s2w(W/2+jdx,H/2+jdy);mx=jw1.x-jw0.x;my=jw1.y-jw0.y}}
   var k0=P.c.kind;
   var reach=k0==='proj'?(P.c.proj.range||P.c.proj.speed*P.c.proj.life):k0==='zone'?P.c.zone.range:k0==='aura'?P.c.aura.r*P.auraR*(P.spec.terr?1.35:1):k0==='orbit'?P.c.orbit.range:P.c.range*P.reach+.6;
   var ne=nearestEnemy(reach);
@@ -2494,14 +2499,38 @@ window.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false});
 window.addEventListener('blur',function(){keys={};mouse.down=false});
 document.addEventListener('visibilitychange',function(){if(document.hidden)setPause(true)});
 cv.addEventListener('contextmenu',function(e){e.preventDefault()});
+/* joystick flotante en pantallas táctiles: el punto donde se apoya el dedo es el centro; se mueve hacia donde lo arrastres sin tener que llegar a los bordes */
+var joy={on:false,id:null,ax:0,ay:0,x:0,y:0,cx:0,cy:0,el:null};
+function joyEl(){
+  if(joy.el)return joy.el;
+  var d=document.createElement('div');d.id='joy';d.hidden=true;d.innerHTML='<i></i>';
+  d.style.cssText='position:fixed;z-index:6;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(240,216,144,.35);background:rgba(10,12,14,.18);pointer-events:none;box-sizing:border-box';
+  d.firstChild.style.cssText='position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(240,216,144,.45);border:2px solid rgba(240,216,144,.7);box-sizing:border-box';
+  document.body.appendChild(d);joy.el=d;return d;
+}
+function joyDraw(){
+  var d=joyEl(),dx=joy.x-joy.ax,dy=joy.y-joy.ay,l=Math.hypot(dx,dy),R=60;
+  if(l>R){dx=dx/l*R;dy=dy/l*R}
+  d.style.left=joy.cx+'px';d.style.top=joy.cy+'px';d.firstChild.style.transform='translate('+dx+'px,'+dy+'px)';d.hidden=false;
+}
+function joyOff(){joy.on=false;joy.id=null;if(joy.el)joy.el.hidden=true}
 cv.addEventListener('pointerdown',function(e){
   touchMode=e.pointerType==='touch';
   mouse.x=e.offsetX;mouse.y=e.offsetY;
   mouse.down=true;try{cv.setPointerCapture(e.pointerId)}catch(x){}
+  if(touchMode&&!joy.on){joy.on=true;joy.id=e.pointerId;joy.ax=joy.x=e.offsetX;joy.ay=joy.y=e.offsetY;joy.cx=e.clientX;joy.cy=e.clientY;joyDraw()}
 });
-cv.addEventListener('pointermove',function(e){mouse.x=e.offsetX;mouse.y=e.offsetY});
-cv.addEventListener('pointerup',function(){mouse.down=false});
-cv.addEventListener('pointercancel',function(){mouse.down=false});
+cv.addEventListener('pointermove',function(e){
+  mouse.x=e.offsetX;mouse.y=e.offsetY;
+  if(joy.on&&e.pointerId===joy.id){
+    joy.x=e.offsetX;joy.y=e.offsetY;
+    var dx=joy.x-joy.ax,dy=joy.y-joy.ay,l=Math.hypot(dx,dy),R=60;
+    if(l>R){joy.ax=joy.x-dx/l*R;joy.ay=joy.y-dy/l*R;joy.cx+=(dx/l)*(l-R);joy.cy+=(dy/l)*(l-R)}  /* el centro acompaña al dedo para poder girar rápido */
+    joyDraw();
+  }
+});
+cv.addEventListener('pointerup',function(e){mouse.down=false;if(e.pointerId===joy.id)joyOff()});
+cv.addEventListener('pointercancel',function(e){mouse.down=false;if(e.pointerId===joy.id)joyOff()});
 $('resumeBtn').addEventListener('click',function(){setPause(false)});
 $('pauseBtn').addEventListener('click',function(){this.blur();if(state==='play')setPause(true);else if(state==='pause')setPause(false)});
 $('quitBtn').addEventListener('click',function(){endRun('abandono');showMenu('play')});
@@ -22089,6 +22118,7 @@ applySnd(false);
 var last=performance.now();
 function frame(now){
   var raw=(now-last)/1000,dt=Math.max(0,Math.min(.05,raw||0));last=now;
+  if(joy.on&&state!=='play')joyOff();
   if(state==='play'){
     /* Control de rendimiento: si los fotogramas tardan, baja el número de enemigos; si sobra margen, lo recupera. */
     fpsAvg=fpsAvg*.97+Math.min(.1,raw)*.03;
