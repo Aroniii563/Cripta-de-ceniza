@@ -16524,7 +16524,7 @@ var BT={
  ch_angel:{es:'Ángel',en:'Angel',pt:'Anjo',fr:'Ange',ru:'Ангел',ja:'天使'},
  ch_jinete:{es:'Jinete',en:'Rider',pt:'Cavaleiro',fr:'Cavalier',ru:'Всадник',ja:'ライダー'},
  ch_piromantica:{es:'Piromántica',en:'Pyromancer',pt:'Piromante',fr:'Pyromancienne',ru:'Пиромантка',ja:'パイロマンサー'},
- rpj:{es:'Vence al Escritor en difícil con este personaje',en:'Beat the Writer on Hard with this character',pt:'Vença o Escritor no difícil com este personagem',fr:'Bats l\'Écrivain en difficile avec ce personnage',ru:'Победи Писателя на сложном с этим персонажем',ja:'このキャラでハードの作家を倒す'},
+ rpj:{es:'Supera el desafío especial de este personaje',en:'Complete this character\'s special challenge',pt:'Complete o desafio especial deste personagem',fr:'Réussis le défi spécial de ce personnage',ru:'Выполни особый вызов этого персонажа',ja:'このキャラの特別チャレンジをクリア'},
  abismo:{es:'El Abismo: El Cangrejo Gigante',en:'The Abyss: The Giant Crab',pt:'O Abismo: O Caranguejo Gigante',fr:'L\'Abîme : Le Crabe géant',ru:'Бездна: Гигантский краб',ja:'深淵:巨大ガニ'},
  pantano:{es:'El Pantano: El Wendigo',en:'The Swamp: The Wendigo',pt:'O Pântano: O Wendigo',fr:'Le Marais : Le Wendigo',ru:'Болото: Вендиго',ja:'沼地:ウェンディゴ'},
  forja:{es:'La Forja: El Devorador',en:'The Forge: The Devourer',pt:'A Forja: O Devorador',fr:'La Forge : Le Dévoreur',ru:'Кузница: Пожиратель',ja:'鍛冶場:捕食者'},
@@ -16571,7 +16571,7 @@ var BANN=[{id:'gris',nm:'gris',mini:null,ok:function(){return true},ds:'free'},
           {id:'jinete',nm:'ch_jinete',mini:'banners/mini_jinete.webp',ok:function(){return logroPj('jinete')},ds:'req',rq:'rpj'},
           {id:'piromantica',nm:'ch_piromantica',mini:'banners/mini_piromantica.webp',ok:function(){return logroPj('piro')},ds:'req',rq:'rpj'},
           {id:'lanzamiento',nm:'lanz',mini:'banners/mini_lanzamiento.webp',ok:function(){return !!(meta.fondos&&meta.fondos.indexOf('lanzamiento')>=0)},ds:'req',rq:'rl'}];   /* el del evento: al canjear gratis el fondo de menú de lanzamiento */
-function logroPj(k){try{return pass(BYID['ew_'+k])}catch(e){return false}}
+function logroPj(k){try{return pass(BYID['ex_'+k])}catch(e){return false}}
 function mapa(i){return !!(meta.done&&meta.done[i])}
 function bannSel(){var id=meta&&meta.bannerSel,b=BANN.filter(function(x){return x.id===id})[0];return (b&&b.ok())?b.id:'gris'}
 var GRIS='background:linear-gradient(135deg,#4a4a52,#2a2a30 55%,#1d1d21)';
