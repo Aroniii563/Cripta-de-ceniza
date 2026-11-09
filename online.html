@@ -13336,10 +13336,166 @@ function slots(ids){
   return h+'</div>';
 }
 var bnInst=null;
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «La Cripta: La Muerte»  (recompensa por vencer la Cripta gris)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS del bloque del banner de la Biblioteca Arcana (si lo tienes).
+   Archivos: banners/cripta_muerte_fondo.webp (fondo sin las balanzas)
+             banners/cripta_muerte_balanzas.png (las dos balanzas recortadas)
+             banners/cripta_muerte.webp (imagen completa: miniatura y selector)
+   Uso:  var b = bannerPerfil(contenedor, 'cripta_muerte');   ...   b.stop();
+   (bannerPerfil pasa a elegir el banner por su id; los anteriores siguen funcionando igual)
+   Animación:
+   · cada ~7 s la Muerte «despierta»: los ojos estallan de luz, la corona destella, una onda
+     de almas sale de ella, las velas se avivan y las almas giran más deprisa;
+   · las balanzas que cuelgan de los cuernos se balancean como péndulos;
+   · los espectros del dibujo ondulan como humo y laten;
+   · velas de llama azul que parpadean y sueltan chispas frías;
+   · haz de luz de la ventana que respira, con motas de polvo cayendo en él;
+   · ojos de la Muerte que arden y gemas verdes de las balanzas que laten;
+   · aura dorada que recorre la corona de pinchos y destello que barre la hoja de la guadaña;
+   · jirones de la túnica que ondean con el viento;
+   · almas: los espectros del dibujo laten y otras almas azules giran alrededor de la Muerte;
+   · niebla fría que se arrastra por el suelo.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.cripta_muerte = {nombre: 'La Cripta: La Muerte', mini: 'banners/cripta_muerte.webp', req: 'Vence la Cripta gris'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX, SRC = 'banners/cripta_muerte_fondo.webp', SPR = 'banners/cripta_muerte_balanzas.png', img = null, spr = null;
+  var BAL = [{"x":1430,"y":6,"w":62,"h":194,"sx":0,"px":1457,"py":22},{"x":1782,"y":0,"w":62,"h":182,"sx":64,"px":1812,"py":0}];
+  var CAJAS_ESP = [[1290,180,140,100],[1170,300,130,80],[1880,25,110,110]];
+  var CORRIENTES = [[[1690,520],[1760,480],[1850,470],[1930,500],[2010,560]],[[1640,600],[1560,560],[1450,570],[1330,620]],[[1900,300],[1960,270],[2030,290]],[[1200,250],[1260,200],[1330,170]]];
+  var VELAS = [[45,172],[79,193],[386,272],[362,290],[404,306],[44,573],[49,598],[78,611],[129,662],[155,690],[828,679],[850,705],[892,554],
+               [970,604],[1079,635],[1100,664],[1203,668],[1292,654],[1612,629],[1709,647],[1724,657],[1790,575],[1824,594],[1850,570],
+               [1846,632],[1876,578],[1929,482],[1963,527],[1888,708]];
+  var OJOS = [[1628,160],[1654,160]], GEMAS = [[1457,140],[1810,120]], HALO = [1640,150,108];
+  var ESPECTROS = [[1375,215],[1350,335],[1945,70]], VENTANA = [1110,40];
+  var HOJA = [[1440,250],[1400,320],[1365,410],[1345,500],[1335,590]];
+  var JIRONES = [{x0: 1150, x1: 1480, y0: 380, y1: 660, dir: -1}, {x0: 1700, x1: 1930, y0: 300, y1: 470, dir: 1}];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:75% 40%;z-index:0;pointer-events:none;background:#0a0c16';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!img) { img = new Image(); img.src = SRC; spr = new Image(); spr.src = SPR; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var almas = [], chis = [], polvo = [], niebla = [], flujo = [], ondas = [], prox = 2.5, des = 0;
+    for (var i = 0; i < 9; i++) almas.push({a: rnd(0, 6.28), r: rnd(0.6, 1.1), v: rnd(.35, .7) * (Math.random() < .5 ? 1 : -1), y: rnd(-120, 120), f: rnd(0, 6.28)});
+    for (i = 0; i < 40; i++) polvo.push({x: rnd(980, 1180), y: rnd(0, 420), v: rnd(.1, .35), f: rnd(0, 6.28)});
+    for (i = 0; i < 14; i++) niebla.push({x: rnd(0, W), y: rnd(600, 760), r: rnd(60, 140), v: rnd(.2, .6), o: rnd(.05, .12)});
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = a; ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function jirones(t) {   /* columnas de 2 px desplazadas en vertical: la tela ondea más cuanto más lejos del cuerpo */
+      JIRONES.forEach(function (J, k) {
+        for (var x = J.x0; x < J.x1; x += 2) {
+          var kk = J.dir < 0 ? (J.x1 - x) / (J.x1 - J.x0) : (x - J.x0) / (J.x1 - J.x0);
+          var dy = Math.round((6 + 4 * des) * Math.pow(kk, 1.3) * Math.sin(t * 2.4 - x * 0.025 + k));
+          if (dy) ctx.drawImage(img, x, J.y0, 2, J.y1 - J.y0, x, J.y0 + dy, 2, J.y1 - J.y0);
+        }
+      });
+    }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (host.offsetParent === null || document.hidden || window.__noBgAnim) { last = 0; return; }   /* oculto: no gastes CPU */
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      if (!img.complete || !img.naturalWidth || !spr.complete || !spr.naturalWidth) return;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.drawImage(img, 0, 0, W, H);
+      if (quieto) { BAL.forEach(function (b) { ctx.drawImage(spr, b.sx, 0, b.w, b.h, b.x, b.y, b.w, b.h); }); vivo = false; return; }
+      /* despertar */
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); ondas.push({r: 20, t: 0}); }
+      des = 0; ondas.forEach(function (o) { des = Math.max(des, Math.max(0, 1 - o.t / 28)); });
+      jirones(t);
+      /* espectros del dibujo: ondulan como humo */
+      CAJAS_ESP.forEach(function (c, k) { for (var y = 0; y < c[3]; y += 2) {
+        var dx = Math.round(3 * Math.sin(t * 2.6 + y * 0.09 + k * 2)), dy = Math.round(2 * Math.sin(t * 1.4 + k));
+        ctx.drawImage(img, c[0], c[1] + y, c[2], 2, c[0] + dx, c[1] + y + dy, c[2], 2); } });
+      /* balanzas que se balancean */
+      BAL.forEach(function (b, k) { var ang = (0.05 + 0.03 * des) * Math.sin(t * 1.25 + k * 2.4);
+        ctx.save(); ctx.translate(b.px, b.py); ctx.rotate(ang); ctx.drawImage(spr, b.sx, 0, b.w, b.h, b.x - b.px, b.y - b.py, b.w, b.h); ctx.restore();
+        var L = k ? 113 : 126; b.gx = b.px - Math.sin(ang) * L; b.gy = b.py + Math.cos(ang) * L; });
+      ca.clearRect(0, 0, w, h);
+      /* haz de la ventana */
+      var hz = .5 + .5 * Math.sin(t * .8);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      var g = ctx.createLinearGradient(VENTANA[0], 0, 980, 420); g.addColorStop(0, 'rgba(160,190,255,' + (.14 + .08 * hz) + ')'); g.addColorStop(1, 'rgba(120,150,255,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(1060, 0); ctx.lineTo(1190, 0); ctx.lineTo(1080, 430); ctx.lineTo(930, 430); ctx.fill(); ctx.restore();
+      polvo.forEach(function (p) { p.y += p.v * d; p.x += Math.sin(t + p.f) * .15 * d; if (p.y > 430) { p.y = 0; p.x = rnd(1000, 1180); }
+        px(p.x - (p.y * 0.3), p.y, '#cfe0ff', .3 + .3 * Math.sin(t * 2 + p.f), 1); });
+      /* velas */
+      VELAS.forEach(function (v, k) { var f = .55 + .45 * Math.sin(t * (7 + k % 3) + k) * Math.sin(t * 12.7 + k * 2);
+        glow(v[0], v[1], 22 + 6 * f + 14 * des, 'rgba(120,170,255,A)', .22 + .2 * f + .3 * des); glow(v[0], v[1], 6, 'rgba(230,240,255,A)', .35 + .3 * f);
+        if (Math.random() < .03 * d) chis.push({x: v[0], y: v[1] - 4, vx: rnd(-.3, .3), vy: -rnd(.4, 1), t: 0, l: rnd(20, 40)}); });
+      chis.forEach(function (c) { c.t += d; c.x += c.vx * d; c.y += c.vy * d; px(c.x, c.y, '#bcd4ff', 1 - c.t / c.l, 1); });
+      chis = chis.filter(function (c) { return c.t < c.l; });
+      /* ojos, gemas, halo y guadaña */
+      var oj = .6 + .4 * Math.sin(t * 3.1) * Math.sin(t * 1.3 + 1);
+      OJOS.forEach(function (o) { glow(o[0], o[1], 16 + 30 * des, 'rgba(255,220,90,A)', .45 + .35 * oj + .5 * des); glow(o[0], o[1], 5 + 4 * des, 'rgba(255,250,200,A)', .6 + .3 * oj); });
+      if (des > 0) {   /* destello de la corona y onda de almas */
+        for (i = 0; i < 12; i++) { var a3 = i * .5236; glow(HALO[0] + Math.cos(a3) * HALO[2], HALO[1] + Math.sin(a3) * HALO[2], 18, 'rgba(255,215,120,A)', .6 * des); }
+        glow(1640, 330, 260, 'rgba(110,150,255,A)', .18 * des);
+      }
+      ondas.forEach(function (o) { o.t += d; o.r += 9 * d; var aa = Math.max(0, 1 - o.t / 45);
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(140,180,255,' + (.45 * aa) + ')'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.ellipse(1640, 640, o.r, o.r * .28, 0, 0, 6.283); ctx.stroke(); ctx.restore(); });
+      ondas = ondas.filter(function (o) { return o.t < 45; });
+      BAL.forEach(function (b, k) { var p = .5 + .5 * Math.sin(t * 2 + k * 2), gx = b.gx, gy = b.gy;
+        glow(gx, gy, 30 + 20 * des, 'rgba(90,255,120,A)', .25 + .3 * p + .4 * des); glow(gx, gy, 7, 'rgba(210,255,210,A)', .45 + .3 * p); });
+      var ha = t * .7;
+      for (i = 0; i < 3; i++) { var a = ha + i * 2.09; glow(HALO[0] + Math.cos(a) * HALO[2], HALO[1] + Math.sin(a) * HALO[2], 14, 'rgba(255,210,110,A)', .5); }
+      var sw = ((t * .35) % 1.6); if (sw < 1) { var n = HOJA.length - 1, f = sw * n, i0 = Math.min(n - 1, f | 0), u = f - i0;
+        glow(HOJA[i0][0] + (HOJA[i0 + 1][0] - HOJA[i0][0]) * u, HOJA[i0][1] + (HOJA[i0 + 1][1] - HOJA[i0][1]) * u, 22, 'rgba(230,240,255,A)', .7 * Math.sin(Math.PI * sw)); }
+      /* espectros del dibujo y almas que giran */
+      ESPECTROS.forEach(function (e, k) { glow(e[0], e[1], 40, 'rgba(110,160,255,A)', .15 + .15 * Math.sin(t * 1.5 + k * 2)); });
+      if (Math.random() < .6 * d) flujo.push({c: (Math.random() * CORRIENTES.length) | 0, u: 0, v: rnd(.006, .013), o: rnd(-8, 8)});
+      flujo.forEach(function (fl) { fl.u += fl.v * d; var C = CORRIENTES[fl.c], nn = C.length - 1, ff = Math.min(nn - 1e-6, fl.u * nn), ii = ff | 0, uu = ff - ii;
+        px(C[ii][0] + (C[ii + 1][0] - C[ii][0]) * uu, C[ii][1] + (C[ii + 1][1] - C[ii][1]) * uu + fl.o, '#a8c8ff', Math.sin(Math.PI * Math.min(1, fl.u)) * .9, 1); });
+      flujo = flujo.filter(function (fl) { return fl.u < 1; });
+      almas.forEach(function (s) { s.a += s.v * (.02 + .05 * des) * d;
+        var x = 1640 + Math.cos(s.a) * 300 * s.r, y = 330 + s.y + Math.sin(s.a) * 70 * s.r + Math.sin(t + s.f) * 15;
+        glow(x, y, 22, 'rgba(120,170,255,A)', .4 + .3 * des);
+        for (var j = 0; j < 16; j++) { var a2 = s.a - j * .03 * Math.sign(s.v);
+          px(1640 + Math.cos(a2) * 300 * s.r, 330 + s.y + Math.sin(a2) * 70 * s.r + Math.sin(t + s.f) * 15 + j * .6, j ? '#7fa8ff' : '#f0f6ff', (1 - j / 16) * .85, j < 3 ? 2 : 1); }
+        px(x - 2, y - 2, '#ffffff', .9, 3); });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+      /* niebla del suelo */
+      niebla.forEach(function (n) { n.x += n.v * d; if (n.x - n.r > W) n.x = -n.r;
+        var g2 = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r); g2.addColorStop(0, 'rgba(150,170,220,' + n.o + ')'); g2.addColorStop(1, 'rgba(150,170,220,0)');
+        ctx.fillStyle = g2; ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2); });
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.cripta_muerte.crear = crear;
+  /* bannerPerfil elige el banner por id; si no hay uno nuevo con ese id usa la versión anterior */
+  var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+  window.bannerPerfil = bannerPerfil = function (host, id) {
+    if (!host) return {stop: function () {}};
+    var b = BANNERS_PERFIL[id || 'cripta_muerte'];
+    if (b && b.crear) return b.crear(host);
+    return previo ? previo(host, id) : {stop: function () {}};
+  };
+})();
+
 var BT={
- pick:{es:'Cambiar banner',en:'Change banner',pt:'Mudar banner',fr:'Changer de bannière',ru:'Сменить баннер',ja:'バナー変更'},
- tit:{es:'Elige tu banner',en:'Choose your banner',pt:'Escolha seu banner',fr:'Choisis ta bannière',ru:'Выбери баннер',ja:'バナーを選ぶ'},
- gris:{es:'Banner básico',en:'Basic banner',pt:'Banner básico',fr:'Bannière de base',ru:'Базовый баннер',ja:'基本バナー'},
+ pick:{es:'Cambiar fondo',en:'Change background',pt:'Mudar fundo',fr:'Changer de fond',ru:'Сменить фон',ja:'背景変更'},
+ tit:{es:'Elige tu fondo',en:'Choose your background',pt:'Escolha seu fundo',fr:'Choisis ton fond',ru:'Выбери фон',ja:'背景を選ぶ'},
+ gris:{es:'Fondo básico',en:'Basic background',pt:'Fundo básico',fr:'Fond de base',ru:'Базовый фон',ja:'基本背景'},
+ muerte:{es:'La Cripta: La Muerte',en:'The Crypt: Death',pt:'A Cripta: A Morte',fr:'La Crypte : La Mort',ru:'Склеп: Смерть',ja:'地下墓地:死神'},
+ req:{es:'Vence la Cripta gris',en:'Beat the Gray Crypt',pt:'Vença a Cripta cinzenta',fr:'Bats la Crypte grise',ru:'Победи в Сером склепе',ja:'灰色の地下墓地をクリア'},
  arc:{es:'La Biblioteca Arcana',en:'The Arcane Library',pt:'A Biblioteca Arcana',fr:'La Bibliothèque Arcane',ru:'Тайная библиотека',ja:'秘術の図書館'},
  free:{es:'Todos lo tienen',en:'Everyone has it',pt:'Todos têm',fr:'Pour tout le monde',ru:'У всех есть',ja:'全員所持'},
  soon:{es:'Próximamente',en:'Coming soon',pt:'Em breve',fr:'Bientôt',ru:'Скоро',ja:'近日公開'},
@@ -13349,13 +13505,14 @@ var BT={
 function bt(k){var l=(typeof LANG!=='undefined'&&LANG)||'es';return BT[k][l]||BT[k].es}
 /* banners de perfil: el gris lo tiene todo el mundo; los demás, recompensas (de momento solo en la versión de pruebas) */
 var BANN=[{id:'gris',nm:'gris',mini:null,ok:function(){return true},ds:'free'},
-          {id:'biblioteca_arcana',nm:'arc',mini:'banners/biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'}];
+          {id:'biblioteca_arcana',nm:'arc',mini:'banners/biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'},
+          {id:'cripta_muerte',nm:'muerte',mini:'banners/cripta_muerte.webp',ok:function(){return !!(meta.done&&meta.done[0])},ds:'req'}];   /* recompensa: vencer la Cripta gris (los que ya la vencieron lo tienen) */
 function bannSel(){var id=meta&&meta.bannerSel,b=BANN.filter(function(x){return x.id===id})[0];return (b&&b.ok())?b.id:'gris'}
 var GRIS='background:linear-gradient(135deg,#4a4a52,#2a2a30 55%,#1d1d21)';
 function aplicaBanner(){
   var b=$('embBox');if(!b)return;var h=b.querySelector('.bnHost'),id=bannSel();
   if(bnInst){try{bnInst.stop()}catch(e){}bnInst=null}
-  if(id==='biblioteca_arcana'){h.style.background='';try{bnInst=bannerPerfil(h,id)}catch(e){bnInst=null}}
+  if(id!=='gris'){h.style.background='';try{bnInst=bannerPerfil(h,id)}catch(e){bnInst=null}}
   else h.style.cssText='position:absolute;inset:0;'+GRIS+',repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 6px,transparent 6px 12px)';
   b.setAttribute('data-bn',id);
 }
@@ -13365,7 +13522,7 @@ function pickBanner(){
   BANN.forEach(function(x){var ok=x.ok();
     h+='<div class="embCell'+(ok?' ok mine':' lock')+(x.id===cur?' eqd':'')+'" data-b="'+x.id+'" style="padding:8px">'+
       '<span style="display:block;width:100%;aspect-ratio:2048/768;'+(x.mini?'background:url('+x.mini+') center/cover':GRIS)+';border:1px solid #3a3326;'+(ok?'':'filter:grayscale(.7) brightness(.6)')+'"></span>'+
-      '<b>'+bt(x.nm)+'</b><span>'+(x.id===cur?bt('sel'):ok?(x.ds==='free'?bt('free'):''):bt('soon'))+'</span></div>';});
+      '<b>'+bt(x.nm)+'</b><span>'+(x.id===cur?bt('sel'):ok?(x.ds==='free'?bt('free'):''):(x.ds==='req'?bt('req'):bt('soon')))+'</span></div>';});
   w.innerHTML=h+'</div>';o.hidden=false;
   $('embX').onclick=function(){o.hidden=true};
   w.onclick=function(ev){var c=ev.target.closest&&ev.target.closest('.embCell.ok[data-b]');if(!c)return;
