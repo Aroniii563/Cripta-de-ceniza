@@ -17185,6 +17185,41 @@ render=function(){
   });
 };
 
+/* ---- pantallas táctiles: sin tecla E, los cofres y altares se activan al quedarse 3 s encima ---- */
+window.__dwell=window.__dwell||function(k,f){
+  var D=window.__dwv=window.__dwv||{};D[k]=f;f=Math.max(D.c||0,D.a||0);
+  var e=document.getElementById('dwell');
+  if(!e){e=document.createElement('div');e.id='dwell';e.hidden=true;
+    e.style.cssText='position:fixed;left:50%;bottom:92px;width:150px;height:12px;margin-left:-75px;z-index:7;pointer-events:none;background:rgba(8,6,4,.78);border:2px solid #d3a94a;box-sizing:border-box;box-shadow:0 0 0 1px #000';
+    e.innerHTML='<i style="display:block;height:100%;width:0;background:#f0d890"></i>';document.body.appendChild(e)}
+  if(f<=0){e.hidden=true}else{e.hidden=false;e.firstChild.style.width=Math.min(100,f*100)+'%'}
+};
+(function(){
+  var tgt=null,acc=0,lt=0,HOLD=3;
+  setInterval(function(){
+    var now=performance.now(),dt=Math.min(.3,(now-lt)/1000);lt=now;
+    var ok=false;
+    try{
+      if((touchMode||COARSE)&&state==='play'&&typeof PL!=='undefined'&&PL.length){
+        var own=(typeof ON!=='undefined'&&ON.on&&ON.own)?ON.own:PL[0];
+        if(own&&!own.dead){
+          var best=null,bd=1e9,kind=0;
+          if(cofOn())chests.forEach(function(c){if(c.st!==0||c.gone)return;var d=Math.hypot(own.x-c.x,own.y-c.y);if(d<COF_CFG.openR&&d<bd){bd=d;best=c;kind=1}});
+          if(altOn()&&!altCurse)altars.forEach(function(a){if(a.st!==0)return;var d=Math.hypot(own.x-a.x,own.y-a.y);if(d<ALT_CFG.openR&&d<bd){bd=d;best=a;kind=2}});
+          if(best){
+            ok=true;
+            if(best!==tgt){tgt=best;acc=0}
+            acc+=dt;
+            if(acc>=HOLD){acc=0;tgt=null;if(kind===1)cofInteract(own);else altInteract(own)}
+          }
+        }
+      }
+    }catch(e){}
+    if(!ok){tgt=null;acc=0}
+    window.__dwell('c',ok?acc/HOLD:0);
+  },100);
+})();
+
 /* ==========================================================================
    TINTERO DE MEDIANOCHE, OBELISCO DE LA TIRADA y CLEPSIDRA · altares de partida (todos los mapas, salvo la Torre de ceniza)
    · Cada ~1 min aparece un altar cerca del jugador (flecha en el borde si está lejos; dura ~2 min). Solo hay uno activo a la vez.
@@ -17597,6 +17632,29 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
       ctx.restore();
     });
   };
+
+  /* pantallas táctiles: los altares también se activan al quedarse 3 s encima */
+  (function(){
+    var tgt=null,acc=0,lt=0,HOLD=3;
+    setInterval(function(){
+      var now=performance.now(),dt=Math.min(.3,(now-lt)/1000);lt=now;var ok=false;
+      try{
+        if((touchMode||COARSE)&&state==='play'&&typeof PL!=='undefined'&&PL.length){
+          var own=(online()&&ON.own)?ON.own:PL[0];
+          if(own&&!own.dead){
+            var b=nearestFor(own);
+            if(b){
+              ok=true;if(b!==tgt){tgt=b;acc=0}acc+=dt;
+              if(acc>=HOLD){acc=0;tgt=null;
+                if(guest()){try{NET.send(NET.hostId,{t:'alt',id:b.id})}catch(x){}}else al2Interact(own);}
+            }
+          }
+        }
+      }catch(e){}
+      if(!ok){tgt=null;acc=0}
+      if(window.__dwell)window.__dwell('a',ok?acc/HOLD:0);
+    },100);
+  })();
 })();
 
 /* ==========================================================================
