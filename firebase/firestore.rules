@@ -49,13 +49,14 @@ service cloud.firestore {
     match /profiles/{uid} {
       allow read: if signedIn();
       allow create, update: if signedIn() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['nick', 'eq', 'emb', 'st', 'ts'])
+        && request.resource.data.keys().hasOnly(['nick', 'eq', 'emb', 'st', 'ts', 'bn'])
         && request.resource.data.keys().hasAll(['nick', 'eq', 'emb', 'st', 'ts'])
         && request.resource.data.nick == get(/databases/$(database)/documents/players/$(uid)).data.nick
         && request.resource.data.eq is list && request.resource.data.eq.size() <= 5
         && request.resource.data.emb is list && request.resource.data.emb.size() <= 64
         && request.resource.data.st is map
         && request.resource.data.st.keys().hasOnly(['kills', 'time', 'gold', 'runs', 'bosses'])
+        && (!('bn' in request.resource.data) || (request.resource.data.bn is string && request.resource.data.bn.size() <= 32))
         && request.resource.data.ts == request.time;
       allow delete: if signedIn() && request.auth.uid == uid;
     }

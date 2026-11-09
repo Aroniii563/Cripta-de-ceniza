@@ -13149,6 +13149,9 @@ function css(){
   '#embBox{position:relative;aspect-ratio:2048/768;margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
   '#embBox .bnUi{position:absolute;left:0;right:0;bottom:0;width:auto;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(0deg,rgba(8,4,20,.88),rgba(8,4,20,.62) 70%,rgba(8,4,20,0));padding-top:22px}'+
   '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:4px}#embBox .bnPick{position:absolute;top:10px;left:12px;z-index:3;padding:5px 12px;font-size:12px;background:rgba(8,4,20,.78)}'+
+  '.embBoxP{position:relative;aspect-ratio:2048/768;margin:12px 0 10px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
+  '.embBoxP .bnHost{position:absolute;inset:0}'+
+  '.embBoxP .bnUi{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;justify-content:center;padding:18px 8px 8px;background:linear-gradient(0deg,rgba(8,4,20,.85),rgba(8,4,20,0))}'+
   '#embBox #statTotals{width:100%;margin:0!important}#embBox #statTotals .mlist{gap:8px!important}'+
   '#embBox #statTotals .mrow{background-color:rgba(8,4,20,.72)!important;padding:4px 2px!important}'+
   '#embBox #statTotals .mrow .nm{font-size:16px!important}#embBox #statTotals .mrow .ef{font-size:8px!important;letter-spacing:.12em}#embBox #statTotals .mrow .st-i{width:22px;height:22px}'+
@@ -16636,7 +16639,9 @@ function showColl(prof){
   };else w.onclick=null;
 }
 /* perfil público de otro jugador */
+var pbInst=null;
 function showProfile(uid,nick){
+  if(pbInst){try{pbInst.stop()}catch(e){}pbInst=null}
   css();var o=ov(),w=$('embWin');
   w.innerHTML='<div class="eh"><h2>'+esc(nick||'Jugador')+'</h2><button class="btn alt" type="button" id="embX">Cerrar</button></div><p class="lead">Cargando…</p>';o.hidden=false;
   $('embX').onclick=function(){o.hidden=true};w.onclick=null;
@@ -16647,11 +16652,15 @@ function showProfile(uid,nick){
     var st=prof.st||{},fl=function(v){return (v==null)?'—':String(v)};
     var lt=function(s){s=+s||0;var h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?h+' h '+m+' min':m+' min'};
     w.innerHTML='<div class="eh"><h2>'+esc(nick||prof.nick||'Jugador')+'</h2><button class="btn alt" type="button" id="embX">Cerrar</button></div>'+
-      '<div style="display:flex;justify-content:center;margin:14px 0 6px">'+slots(prof.eq||[])+'</div>'+
+      '<div class="embBoxP" id="embBoxP"><div class="bnHost"></div><div class="bnUi">'+slots(prof.eq||[])+'</div></div>'+
       '<div style="text-align:center;margin-bottom:6px"><button class="btn alt" type="button" id="embAll" style="padding:6px 14px;font-size:13px">Ver emblemas</button></div>'+
       (pr?'<div class="embSum"><div><b>'+fl(st.kills)+'</b>Enemigos matados</div><div><b>'+(st.time==null?'—':lt(st.time))+'</b>Tiempo jugado</div><div><b>'+fl(st.gold)+'</b>Oro conseguido</div><div><b>'+fl(st.runs)+'</b>Partidas</div><div><b>'+fl(st.bosses)+'</b>Jefes derrotados</div></div>':'<p class="lead" style="text-align:center">Este jugador aún no ha compartido su perfil.</p>');
     $('embX').onclick=function(){o.hidden=true};
     $('embAll').onclick=function(){showColl(prof)};
+    if(pbInst){try{pbInst.stop()}catch(e){}pbInst=null}
+    var bh=$('embBoxP'),bid=String(prof.bn||'');
+    if(bh&&bid&&bid!=='gris'&&BANN.some(function(x){return x.id===bid})){try{pbInst=bannerPerfil(bh.querySelector('.bnHost'),bid)}catch(e){pbInst=null}}
+    else if(bh)bh.querySelector('.bnHost').style.cssText='position:absolute;inset:0;'+GRIS+',repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 6px,transparent 6px 12px)';
   });
 }
 /* publicar mi perfil (apodo, emblemas y totales) */
@@ -16659,7 +16668,7 @@ var lastSig='',busy=false;
 function push(force){
   var C=window.CriptaCloud;if(!C||!C.saveProfile||busy)return;
   try{
-    var st=meta.stats||{},g=got(),pr={eq:myEq(),emb:Object.keys(g),st:{kills:Math.floor(st.kills||0),time:Math.floor(st.time||0),gold:Math.floor(st.gold||0),runs:Math.floor(st.runs||0),bosses:Math.floor(st.bosses||0)}};
+    var st=meta.stats||{},g=got(),pr={eq:myEq(),emb:Object.keys(g),st:{kills:Math.floor(st.kills||0),time:Math.floor(st.time||0),gold:Math.floor(st.gold||0),runs:Math.floor(st.runs||0),bosses:Math.floor(st.bosses||0)},bn:bannSel()};
     var sig=JSON.stringify(pr);if(!force&&sig===lastSig)return;
     busy=true;
     C.saveProfile(pr).then(function(ok){if(ok!==false)lastSig=sig}).catch(function(){}).then(function(){busy=false});
