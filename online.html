@@ -16551,26 +16551,25 @@ var BT={
 function bt(k){var l=(typeof LANG!=='undefined'&&LANG)||'es';return BT[k][l]||BT[k].es}
 /* banners de perfil: el gris lo tiene todo el mundo; los demás, recompensas (de momento solo en la versión de pruebas) */
 var BANN=[{id:'gris',nm:'gris',mini:null,ok:function(){return true},ds:'free'},
-          {id:'biblioteca_arcana',nm:'arc',mini:'banners/mini_biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'},
-          {id:'cripta_muerte',nm:'muerte',mini:'banners/mini_cripta_muerte.webp',ok:function(){return mapa(0)},ds:'req',rq:'req'},   /* recompensa: vencer cada mapa por primera vez (quien ya lo venció lo tiene) */
-          {id:'abismo_cangrejo',nm:'abismo',mini:'banners/mini_abismo_cangrejo.webp',ok:function(){return mapa(1)},ds:'req',rq:'r1'},
-          {id:'pantano_wendigo',nm:'pantano',mini:'banners/mini_pantano_wendigo.webp',ok:function(){return mapa(2)},ds:'req',rq:'r2'},
-          {id:'forja_devorador',nm:'forja',mini:'banners/mini_forja_devorador.webp',ok:function(){return mapa(3)},ds:'req',rq:'r3'},
-          {id:'santuario_pontifice',nm:'santu',mini:'banners/mini_santuario_pontifice.webp',ok:function(){return mapa(4)},ds:'req',rq:'r4'},
-          {id:'libreria_escritor',nm:'libre',mini:'banners/mini_libreria_escritor.webp',ok:function(){return mapa(5)},ds:'req',rq:'r5'},
-          {id:'barbaro',nm:'ch_barbaro',mini:'banners/mini_barbaro.webp',ok:function(){return logroPj('barb')},ds:'req',rq:'rpj'},
-          {id:'picaro',nm:'ch_picaro',mini:'banners/mini_picaro.webp',ok:function(){return logroPj('rogue')},ds:'req',rq:'rpj'},
-          {id:'hechicero',nm:'ch_hechicero',mini:'banners/mini_hechicero.webp',ok:function(){return logroPj('sorc')},ds:'req',rq:'rpj'},
-          {id:'paladin',nm:'ch_paladin',mini:'banners/mini_paladin.webp',ok:function(){return logroPj('pal')},ds:'req',rq:'rpj'},
-          {id:'druida',nm:'ch_druida',mini:'banners/mini_druida.webp',ok:function(){return logroPj('druid')},ds:'req',rq:'rpj'},
-          {id:'nigromante',nm:'ch_nigromante',mini:'banners/mini_nigromante.webp',ok:function(){return logroPj('necro')},ds:'req',rq:'rpj'},
-          {id:'bruja',nm:'ch_bruja',mini:'banners/mini_bruja.webp',ok:function(){return logroPj('bruja')},ds:'req',rq:'rpj'},
-          {id:'monja',nm:'ch_monja',mini:'banners/mini_monja.webp',ok:function(){return logroPj('monja')},ds:'req',rq:'rpj'},
-          {id:'amazona',nm:'ch_amazona',mini:'banners/mini_amazona.webp',ok:function(){return logroPj('amazona')},ds:'req',rq:'rpj'},
-          {id:'angel',nm:'ch_angel',mini:'banners/mini_angel.webp',ok:function(){return logroPj('angel')},ds:'req',rq:'rpj'},
-          {id:'jinete',nm:'ch_jinete',mini:'banners/mini_jinete.webp',ok:function(){return logroPj('jinete')},ds:'req',rq:'rpj'},
-          {id:'piromantica',nm:'ch_piromantica',mini:'banners/mini_piromantica.webp',ok:function(){return logroPj('piro')},ds:'req',rq:'rpj'},
-          {id:'lanzamiento',nm:'lanz',mini:'banners/mini_lanzamiento.webp',ok:function(){return !!(meta.fondos&&meta.fondos.indexOf('lanzamiento')>=0)},ds:'req',rq:'rl'}];   /* el del evento: al canjear gratis el fondo de menú de lanzamiento */
+          {id:'cripta_muerte',nm:'muerte',mini:'banners/mini_cripta_muerte.webp',ok:function(){return !!window.TEST_BUILD||mapa(0)},ds:'req',rq:'req'},   /* recompensa: vencer cada mapa por primera vez (quien ya lo venció lo tiene) */
+          {id:'abismo_cangrejo',nm:'abismo',mini:'banners/mini_abismo_cangrejo.webp',ok:function(){return !!window.TEST_BUILD||mapa(1)},ds:'req',rq:'r1'},
+          {id:'pantano_wendigo',nm:'pantano',mini:'banners/mini_pantano_wendigo.webp',ok:function(){return !!window.TEST_BUILD||mapa(2)},ds:'req',rq:'r2'},
+          {id:'forja_devorador',nm:'forja',mini:'banners/mini_forja_devorador.webp',ok:function(){return !!window.TEST_BUILD||mapa(3)},ds:'req',rq:'r3'},
+          {id:'santuario_pontifice',nm:'santu',mini:'banners/mini_santuario_pontifice.webp',ok:function(){return !!window.TEST_BUILD||mapa(4)},ds:'req',rq:'r4'},
+          {id:'libreria_escritor',nm:'libre',mini:'banners/mini_libreria_escritor.webp',ok:function(){return !!window.TEST_BUILD||mapa(5)},ds:'req',rq:'r5'},
+          {id:'hechicero',nm:'ch_hechicero',mini:'banners/mini_hechicero.webp',ok:function(){return !!window.TEST_BUILD||logroPj('sorc')},ds:'req',rq:'rpj'},
+          {id:'barbaro',nm:'ch_barbaro',mini:'banners/mini_barbaro.webp',ok:function(){return !!window.TEST_BUILD||logroPj('barb')},ds:'req',rq:'rpj'},
+          {id:'picaro',nm:'ch_picaro',mini:'banners/mini_picaro.webp',ok:function(){return !!window.TEST_BUILD||logroPj('rogue')},ds:'req',rq:'rpj'},
+          {id:'paladin',nm:'ch_paladin',mini:'banners/mini_paladin.webp',ok:function(){return !!window.TEST_BUILD||logroPj('pal')},ds:'req',rq:'rpj'},
+          {id:'druida',nm:'ch_druida',mini:'banners/mini_druida.webp',ok:function(){return !!window.TEST_BUILD||logroPj('druid')},ds:'req',rq:'rpj'},
+          {id:'nigromante',nm:'ch_nigromante',mini:'banners/mini_nigromante.webp',ok:function(){return !!window.TEST_BUILD||logroPj('necro')},ds:'req',rq:'rpj'},
+          {id:'bruja',nm:'ch_bruja',mini:'banners/mini_bruja.webp',ok:function(){return !!window.TEST_BUILD||logroPj('bruja')},ds:'req',rq:'rpj'},
+          {id:'monja',nm:'ch_monja',mini:'banners/mini_monja.webp',ok:function(){return !!window.TEST_BUILD||logroPj('monja')},ds:'req',rq:'rpj'},
+          {id:'amazona',nm:'ch_amazona',mini:'banners/mini_amazona.webp',ok:function(){return !!window.TEST_BUILD||logroPj('amazona')},ds:'req',rq:'rpj'},
+          {id:'angel',nm:'ch_angel',mini:'banners/mini_angel.webp',ok:function(){return !!window.TEST_BUILD||logroPj('angel')},ds:'req',rq:'rpj'},
+          {id:'jinete',nm:'ch_jinete',mini:'banners/mini_jinete.webp',ok:function(){return !!window.TEST_BUILD||logroPj('jinete')},ds:'req',rq:'rpj'},
+          {id:'piromantica',nm:'ch_piromantica',mini:'banners/mini_piromantica.webp',ok:function(){return !!window.TEST_BUILD||logroPj('piro')},ds:'req',rq:'rpj'},
+          {id:'lanzamiento',nm:'lanz',mini:'banners/mini_lanzamiento.webp',ok:function(){return !!window.TEST_BUILD||!!(meta.fondos&&meta.fondos.indexOf('lanzamiento')>=0)},ds:'req',rq:'rl'}];   /* el del evento: al canjear gratis el fondo de menú de lanzamiento */
 function logroPj(k){try{return pass(BYID['ex_'+k])}catch(e){return false}}
 function mapa(i){return !!(meta.done&&meta.done[i])}
 function bannSel(){var id=meta&&meta.bannerSel,b=BANN.filter(function(x){return x.id===id})[0];return (b&&b.ok())?b.id:'gris'}
