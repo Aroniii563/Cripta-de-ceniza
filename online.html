@@ -13119,6 +13119,74 @@ var CARTAS_PX={
 
 /* ---------- Emblemas: 3 por personaje (500.000 bajas, desafío y Escritor en difícil). Se ven en Estadísticas y en el perfil de otros jugadores ---------- */
 (function(){
+var ALL=[{"id": "k_sorc", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/bajas/emblema_bajas_sorc.png", "an": "emblemas/bajas/emblema_bajas_sorc_anim.png", "t": "d:k_sorc", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_barb", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/bajas/emblema_bajas_barb.png", "an": "emblemas/bajas/emblema_bajas_barb_anim.png", "t": "d:k_barb", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_rogue", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/bajas/emblema_bajas_rogue.png", "an": "emblemas/bajas/emblema_bajas_rogue_anim.png", "t": "d:k_rogue", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_pal", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/bajas/emblema_bajas_pal.png", "an": "emblemas/bajas/emblema_bajas_pal_anim.png", "t": "d:k_pal", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_druid", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/bajas/emblema_bajas_druid.png", "an": "emblemas/bajas/emblema_bajas_druid_anim.png", "t": "d:k_druid", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_necro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/bajas/emblema_bajas_necro.png", "an": "emblemas/bajas/emblema_bajas_necro_anim.png", "t": "d:k_necro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_bruja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/bajas/emblema_bajas_bruja.png", "an": "emblemas/bajas/emblema_bajas_bruja_anim.png", "t": "d:k_bruja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_amazona", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/bajas/emblema_bajas_amazona.png", "an": "emblemas/bajas/emblema_bajas_amazona_anim.png", "t": "d:k_amazona", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_monja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/bajas/emblema_bajas_monja.png", "an": "emblemas/bajas/emblema_bajas_monja_anim.png", "t": "d:k_monja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_angel", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/bajas/emblema_bajas_angel.png", "an": "emblemas/bajas/emblema_bajas_angel_anim.png", "t": "d:k_angel", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_jinete", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/bajas/emblema_bajas_jinete.png", "an": "emblemas/bajas/emblema_bajas_jinete_anim.png", "t": "d:k_jinete", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_piro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/bajas/emblema_bajas_piro.png", "an": "emblemas/bajas/emblema_bajas_piro_anim.png", "t": "d:k_piro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "ex_sorc", "g": "Desafío", "nm": "Un único círculo", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/desafios/emblema_sorc.png", "an": "emblemas/desafios/emblema_sorc_anim.png", "t": "d:ex_sorc", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_barb", "g": "Desafío", "nm": "Corto y letal", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/desafios/emblema_barb.png", "an": "emblemas/desafios/emblema_barb_anim.png", "t": "d:ex_barb", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_rogue", "g": "Desafío", "nm": "Cuatro filos", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/desafios/emblema_rogue.png", "an": "emblemas/desafios/emblema_rogue_anim.png", "t": "d:ex_rogue", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_pal", "g": "Desafío", "nm": "Escudo único", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/desafios/emblema_pal.png", "an": "emblemas/desafios/emblema_pal_anim.png", "t": "d:ex_pal", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_druid", "g": "Desafío", "nm": "Raíz y garra", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/desafios/emblema_druid.png", "an": "emblemas/desafios/emblema_druid_anim.png", "t": "d:ex_druid", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_necro", "g": "Desafío", "nm": "Calaveras contadas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/desafios/emblema_necro.png", "an": "emblemas/desafios/emblema_necro_anim.png", "t": "d:ex_necro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_bruja", "g": "Desafío", "nm": "Magia desnuda", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/desafios/emblema_bruja.png", "an": "emblemas/desafios/emblema_bruja_anim.png", "t": "d:ex_bruja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_amazona", "g": "Desafío", "nm": "Pura lanza", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/desafios/emblema_amazona.png", "an": "emblemas/desafios/emblema_amazona_anim.png", "t": "d:ex_amazona", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_monja", "g": "Desafío", "nm": "Fe sin símbolos", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/desafios/emblema_monja.png", "an": "emblemas/desafios/emblema_monja_anim.png", "t": "d:ex_monja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_angel", "g": "Desafío", "nm": "Dúo de luz", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/desafios/emblema_angel.png", "an": "emblemas/desafios/emblema_angel_anim.png", "t": "d:ex_angel", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_jinete", "g": "Desafío", "nm": "Jinete sin ataduras", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/desafios/emblema_jinete.png", "an": "emblemas/desafios/emblema_jinete_anim.png", "t": "d:ex_jinete", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_piro", "g": "Desafío", "nm": "Fuego contado", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/desafios/emblema_piro.png", "an": "emblemas/desafios/emblema_piro_anim.png", "t": "d:ex_piro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ew_sorc", "g": "Escritor en difícil", "nm": "Tsukuyomi", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/escritor_dificil/emblema_escritor_sorc.png", "an": "emblemas/escritor_dificil/emblema_escritor_sorc_anim.png", "t": "d:ew_sorc", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_barb", "g": "Escritor en difícil", "nm": "Perún", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/escritor_dificil/emblema_escritor_barb.png", "an": "emblemas/escritor_dificil/emblema_escritor_barb_anim.png", "t": "d:ew_barb", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_rogue", "g": "Escritor en difícil", "nm": "Loki", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/escritor_dificil/emblema_escritor_rogue.png", "an": "emblemas/escritor_dificil/emblema_escritor_rogue_anim.png", "t": "d:ew_rogue", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_pal", "g": "Escritor en difícil", "nm": "Ra", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/escritor_dificil/emblema_escritor_pal.png", "an": "emblemas/escritor_dificil/emblema_escritor_pal_anim.png", "t": "d:ew_pal", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_druid", "g": "Escritor en difícil", "nm": "Cernunnos", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/escritor_dificil/emblema_escritor_druid.png", "an": "emblemas/escritor_dificil/emblema_escritor_druid_anim.png", "t": "d:ew_druid", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_necro", "g": "Escritor en difícil", "nm": "Mictlantecuhtli", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/escritor_dificil/emblema_escritor_necro.png", "an": "emblemas/escritor_dificil/emblema_escritor_necro_anim.png", "t": "d:ew_necro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_bruja", "g": "Escritor en difícil", "nm": "Hécate", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/escritor_dificil/emblema_escritor_bruja.png", "an": "emblemas/escritor_dificil/emblema_escritor_bruja_anim.png", "t": "d:ew_bruja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_amazona", "g": "Escritor en difícil", "nm": "Atenea", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/escritor_dificil/emblema_escritor_amazona.png", "an": "emblemas/escritor_dificil/emblema_escritor_amazona_anim.png", "t": "d:ew_amazona", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_monja", "g": "Escritor en difícil", "nm": "Brígida", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/escritor_dificil/emblema_escritor_monja.png", "an": "emblemas/escritor_dificil/emblema_escritor_monja_anim.png", "t": "d:ew_monja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_angel", "g": "Escritor en difícil", "nm": "Niké", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/escritor_dificil/emblema_escritor_angel.png", "an": "emblemas/escritor_dificil/emblema_escritor_angel_anim.png", "t": "d:ew_angel", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_jinete", "g": "Escritor en difícil", "nm": "Tiamat", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/escritor_dificil/emblema_escritor_jinete.png", "an": "emblemas/escritor_dificil/emblema_escritor_jinete_anim.png", "t": "d:ew_jinete", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_piro", "g": "Escritor en difícil", "nm": "Agni", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/escritor_dificil/emblema_escritor_piro.png", "an": "emblemas/escritor_dificil/emblema_escritor_piro_anim.png", "t": "d:ew_piro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "mapa_cripta", "g": "Victoria por mapa", "nm": "Cripta gris", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_cripta.png", "an": "emblemas/mapas/emblema_mapa_cripta_anim.png", "t": "d:w0", "ds": "Gana una partida en Cripta gris"}, {"id": "mapa_abismo", "g": "Victoria por mapa", "nm": "Abismo azul", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_abismo.png", "an": "emblemas/mapas/emblema_mapa_abismo_anim.png", "t": "d:w1", "ds": "Gana una partida en Abismo azul"}, {"id": "mapa_pantano", "g": "Victoria por mapa", "nm": "Pantano verde", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_pantano.png", "an": "emblemas/mapas/emblema_mapa_pantano_anim.png", "t": "d:w2", "ds": "Gana una partida en Pantano verde"}, {"id": "mapa_forja", "g": "Victoria por mapa", "nm": "Forja roja", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_forja.png", "an": "emblemas/mapas/emblema_mapa_forja_anim.png", "t": "d:w3", "ds": "Gana una partida en Forja roja"}, {"id": "mapa_santuario", "g": "Victoria por mapa", "nm": "Santuario púrpura", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_santuario.png", "an": "emblemas/mapas/emblema_mapa_santuario_anim.png", "t": "d:w4", "ds": "Gana una partida en Santuario púrpura"}, {"id": "mapa_libreria", "g": "Victoria por mapa", "nm": "Librería sepia", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_libreria.png", "an": "emblemas/mapas/emblema_mapa_libreria_anim.png", "t": "d:w5", "ds": "Gana una partida en Librería sepia"}, {"id": "jefe_morvayne", "g": "Jefes del modo infinito", "nm": "Conde Morvayne", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_morvayne.png", "an": "emblemas/jefes_infinito/emblema_jefe_morvayne_anim.png", "t": "bi:morvayne", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_noxarion", "g": "Jefes del modo infinito", "nm": "Noxarion", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_noxarion.png", "an": "emblemas/jefes_infinito/emblema_jefe_noxarion_anim.png", "t": "bi:noxarion", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_vael", "g": "Jefes del modo infinito", "nm": "Vael", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_vael.png", "an": "emblemas/jefes_infinito/emblema_jefe_vael_anim.png", "t": "bi:vael", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_valeria", "g": "Jefes del modo infinito", "nm": "Valeria", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_valeria.png", "an": "emblemas/jefes_infinito/emblema_jefe_valeria_anim.png", "t": "bi:valeria", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_estrella", "g": "Jefes del modo infinito", "nm": "Estrella fugaz", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_estrella.png", "an": "emblemas/jefes_infinito/emblema_jefe_estrella_anim.png", "t": "bi:estrella_fugaz", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "modo_dificil", "g": "Victoria por modo", "nm": "Victoria en Difícil", "col": "#ff3a2a", "pj": "", "src": "emblemas/modos/emblema_modo_dificil.png", "an": "emblemas/modos/emblema_modo_dificil_anim.png", "t": "hw", "ds": "Gana una partida en Difícil"}, {"id": "modo_mutaciones", "g": "Victoria por modo", "nm": "Victoria con Mutaciones", "col": "#3aff5a", "pj": "", "src": "emblemas/modos/emblema_modo_mutaciones.png", "an": "emblemas/modos/emblema_modo_mutaciones_anim.png", "t": "f:mw", "ds": "Gana una partida con Mutaciones"}, {"id": "modo_infinito", "g": "Victoria por modo", "nm": "Victoria en Infinito", "col": "#b45aff", "pj": "", "src": "emblemas/modos/emblema_modo_infinito.png", "an": "emblemas/modos/emblema_modo_infinito_anim.png", "t": "f:iw", "ds": "Derrota al jefe del minuto 20 en el modo Infinito"}, {"id": "col_aspectos", "g": "Colección", "nm": "Todos los aspectos", "col": "#ffd84a", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_aspectos.png", "an": "emblemas/coleccion/emblema_coleccion_aspectos_anim.png", "t": "dall:s_", "ds": "Consigue todos los aspectos de todos los personajes"}, {"id": "col_bestiario", "g": "Colección", "nm": "Bestiario completo", "col": "#4affb0", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_bestiario.png", "an": "emblemas/coleccion/emblema_coleccion_bestiario_anim.png", "t": "d:best", "ds": "Completa el Bestiario"}, {"id": "col_runas", "g": "Colección", "nm": "Runas completas", "col": "#9a7aff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_runas.png", "an": "emblemas/coleccion/emblema_coleccion_runas_anim.png", "t": "d:runes", "ds": "Consigue todas las runas"}, {"id": "col_fondos", "g": "Colección", "nm": "Fondos completos", "col": "#4ac8ff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_fondos.png", "an": "emblemas/coleccion/emblema_coleccion_fondos_anim.png", "t": "d:fondos", "ds": "Consigue todos los fondos"}, {"id": "col_diario", "g": "Colección", "nm": "Diario completo", "col": "#e8b878", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_diario.png", "an": "emblemas/coleccion/emblema_coleccion_diario_anim.png", "t": "d:pages", "ds": "Completa todas las páginas del Diario"}, {"id": "clan_top50", "g": "Clanes", "nm": "Top 50 de clanes", "col": "#ff4a2a", "pj": "", "src": "emblemas/clanes/emblema_clan_top50.png", "an": "emblemas/clanes/emblema_clan_top50_anim.png", "t": "f:clanTop", "ds": "Que tu clan acabe la semana en el top 50 de clanes"}];
+var GR=["500.000 bajas", "Desafío", "Escritor en difícil", "Victoria por mapa", "Jefes del modo infinito", "Victoria por modo", "Colección", "Clanes"];
+var BYID={};ALL.forEach(function(e){BYID[e.id]=e});
+var CLS=["sorc", "barb", "rogue", "pal", "druid", "necro", "bruja", "amazona", "monja", "angel", "jinete", "piro"];
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function pass(e){
+  var a=meta.ach||{},d=a.d||{},x=e.t.split(':');
+  if(x[0]==='d')return !!d[x[1]];
+  if(x[0]==='dall')return CLS.every(function(c){return !!d[x[1]+c]});
+  if(x[0]==='hw'){var h=a.hw||{};return Object.keys(h).some(function(k){return h[k]})}
+  if(x[0]==='bi')return !!(a.bi&&a.bi[x[1]]);
+  return !!a[x[1]];
+}
+function got(){
+  var o={},z=meta.embD||(meta.embD={}),ch=false;
+  try{ALL.forEach(function(e){if(pass(e)){if(!z[e.id]){z[e.id]=Date.now();ch=true}o[e.id]=z[e.id]}});if(ch)saveMeta()}catch(x){}
+  return o;
+}
+function myEq(){
+  var g=got(),eq=meta.embEq;
+  if(Array.isArray(eq))return eq.filter(function(i){return g[i]}).slice(0,5);
+  return Object.keys(g).sort(function(a,b){return g[b]-g[a]}).slice(0,5);
+}
+function css(){
+  if($('embCss'))return;var s=document.createElement('style');s.id='embCss';
+  s.textContent='#pStats{position:relative}'+
+  '#embBox{position:relative;aspect-ratio:2048/768;margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
+  '#embBox .bnUi{position:absolute;left:0;right:0;bottom:0;width:auto;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(0deg,rgba(8,4,20,.88),rgba(8,4,20,.62) 70%,rgba(8,4,20,0));padding-top:22px}'+
+  '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:4px}#embBox .bnPick{position:absolute;top:10px;left:12px;z-index:3;padding:5px 12px;font-size:12px;background:rgba(8,4,20,.78)}'+
+  '#embBox #statTotals{width:100%;margin:0!important}#embBox #statTotals .mlist{gap:8px!important}'+
+  '#embBox #statTotals .mrow{background-color:rgba(8,4,20,.72)!important;padding:4px 2px!important}'+
+  '#embBox #statTotals .mrow .nm{font-size:16px!important}#embBox #statTotals .mrow .ef{font-size:8px!important;letter-spacing:.12em}#embBox #statTotals .mrow .st-i{width:22px;height:22px}'+
+  '#embBox .bnUi .embRow{justify-content:flex-start}'+
+  '#embBox .bnUi button{margin:0!important}'+
+  '.embRow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}'+
+  '.embSlot{width:56px;height:56px;border-radius:50%;border:2px solid #4a4a52;background:radial-gradient(circle,#2a2a30,#17171b);box-shadow:inset 0 0 8px #000;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative}'+
+  '.embSlot.on{border-color:var(--gold,#d3a94a);background:radial-gradient(circle,#2b2418,#14110b);box-shadow:0 0 10px rgba(211,169,74,.35)}'+
+  '.emI{display:block;image-rendering:pixelated;background-repeat:no-repeat;background-size:100% 100%}'+
+  '.emI.an{background-size:1200% 100%;animation:embA 1.1s steps(11) infinite}'+
+  '@keyframes embA{from{background-position:0 0}to{background-position:100% 0}}'+
+  '.embSlot .emI{width:62px;height:66px;position:absolute;left:50%;top:50%;transform:translate(-50%,-52%)}'+
+  '#embOv{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px}'+
+  '#embOv[hidden]{display:none}'+
+  '#embWin{background:#14110b;border:2px solid var(--gold,#d3a94a);border-radius:6px;width:min(980px,100%);max-height:92vh;overflow:auto;padding:18px 22px 22px;box-shadow:0 0 40px #000}'+
+  '#embWin h3{margin:14px 0 8px;font-size:15px;letter-spacing:.12em;color:var(--gold,#d3a94a);text-transform:uppercase}'+
+  '#embWin .eh{display:flex;justify-content:space-between;align-items:center;gap:10px}'+
+  '#embWin .eh h2{margin:0;font-size:22px}'+
+  '.embGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}'+
+  '.embCell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 6px;border:1px solid #3a3326;background:#0e0c08;text-align:center;font-size:11px;line-height:1.2;cursor:default;position:relative;border-radius:4px}'+
+  '.embCell .emI{width:84px;height:89px}'+
+  '.embCell.lock .emI{filter:grayscale(1) brightness(.35);opacity:.8}'+
+  '.embCell.lock{color:#777}.embCell b{font-size:12px;color:#e8d9a8;font-weight:600}.embCell.lock b{color:#888}'+
+  '.embCell.eqd{border-color:var(--gold,#d3a94a);box-shadow:0 0 8px rgba(211,169,74,.45)}'+
+  '.embCell.mine.ok{cursor:pointer}.embCell.mine.ok:hover{background:#1c1710}'+
+  '.embSum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}'+
+  '.embSum div{border:1px solid #3a3326;background:#0e0c08;padding:8px;text-align:center;font-size:11px;color:#a99d80}.embSum b{display:block;font-size:17px;color:#e8d9a8;font-family:var(--display,inherit)}'+
+  '@media (max-width:700px){#embBox{aspect-ratio:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;width:auto;padding:8px 0;background:none;margin-top:6px}#embBox .bnPick{top:10px}#embBox #statTotals .mrow .nm{font-size:20px!important}#embBox #statTotals .mrow .ef{font-size:10px!important}}'+
+  '@media (max-width:520px){.embRow{gap:6px;flex-wrap:nowrap}.embSlot{width:46px;height:46px}.embSlot .emI{width:52px;height:55px}}';
+  document.head.appendChild(s);
+}
+function img(e,an){return '<span class="emI'+(an?' an':'')+'" style="background-image:url('+(an?e.an:e.src)+')"></span>'}
+function slots(ids){
+  var h='<div class="embRow">';
+  for(var i=0;i<5;i++){var e=BYID[ids[i]];h+=e?'<div class="embSlot on" title="'+esc(e.nm+(e.pj?' · '+e.pj:''))+'">'+img(e,true)+'</div>':'<div class="embSlot"></div>'}
+  return h+'</div>';
+}
+var bnInst=null;
 /* ==========================================================================
    BANNER DE PERFIL ANIMADO · «La Biblioteca Arcana»
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
@@ -13195,7 +13263,6 @@ var bannerPerfil = (function () {
     function frame(now) {
       if (!vivo) return;
       raf = requestAnimationFrame(frame);
-      if (host.offsetParent === null || document.hidden || window.__noBgAnim) { last = 0; return; }   /* oculto: no gastes CPU */
       if (now - last < 33) return;
       var d = Math.min(3, (now - (last || now)) / 33.3); last = now;
       var t = (now - t0) / 1000;
@@ -13268,74 +13335,7 @@ var bannerPerfil = (function () {
     return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
   };
 })();
-var ALL=[{"id": "k_sorc", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/bajas/emblema_bajas_sorc.png", "an": "emblemas/bajas/emblema_bajas_sorc_anim.png", "t": "d:k_sorc", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_barb", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/bajas/emblema_bajas_barb.png", "an": "emblemas/bajas/emblema_bajas_barb_anim.png", "t": "d:k_barb", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_rogue", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/bajas/emblema_bajas_rogue.png", "an": "emblemas/bajas/emblema_bajas_rogue_anim.png", "t": "d:k_rogue", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_pal", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/bajas/emblema_bajas_pal.png", "an": "emblemas/bajas/emblema_bajas_pal_anim.png", "t": "d:k_pal", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_druid", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/bajas/emblema_bajas_druid.png", "an": "emblemas/bajas/emblema_bajas_druid_anim.png", "t": "d:k_druid", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_necro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/bajas/emblema_bajas_necro.png", "an": "emblemas/bajas/emblema_bajas_necro_anim.png", "t": "d:k_necro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_bruja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/bajas/emblema_bajas_bruja.png", "an": "emblemas/bajas/emblema_bajas_bruja_anim.png", "t": "d:k_bruja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_amazona", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/bajas/emblema_bajas_amazona.png", "an": "emblemas/bajas/emblema_bajas_amazona_anim.png", "t": "d:k_amazona", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_monja", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/bajas/emblema_bajas_monja.png", "an": "emblemas/bajas/emblema_bajas_monja_anim.png", "t": "d:k_monja", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_angel", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/bajas/emblema_bajas_angel.png", "an": "emblemas/bajas/emblema_bajas_angel_anim.png", "t": "d:k_angel", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_jinete", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/bajas/emblema_bajas_jinete.png", "an": "emblemas/bajas/emblema_bajas_jinete_anim.png", "t": "d:k_jinete", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "k_piro", "g": "500.000 bajas", "nm": "500.000 bajas", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/bajas/emblema_bajas_piro.png", "an": "emblemas/bajas/emblema_bajas_piro_anim.png", "t": "d:k_piro", "ds": "Consigue 500.000 bajas con este personaje"}, {"id": "ex_sorc", "g": "Desafío", "nm": "Un único círculo", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/desafios/emblema_sorc.png", "an": "emblemas/desafios/emblema_sorc_anim.png", "t": "d:ex_sorc", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_barb", "g": "Desafío", "nm": "Corto y letal", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/desafios/emblema_barb.png", "an": "emblemas/desafios/emblema_barb_anim.png", "t": "d:ex_barb", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_rogue", "g": "Desafío", "nm": "Cuatro filos", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/desafios/emblema_rogue.png", "an": "emblemas/desafios/emblema_rogue_anim.png", "t": "d:ex_rogue", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_pal", "g": "Desafío", "nm": "Escudo único", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/desafios/emblema_pal.png", "an": "emblemas/desafios/emblema_pal_anim.png", "t": "d:ex_pal", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_druid", "g": "Desafío", "nm": "Raíz y garra", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/desafios/emblema_druid.png", "an": "emblemas/desafios/emblema_druid_anim.png", "t": "d:ex_druid", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_necro", "g": "Desafío", "nm": "Calaveras contadas", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/desafios/emblema_necro.png", "an": "emblemas/desafios/emblema_necro_anim.png", "t": "d:ex_necro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_bruja", "g": "Desafío", "nm": "Magia desnuda", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/desafios/emblema_bruja.png", "an": "emblemas/desafios/emblema_bruja_anim.png", "t": "d:ex_bruja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_amazona", "g": "Desafío", "nm": "Pura lanza", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/desafios/emblema_amazona.png", "an": "emblemas/desafios/emblema_amazona_anim.png", "t": "d:ex_amazona", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_monja", "g": "Desafío", "nm": "Fe sin símbolos", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/desafios/emblema_monja.png", "an": "emblemas/desafios/emblema_monja_anim.png", "t": "d:ex_monja", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_angel", "g": "Desafío", "nm": "Dúo de luz", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/desafios/emblema_angel.png", "an": "emblemas/desafios/emblema_angel_anim.png", "t": "d:ex_angel", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_jinete", "g": "Desafío", "nm": "Jinete sin ataduras", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/desafios/emblema_jinete.png", "an": "emblemas/desafios/emblema_jinete_anim.png", "t": "d:ex_jinete", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ex_piro", "g": "Desafío", "nm": "Fuego contado", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/desafios/emblema_piro.png", "an": "emblemas/desafios/emblema_piro_anim.png", "t": "d:ex_piro", "ds": "Supera su desafío especial contra el Escritor en difícil"}, {"id": "ew_sorc", "g": "Escritor en difícil", "nm": "Tsukuyomi", "col": "#4aa8ff", "pj": "Hechicero", "src": "emblemas/escritor_dificil/emblema_escritor_sorc.png", "an": "emblemas/escritor_dificil/emblema_escritor_sorc_anim.png", "t": "d:ew_sorc", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_barb", "g": "Escritor en difícil", "nm": "Perún", "col": "#ff7a1a", "pj": "Bárbaro", "src": "emblemas/escritor_dificil/emblema_escritor_barb.png", "an": "emblemas/escritor_dificil/emblema_escritor_barb_anim.png", "t": "d:ew_barb", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_rogue", "g": "Escritor en difícil", "nm": "Loki", "col": "#b4ff4a", "pj": "Pícaro", "src": "emblemas/escritor_dificil/emblema_escritor_rogue.png", "an": "emblemas/escritor_dificil/emblema_escritor_rogue_anim.png", "t": "d:ew_rogue", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_pal", "g": "Escritor en difícil", "nm": "Ra", "col": "#ffe04a", "pj": "Paladín", "src": "emblemas/escritor_dificil/emblema_escritor_pal.png", "an": "emblemas/escritor_dificil/emblema_escritor_pal_anim.png", "t": "d:ew_pal", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_druid", "g": "Escritor en difícil", "nm": "Cernunnos", "col": "#9aff3a", "pj": "Druida", "src": "emblemas/escritor_dificil/emblema_escritor_druid.png", "an": "emblemas/escritor_dificil/emblema_escritor_druid_anim.png", "t": "d:ew_druid", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_necro", "g": "Escritor en difícil", "nm": "Mictlantecuhtli", "col": "#c06aff", "pj": "Nigromante", "src": "emblemas/escritor_dificil/emblema_escritor_necro.png", "an": "emblemas/escritor_dificil/emblema_escritor_necro_anim.png", "t": "d:ew_necro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_bruja", "g": "Escritor en difícil", "nm": "Hécate", "col": "#b03aff", "pj": "Bruja", "src": "emblemas/escritor_dificil/emblema_escritor_bruja.png", "an": "emblemas/escritor_dificil/emblema_escritor_bruja_anim.png", "t": "d:ew_bruja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_amazona", "g": "Escritor en difícil", "nm": "Atenea", "col": "#ff3a4a", "pj": "Amazona", "src": "emblemas/escritor_dificil/emblema_escritor_amazona.png", "an": "emblemas/escritor_dificil/emblema_escritor_amazona_anim.png", "t": "d:ew_amazona", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_monja", "g": "Escritor en difícil", "nm": "Brígida", "col": "#ffd84a", "pj": "Monja", "src": "emblemas/escritor_dificil/emblema_escritor_monja.png", "an": "emblemas/escritor_dificil/emblema_escritor_monja_anim.png", "t": "d:ew_monja", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_angel", "g": "Escritor en difícil", "nm": "Niké", "col": "#7af0ff", "pj": "Ángel", "src": "emblemas/escritor_dificil/emblema_escritor_angel.png", "an": "emblemas/escritor_dificil/emblema_escritor_angel_anim.png", "t": "d:ew_angel", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_jinete", "g": "Escritor en difícil", "nm": "Tiamat", "col": "#4cff6a", "pj": "Jinete", "src": "emblemas/escritor_dificil/emblema_escritor_jinete.png", "an": "emblemas/escritor_dificil/emblema_escritor_jinete_anim.png", "t": "d:ew_jinete", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "ew_piro", "g": "Escritor en difícil", "nm": "Agni", "col": "#ff5a10", "pj": "Piromántica", "src": "emblemas/escritor_dificil/emblema_escritor_piro.png", "an": "emblemas/escritor_dificil/emblema_escritor_piro_anim.png", "t": "d:ew_piro", "ds": "Vence al Escritor en difícil con este personaje"}, {"id": "mapa_cripta", "g": "Victoria por mapa", "nm": "Cripta gris", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_cripta.png", "an": "emblemas/mapas/emblema_mapa_cripta_anim.png", "t": "d:w0", "ds": "Gana una partida en Cripta gris"}, {"id": "mapa_abismo", "g": "Victoria por mapa", "nm": "Abismo azul", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_abismo.png", "an": "emblemas/mapas/emblema_mapa_abismo_anim.png", "t": "d:w1", "ds": "Gana una partida en Abismo azul"}, {"id": "mapa_pantano", "g": "Victoria por mapa", "nm": "Pantano verde", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_pantano.png", "an": "emblemas/mapas/emblema_mapa_pantano_anim.png", "t": "d:w2", "ds": "Gana una partida en Pantano verde"}, {"id": "mapa_forja", "g": "Victoria por mapa", "nm": "Forja roja", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_forja.png", "an": "emblemas/mapas/emblema_mapa_forja_anim.png", "t": "d:w3", "ds": "Gana una partida en Forja roja"}, {"id": "mapa_santuario", "g": "Victoria por mapa", "nm": "Santuario púrpura", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_santuario.png", "an": "emblemas/mapas/emblema_mapa_santuario_anim.png", "t": "d:w4", "ds": "Gana una partida en Santuario púrpura"}, {"id": "mapa_libreria", "g": "Victoria por mapa", "nm": "Librería sepia", "col": "#ffc030", "pj": "", "src": "emblemas/mapas/emblema_mapa_libreria.png", "an": "emblemas/mapas/emblema_mapa_libreria_anim.png", "t": "d:w5", "ds": "Gana una partida en Librería sepia"}, {"id": "jefe_morvayne", "g": "Jefes del modo infinito", "nm": "Conde Morvayne", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_morvayne.png", "an": "emblemas/jefes_infinito/emblema_jefe_morvayne_anim.png", "t": "bi:morvayne", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_noxarion", "g": "Jefes del modo infinito", "nm": "Noxarion", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_noxarion.png", "an": "emblemas/jefes_infinito/emblema_jefe_noxarion_anim.png", "t": "bi:noxarion", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_vael", "g": "Jefes del modo infinito", "nm": "Vael", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_vael.png", "an": "emblemas/jefes_infinito/emblema_jefe_vael_anim.png", "t": "bi:vael", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_valeria", "g": "Jefes del modo infinito", "nm": "Valeria", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_valeria.png", "an": "emblemas/jefes_infinito/emblema_jefe_valeria_anim.png", "t": "bi:valeria", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "jefe_estrella", "g": "Jefes del modo infinito", "nm": "Estrella fugaz", "col": "#b45aff", "pj": "", "src": "emblemas/jefes_infinito/emblema_jefe_estrella.png", "an": "emblemas/jefes_infinito/emblema_jefe_estrella_anim.png", "t": "bi:estrella_fugaz", "ds": "Derrota a este jefe en el modo Infinito"}, {"id": "modo_dificil", "g": "Victoria por modo", "nm": "Victoria en Difícil", "col": "#ff3a2a", "pj": "", "src": "emblemas/modos/emblema_modo_dificil.png", "an": "emblemas/modos/emblema_modo_dificil_anim.png", "t": "hw", "ds": "Gana una partida en Difícil"}, {"id": "modo_mutaciones", "g": "Victoria por modo", "nm": "Victoria con Mutaciones", "col": "#3aff5a", "pj": "", "src": "emblemas/modos/emblema_modo_mutaciones.png", "an": "emblemas/modos/emblema_modo_mutaciones_anim.png", "t": "f:mw", "ds": "Gana una partida con Mutaciones"}, {"id": "modo_infinito", "g": "Victoria por modo", "nm": "Victoria en Infinito", "col": "#b45aff", "pj": "", "src": "emblemas/modos/emblema_modo_infinito.png", "an": "emblemas/modos/emblema_modo_infinito_anim.png", "t": "f:iw", "ds": "Derrota al jefe del minuto 20 en el modo Infinito"}, {"id": "col_aspectos", "g": "Colección", "nm": "Todos los aspectos", "col": "#ffd84a", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_aspectos.png", "an": "emblemas/coleccion/emblema_coleccion_aspectos_anim.png", "t": "dall:s_", "ds": "Consigue todos los aspectos de todos los personajes"}, {"id": "col_bestiario", "g": "Colección", "nm": "Bestiario completo", "col": "#4affb0", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_bestiario.png", "an": "emblemas/coleccion/emblema_coleccion_bestiario_anim.png", "t": "d:best", "ds": "Completa el Bestiario"}, {"id": "col_runas", "g": "Colección", "nm": "Runas completas", "col": "#9a7aff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_runas.png", "an": "emblemas/coleccion/emblema_coleccion_runas_anim.png", "t": "d:runes", "ds": "Consigue todas las runas"}, {"id": "col_fondos", "g": "Colección", "nm": "Fondos completos", "col": "#4ac8ff", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_fondos.png", "an": "emblemas/coleccion/emblema_coleccion_fondos_anim.png", "t": "d:fondos", "ds": "Consigue todos los fondos"}, {"id": "col_diario", "g": "Colección", "nm": "Diario completo", "col": "#e8b878", "pj": "", "src": "emblemas/coleccion/emblema_coleccion_diario.png", "an": "emblemas/coleccion/emblema_coleccion_diario_anim.png", "t": "d:pages", "ds": "Completa todas las páginas del Diario"}, {"id": "clan_top50", "g": "Clanes", "nm": "Top 50 de clanes", "col": "#ff4a2a", "pj": "", "src": "emblemas/clanes/emblema_clan_top50.png", "an": "emblemas/clanes/emblema_clan_top50_anim.png", "t": "f:clanTop", "ds": "Que tu clan acabe la semana en el top 50 de clanes"}];
-var GR=["500.000 bajas", "Desafío", "Escritor en difícil", "Victoria por mapa", "Jefes del modo infinito", "Victoria por modo", "Colección", "Clanes"];
-var BYID={};ALL.forEach(function(e){BYID[e.id]=e});
-var CLS=["sorc", "barb", "rogue", "pal", "druid", "necro", "bruja", "amazona", "monja", "angel", "jinete", "piro"];
-var $=function(i){return document.getElementById(i)};
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function pass(e){
-  var a=meta.ach||{},d=a.d||{},x=e.t.split(':');
-  if(x[0]==='d')return !!d[x[1]];
-  if(x[0]==='dall')return CLS.every(function(c){return !!d[x[1]+c]});
-  if(x[0]==='hw'){var h=a.hw||{};return Object.keys(h).some(function(k){return h[k]})}
-  if(x[0]==='bi')return !!(a.bi&&a.bi[x[1]]);
-  return !!a[x[1]];
-}
-function got(){
-  var o={},z=meta.embD||(meta.embD={}),ch=false;
-  try{ALL.forEach(function(e){if(pass(e)){if(!z[e.id]){z[e.id]=Date.now();ch=true}o[e.id]=z[e.id]}});if(ch)saveMeta()}catch(x){}
-  return o;
-}
-function myEq(){
-  var g=got(),eq=meta.embEq;
-  if(Array.isArray(eq))return eq.filter(function(i){return g[i]}).slice(0,5);
-  return Object.keys(g).sort(function(a,b){return g[b]-g[a]}).slice(0,5);
-}
-function css(){
-  if($('embCss'))return;var s=document.createElement('style');s.id='embCss';
-  s.textContent='#pStats{position:relative}'+
-  '#embBox{position:relative;aspect-ratio:2048/768;margin:0 0 14px;border:2px solid #4a3a1c;box-shadow:0 0 0 1px #000,0 4px 18px rgba(0,0,0,.55);overflow:hidden;background:#12082a}'+
-  '#embBox .bnUi{position:absolute;left:0;right:0;bottom:0;width:auto;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px 12px;background:linear-gradient(0deg,rgba(8,4,20,.88),rgba(8,4,20,.62) 70%,rgba(8,4,20,0));padding-top:22px}'+
-  '#embBox #embTop{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin-bottom:4px}#embBox .bnPick{position:absolute;top:10px;left:12px;z-index:3;padding:5px 12px;font-size:12px;background:rgba(8,4,20,.78)}'+
-  '#embBox #statTotals{width:100%;margin:0!important}#embBox #statTotals .mlist{gap:8px!important}'+
-  '#embBox #statTotals .mrow{background-color:rgba(8,4,20,.72)!important;padding:4px 2px!important}'+
-  '#embBox #statTotals .mrow .nm{font-size:16px!important}#embBox #statTotals .mrow .ef{font-size:8px!important;letter-spacing:.12em}#embBox #statTotals .mrow .st-i{width:22px;height:22px}'+
-  '#embBox .bnUi .embRow{justify-content:flex-start}'+
-  '#embBox .bnUi button{margin:0!important}'+
-  '.embRow{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}'+
-  '.embSlot{width:56px;height:56px;border-radius:50%;border:2px solid #4a4a52;background:radial-gradient(circle,#2a2a30,#17171b);box-shadow:inset 0 0 8px #000;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative}'+
-  '.embSlot.on{border-color:var(--gold,#d3a94a);background:radial-gradient(circle,#2b2418,#14110b);box-shadow:0 0 10px rgba(211,169,74,.35)}'+
-  '.emI{display:block;image-rendering:pixelated;background-repeat:no-repeat;background-size:100% 100%}'+
-  '.emI.an{background-size:1200% 100%;animation:embA 1.1s steps(11) infinite}'+
-  '@keyframes embA{from{background-position:0 0}to{background-position:100% 0}}'+
-  '.embSlot .emI{width:62px;height:66px;position:absolute;left:50%;top:50%;transform:translate(-50%,-52%)}'+
-  '#embOv{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:16px}'+
-  '#embOv[hidden]{display:none}'+
-  '#embWin{background:#14110b;border:2px solid var(--gold,#d3a94a);border-radius:6px;width:min(980px,100%);max-height:92vh;overflow:auto;padding:18px 22px 22px;box-shadow:0 0 40px #000}'+
-  '#embWin h3{margin:14px 0 8px;font-size:15px;letter-spacing:.12em;color:var(--gold,#d3a94a);text-transform:uppercase}'+
-  '#embWin .eh{display:flex;justify-content:space-between;align-items:center;gap:10px}'+
-  '#embWin .eh h2{margin:0;font-size:22px}'+
-  '.embGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}'+
-  '.embCell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 6px;border:1px solid #3a3326;background:#0e0c08;text-align:center;font-size:11px;line-height:1.2;cursor:default;position:relative;border-radius:4px}'+
-  '.embCell .emI{width:84px;height:89px}'+
-  '.embCell.lock .emI{filter:grayscale(1) brightness(.35);opacity:.8}'+
-  '.embCell.lock{color:#777}.embCell b{font-size:12px;color:#e8d9a8;font-weight:600}.embCell.lock b{color:#888}'+
-  '.embCell.eqd{border-color:var(--gold,#d3a94a);box-shadow:0 0 8px rgba(211,169,74,.45)}'+
-  '.embCell.mine.ok{cursor:pointer}.embCell.mine.ok:hover{background:#1c1710}'+
-  '.embSum{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:10px 0}'+
-  '.embSum div{border:1px solid #3a3326;background:#0e0c08;padding:8px;text-align:center;font-size:11px;color:#a99d80}.embSum b{display:block;font-size:17px;color:#e8d9a8;font-family:var(--display,inherit)}'+
-  '@media (max-width:700px){#embBox{aspect-ratio:auto;overflow:visible;background:none;border:0;box-shadow:none}#embBox .bnHost{position:relative!important;inset:auto!important;height:180px;border:2px solid #4a3a1c;overflow:hidden}#embBox .bnUi{position:static;width:auto;padding:8px 0;background:none;margin-top:6px}#embBox .bnPick{top:10px}#embBox #statTotals .mrow .nm{font-size:20px!important}#embBox #statTotals .mrow .ef{font-size:10px!important}}'+
-  '@media (max-width:520px){.embRow{gap:6px;flex-wrap:nowrap}.embSlot{width:46px;height:46px}.embSlot .emI{width:52px;height:55px}}';
-  document.head.appendChild(s);
-}
-function img(e,an){return '<span class="emI'+(an?' an':'')+'" style="background-image:url('+(an?e.an:e.src)+')"></span>'}
-function slots(ids){
-  var h='<div class="embRow">';
-  for(var i=0;i<5;i++){var e=BYID[ids[i]];h+=e?'<div class="embSlot on" title="'+esc(e.nm+(e.pj?' · '+e.pj:''))+'">'+img(e,true)+'</div>':'<div class="embSlot"></div>'}
-  return h+'</div>';
-}
-var bnInst=null;
+
 /* ==========================================================================
    BANNER DE PERFIL ANIMADO · «La Cripta: La Muerte»  (recompensa por vencer la Cripta gris)
    Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
@@ -13407,7 +13407,6 @@ BANNERS_PERFIL.cripta_muerte = {nombre: 'La Cripta: La Muerte', mini: 'banners/c
     function frame(now) {
       if (!vivo) return;
       raf = requestAnimationFrame(frame);
-      if (host.offsetParent === null || document.hidden || window.__noBgAnim) { last = 0; return; }   /* oculto: no gastes CPU */
       if (now - last < 33) return;
       var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
       if (!img.complete || !img.naturalWidth || !spr.complete || !spr.naturalWidth) return;
@@ -13490,7 +13489,892 @@ BANNERS_PERFIL.cripta_muerte = {nombre: 'La Cripta: La Muerte', mini: 'banners/c
   };
 })();
 
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «El Abismo: El Cangrejo Gigante»  (recompensa por vencer el Abismo azul)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS del bloque del banner de La Muerte (usa su selector bannerPerfil por id).
+   Archivo: banners/abismo_cangrejo.webp
+   Uso:  var b = bannerPerfil(contenedor, 'abismo_cangrejo');   ...   b.stop();
+   Animación:
+   · toda la escena ondula suavemente como vista a través del agua;
+   · rayos de luz que bajan desde la superficie y cáusticas que bailan sobre las ruinas;
+   · algas y musgos colgantes que se mecen con la corriente;
+   · medusas que laten de luz y flotan arriba y abajo; anémonas que brillan;
+   · banco de peces que cruza al fondo; burbujas y partículas en suspensión;
+   · cada ~7 s el cangrejo ataca: le brillan los ojos, clava las pinzas, sale una nube
+     de arena y burbujas, la escena tiembla y se abre una onda en el agua.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.abismo_cangrejo = {nombre: 'El Abismo: El Cangrejo Gigante', mini: 'banners/abismo_cangrejo.webp', req: 'Vence el Abismo azul'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX, SRC = 'banners/abismo_cangrejo.webp', img = null;
+  var MEDUSAS = [[150,235,70,85],[118,362,30,35],[465,210,40,40],[440,450,30,45],[1940,5,50,52]];
+  var ANEMONAS = [[860,700],[1980,705]], OJOS = [[1499,270],[1585,265]], PINZAS = [[1295,612],[1600,568]];
+  var COLGANTES = [[200,140,190,260],[390,60,90,200],[600,240,40,90],[750,250,80,110],[1840,330,80,80]];   /* x, y, ancho, alto: cuelgan desde arriba */
+  var KELP = [[0,540,90,170],[700,580,80,120],[1500,600,60,90]];                                        /* crecen desde abajo */
+  var SOL = [1310, -10];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#04141c';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var buf = document.createElement('canvas'); buf.width = W; buf.height = H; var cb = buf.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!img) { img = new Image(); img.src = SRC; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var burb = [], mota = [], peces = [], arena = [], ondas = [], prox = 3, ataque = 0;
+    for (var i = 0; i < 90; i++) mota.push({x: rnd(0, W), y: rnd(0, H), v: rnd(.05, .2), f: rnd(0, 6.28)});
+    for (i = 0; i < 26; i++) peces.push({x: rnd(-200, W), y: rnd(70, 200) + Math.sin(i) * 20, o: rnd(0, 60), v: rnd(.9, 1.3)});
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = a; ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function burbuja(x, y, n, f) { for (var k = 0; k < n; k++) burb.push({x: x + rnd(-20, 20) * f, y: y + rnd(-10, 10), r: rnd(1, 3.5), v: rnd(.6, 1.6), f: rnd(0, 6.28), t: 0, l: rnd(120, 260)}); }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      if (!img.complete || !img.naturalWidth) return;
+      if (quieto) { ctx.drawImage(img, 0, 0, W, H); vivo = false; return; }
+      /* ataque del cangrejo */
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); ataque = 1;
+        PINZAS.forEach(function (p) { ondas.push({x: p[0], y: p[1], r: 10, t: 0});
+          for (var k = 0; k < 30; k++) arena.push({x: p[0] + rnd(-10, 10), y: p[1], vx: rnd(-3, 3), vy: -rnd(.5, 3), r: rnd(10, 30), t: 0, l: rnd(40, 80)});
+          burbuja(p[0], p[1] - 10, 25, 1.5); }); }
+      ataque = Math.max(0, ataque - d / 25);
+      var sh = ataque > .6 ? (Math.random() - .5) * 6 * ataque : 0;
+      /* escena con el agua ondulando: tiras horizontales desplazadas */
+      cb.drawImage(img, 0, 0, W, H);
+      COLGANTES.forEach(function (c, k) { for (var y = 0; y < c[3]; y += 2) { var kk = y / c[3];
+        var dx = Math.round(5 * kk * Math.sin(t * 1.3 - y * 0.03 + k * 1.7)); if (dx) cb.drawImage(img, c[0], c[1] + y, c[2], 2, c[0] + dx, c[1] + y, c[2], 2); } });
+      KELP.forEach(function (c, k) { for (var y = 0; y < c[3]; y += 2) { var kk = 1 - y / c[3];
+        var dx = Math.round(6 * kk * Math.sin(t * 1.1 + y * 0.04 + k * 2.3)); if (dx) cb.drawImage(img, c[0], c[1] + y, c[2], 2, c[0] + dx, c[1] + y, c[2], 2); } });
+      MEDUSAS.forEach(function (m, k) { var dy = Math.round(5 * Math.sin(t * 1.2 + k * 1.9));
+        cb.drawImage(img, m[0], m[1] - 6, m[2], m[3] + 12, m[0], m[1] - 6 + dy, m[2], m[3] + 12); });
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      for (var y = 0; y < H; y += 4) { var dx = 1.6 * Math.sin(t * 1.6 + y * 0.035) + sh;
+        ctx.drawImage(buf, 0, y, W, 4, dx, y + (sh ? sh * .5 : 0), W, 4); }
+      ctx.drawImage(buf, 0, 0, 3, H, 0, 0, 3, H); ctx.drawImage(buf, W - 3, 0, 3, H, W - 3, 0, 3, H);
+      ca.clearRect(0, 0, w, h);
+      /* rayos de la superficie y cáusticas */
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (i = 0; i < 9; i++) { var a = -1.15 + i * .29 + .05 * Math.sin(t * .4 + i), al = (.05 + .04 * Math.sin(t * .9 + i * 1.7)) * (1 + .6 * ataque);
+        var g = ctx.createLinearGradient(SOL[0], SOL[1], SOL[0] + Math.sin(a) * 700, SOL[1] + Math.cos(a) * 700);
+        g.addColorStop(0, 'rgba(170,240,255,' + al * 2 + ')'); g.addColorStop(1, 'rgba(120,220,255,0)'); ctx.fillStyle = g;
+        ctx.beginPath(); ctx.moveTo(SOL[0], SOL[1]); ctx.lineTo(SOL[0] + Math.sin(a - .04) * 900, SOL[1] + Math.cos(a - .04) * 900); ctx.lineTo(SOL[0] + Math.sin(a + .04) * 900, SOL[1] + Math.cos(a + .04) * 900); ctx.fill(); }
+      ctx.restore();
+      for (i = 0; i < 160; i++) {   /* cáusticas: celdas de luz que se mueven sobre las ruinas */
+        var cx = (i * 97.3) % W, cy = 380 + ((i * 53.7) % 380), ph = t * 1.4 + i;
+        var v = Math.sin(ph) * Math.sin(ph * .7 + 1.3); if (v > .55) px(cx + 18 * Math.sin(t * .6 + i), cy + 8 * Math.cos(t * .5 + i), '#9ff2ff', (v - .55) * 1.4, 3);
+      }
+      /* medusas y anémonas */
+      MEDUSAS.forEach(function (m, k) { var p = .5 + .5 * Math.sin(t * 2.2 + k * 1.3); glow(m[0] + m[2] / 2, m[1] + m[3] * .3 + 5 * Math.sin(t * 1.2 + k * 1.9), m[2] * .9, 'rgba(90,200,255,A)', .2 + .3 * p); });
+      ANEMONAS.forEach(function (a2, k) { var p = .5 + .5 * Math.sin(t * 1.7 + k * 2); glow(a2[0], a2[1], 40, 'rgba(80,190,255,A)', .3 + .3 * p); });
+      /* ojos del cangrejo */
+      OJOS.forEach(function (o) { glow(o[0], o[1] - 4, 10 + 18 * ataque, 'rgba(255,240,200,A)', .25 + .6 * ataque); });
+      /* banco de peces al fondo */
+      peces.forEach(function (p, k) { p.x += p.v * d; if (p.x > 1250) p.x = rnd(-300, -20);
+        var yy = p.y + 10 * Math.sin(t * 1.5 + p.x * .01 + p.o); px(p.x, yy, '#0b3a4c', .7, 2); px(p.x - 3, yy, '#0b3a4c', .5, 1); });
+      /* burbujas y motas */
+      if (Math.random() < .3 * d) burbuja(rnd(0, W), H + 5, 1, 0);
+      if (Math.random() < .15 * d) burbuja(1540, 340, 2, .5);   /* de la boca del cangrejo */
+      burb.forEach(function (b) { b.t += d; b.y -= b.v * d; b.x += Math.sin(b.t * .1 + b.f) * .4;
+        ca.globalAlpha = .7; ca.strokeStyle = '#bff4ff'; ca.lineWidth = 1; ca.beginPath(); ca.arc(Math.round(b.x / PX), Math.round(b.y / PX), b.r / PX + .5, 0, 6.28); ca.stroke(); });
+      burb = burb.filter(function (b) { return b.t < b.l && b.y > -10; });
+      mota.forEach(function (m) { m.y -= m.v * d; m.x += Math.sin(t * .5 + m.f) * .1; if (m.y < 0) { m.y = H; m.x = rnd(0, W); } px(m.x, m.y, '#cdf6ff', .3 + .2 * Math.sin(t + m.f), 1); });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+      /* nubes de arena y ondas del ataque */
+      arena.forEach(function (s) { s.t += d; s.x += s.vx * d; s.y += s.vy * d; s.vy *= .96; s.vx *= .96; s.r += .4 * d;
+        var a3 = .22 * (1 - s.t / s.l), g3 = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+        g3.addColorStop(0, 'rgba(200,220,215,' + a3 + ')'); g3.addColorStop(1, 'rgba(200,220,215,0)'); ctx.fillStyle = g3; ctx.fillRect(s.x - s.r, s.y - s.r, s.r * 2, s.r * 2); });
+      arena = arena.filter(function (s) { return s.t < s.l; });
+      ondas.forEach(function (o) { o.t += d; o.r += 7 * d; var a4 = Math.max(0, 1 - o.t / 40);
+        ctx.strokeStyle = 'rgba(190,245,255,' + (.4 * a4) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(o.x, o.y, o.r, o.r * .3, 0, 0, 6.283); ctx.stroke(); });
+      ondas = ondas.filter(function (o) { return o.t < 40; });
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.abismo_cangrejo.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {   /* por si este bloque se pega sin el de La Muerte */
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «El Pantano: El Wendigo»  (recompensa por vencer el Pantano verde)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS del bloque del banner de La Muerte (usa su selector bannerPerfil por id).
+   Archivo: banners/pantano_wendigo.webp
+   Uso:  var b = bannerPerfil(contenedor, 'pantano_wendigo');   ...   b.stop();
+   Animación:
+   · fuegos fatuos verdes que flotan, parpadean y se reflejan en el agua;
+   · el agua del pantano ondula y aparecen anillos donde caen gotas;
+   · musgo colgante de los árboles y crin del wendigo que se mecen;
+   · niebla verde que se arrastra entre las ruinas; esporas y luciérnagas en el aire;
+   · baba verde que gotea del cuerpo del wendigo y vaho que sale de sus fauces;
+   · cada ~7 s el wendigo ruge: los ojos estallan de luz, escupe una bocanada de vaho,
+     los fuegos fatuos se avivan, la escena se oscurece y tiembla un instante.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.pantano_wendigo = {nombre: 'El Pantano: El Wendigo', mini: 'banners/pantano_wendigo.webp', req: 'Vence el Pantano verde'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX, SRC = 'banners/pantano_wendigo.webp', img = null;
+  var FATUOS = [[904,99],[392,196],[257,310],[405,379],[853,324],[711,369],[837,448],[1025,439],[735,579],[566,490],[1864,101],[1947,339],[1211,81],[1675,512],[1250,372],[1219,440]];
+  var OJO = [1707,259], BOCA = [1766,338];
+  var MUSGO = [[0,40,180,280],[230,0,190,250],[1880,0,168,330],[430,140,420,200]];   /* cuelga desde arriba: x, y, ancho, alto */
+  var CRIN = [1290,100,390,230];
+  var BABA = [[1350,330],[1420,380],[1480,420],[1560,400],[1600,450],[1250,420],[1300,470]];
+  var AGUA = [0, 595, 930, 173];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#0a1a10';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!img) { img = new Image(); img.src = SRC; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var esporas = [], gotas = [], anillos = [], vaho = [], niebla = [], ondaR = [], prox = 3, rugido = 0;
+    for (var i = 0; i < 70; i++) esporas.push({x: rnd(0, W), y: rnd(0, H), v: rnd(.05, .25), f: rnd(0, 6.28), lu: Math.random() < .3});
+    for (i = 0; i < 12; i++) niebla.push({x: rnd(-200, W), y: rnd(380, 640), r: rnd(110, 220), v: rnd(.15, .45), o: rnd(.06, .14)});
+    FATUOS.forEach(function (f, k) { f.ph = k * 1.37; f.v = .7 + (k * .23) % .6; });
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = a; ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      if (!img.complete || !img.naturalWidth) return;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      if (quieto) { ctx.drawImage(img, 0, 0, W, H); vivo = false; return; }
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); rugido = 1;
+        for (var k = 0; k < 40; k++) vaho.push({x: BOCA[0], y: BOCA[1], vx: rnd(2, 7), vy: rnd(-1.5, 2), r: rnd(12, 26), t: 0, l: rnd(50, 90), f: 1});
+        ondaR.push({r: 20, t: 0}); }
+      rugido = Math.max(0, rugido - d / 40);
+      var sh = rugido > .75 ? (Math.random() - .5) * 5 : 0;
+      ctx.drawImage(img, sh, sh * .5, W, H);
+      /* agua: tiras que ondulan, más cuanto más cerca */
+      for (var y = 0; y < AGUA[3]; y += 2) { var kk = y / AGUA[3];
+        var dx = Math.round((1 + 3 * kk) * Math.sin(t * 1.3 + y * 0.18)); if (dx) ctx.drawImage(img, AGUA[0], AGUA[1] + y, AGUA[2], 2, AGUA[0] + dx + sh, AGUA[1] + y, AGUA[2], 2); }
+      /* musgo colgante y crin */
+      MUSGO.forEach(function (c, k) { for (var y2 = 0; y2 < c[3]; y2 += 2) { var k2 = y2 / c[3];
+        var dx2 = Math.round(4 * k2 * Math.sin(t * 1.1 - y2 * 0.025 + k * 1.9)); if (dx2) ctx.drawImage(img, c[0], c[1] + y2, c[2], 2, c[0] + dx2 + sh, c[1] + y2, c[2], 2); } });
+      for (y = 0; y < CRIN[3]; y += 2) { var k3 = y / CRIN[3];
+        var dx3 = Math.round((2 + 3 * rugido) * k3 * Math.sin(t * 1.8 - y * 0.04)); if (dx3) ctx.drawImage(img, CRIN[0], CRIN[1] + y, CRIN[2], 2, CRIN[0] + dx3 + sh, CRIN[1] + y, CRIN[2], 2); }
+      /* oscurecimiento del rugido */
+      if (rugido > 0) { ctx.fillStyle = 'rgba(0,8,2,' + (.38 * rugido) + ')'; ctx.fillRect(0, 0, W, H); }
+      ca.clearRect(0, 0, w, h);
+      /* niebla */
+      niebla.forEach(function (n) { n.x += n.v * d; if (n.x - n.r > W) n.x = -n.r;
+        var g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r); g.addColorStop(0, 'rgba(150,200,160,' + n.o + ')'); g.addColorStop(1, 'rgba(150,200,160,0)');
+        ctx.fillStyle = g; ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2); });
+      /* fuegos fatuos y su reflejo */
+      FATUOS.forEach(function (f, k) {
+        var fl = .55 + .45 * Math.sin(t * 4 * f.v + f.ph) * Math.sin(t * 7.3 + k), by = 6 * Math.sin(t * f.v + f.ph), bx = 4 * Math.sin(t * .7 * f.v + k);
+        var x = f[0] + bx, y3 = f[1] + by;
+        glow(x, y3, 34 + 10 * fl + 30 * rugido, 'rgba(90,255,110,A)', .25 + .25 * fl + .4 * rugido);
+        glow(x, y3, 8, 'rgba(220,255,210,A)', .5 + .4 * fl);
+        if (Math.random() < .05 * d) esporas.push({x: x, y: y3, v: rnd(.3, .7), f: rnd(0, 6.28), lu: true, l: 60, t: 0});
+        if (f[0] < AGUA[2] && f[1] < AGUA[1]) {   /* reflejo en el agua */
+          var ry = AGUA[1] + (AGUA[1] - y3) * .35 + 20;
+          if (ry < H) for (var j = 0; j < 4; j++) px(x + 6 * Math.sin(t * 3 + j + k), ry + j * 6, '#7dff8a', (.35 + .3 * fl) * (1 - j / 4), 2);
+        }
+      });
+      /* ojo y vaho */
+      var oj = .6 + .4 * Math.sin(t * 2.7);
+      glow(OJO[0], OJO[1], 18 + 90 * rugido, 'rgba(110,255,120,A)', .45 + .3 * oj + .6 * rugido);
+      if (rugido > 0) { glow(OJO[0] + 60, OJO[1], 140 * rugido + 40, 'rgba(80,255,100,A)', .18 * rugido);
+        for (var q = 0; q < 2; q++) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(160,255,170,' + (.5 * rugido) + ')'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(OJO[0] + 8, OJO[1]); ctx.lineTo(OJO[0] + 40 + 80 * (1 - rugido), OJO[1] - 6 + q * 12); ctx.stroke(); ctx.restore(); } }
+      ondaR.forEach(function (o) { o.t += d; o.r += 10 * d; var al = Math.max(0, 1 - o.t / 35);
+        ctx.strokeStyle = 'rgba(150,255,160,' + (.45 * al) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(BOCA[0], BOCA[1], o.r, -1.2, 1.2); ctx.stroke(); });
+      ondaR = ondaR.filter(function (o) { return o.t < 35; });
+      glow(OJO[0], OJO[1], 6, 'rgba(230,255,220,A)', .8);
+      if (Math.random() < .08 * d) vaho.push({x: BOCA[0], y: BOCA[1], vx: rnd(.3, 1), vy: rnd(-.3, .3), r: rnd(6, 12), t: 0, l: rnd(50, 80), f: 0});
+      vaho.forEach(function (v) { v.t += d; v.x += v.vx * d; v.y += v.vy * d - .1 * d; v.vx *= .97; v.r += .5 * d;
+        var a = (v.f ? .45 : .16) * Math.sin(Math.PI * v.t / v.l), g = ctx.createRadialGradient(v.x, v.y, 0, v.x, v.y, v.r);
+        g.addColorStop(0, 'rgba(170,255,170,' + a + ')'); g.addColorStop(1, 'rgba(170,255,170,0)'); ctx.fillStyle = g; ctx.fillRect(v.x - v.r, v.y - v.r, v.r * 2, v.r * 2); });
+      vaho = vaho.filter(function (v) { return v.t < v.l; });
+      /* baba que gotea del wendigo */
+      BABA.forEach(function (b, k) { if (Math.random() < .03 * d) gotas.push({x: b[0], y: b[1], vy: 0, t: 0, agua: false}); });
+      if (Math.random() < .05 * d) gotas.push({x: rnd(20, 900), y: rnd(0, 250), vy: 0, t: 0, agua: true});   /* gotas que caen al pantano */
+      gotas.forEach(function (g) { g.t += d; g.vy += .25 * d; g.y += g.vy * d;
+        px(g.x, g.y, g.agua ? '#b8ffc0' : '#8cff60', .8, 1); px(g.x, g.y - 3, g.agua ? '#b8ffc0' : '#8cff60', .4, 1);
+        if (g.agua && g.y > AGUA[1] + 20 + (g.x % 100)) { g.muerta = true; anillos.push({x: g.x, y: g.y, r: 2, t: 0}); }
+        if (!g.agua && g.y > 640) g.muerta = true; });
+      gotas = gotas.filter(function (g) { return !g.muerta && g.y < H; });
+      anillos.forEach(function (a2) { a2.t += d; a2.r += .8 * d; var al = Math.max(0, 1 - a2.t / 40);
+        ctx.strokeStyle = 'rgba(170,255,180,' + (.4 * al) + ')'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(a2.x, a2.y, a2.r * 2, a2.r * .6, 0, 0, 6.283); ctx.stroke(); });
+      anillos = anillos.filter(function (a2) { return a2.t < 40; });
+      /* esporas y luciérnagas */
+      esporas.forEach(function (e) { e.y -= e.v * d; e.x += Math.sin(t * .6 + e.f) * .3 * d; if (e.l) e.t += d;
+        if (e.y < -4) { e.y = H; e.x = rnd(0, W); }
+        var a3 = e.lu ? (.4 + .5 * Math.sin(t * 3 + e.f)) : .3; if (e.l) a3 *= 1 - e.t / e.l;
+        px(e.x, e.y, e.lu ? '#b4ff7a' : '#cfe8c8', a3, e.lu ? 2 : 1); });
+      esporas = esporas.filter(function (e) { return !e.l || e.t < e.l; });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.pantano_wendigo.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «La Forja: El Devorador»  (recompensa por vencer la Forja)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS de los bloques de los otros banners (usa su selector bannerPerfil por id).
+   Archivo: banners/forja_devorador.webp
+   Uso:  var b = bannerPerfil(contenedor, 'forja_devorador');   ...   b.stop();
+   Animación:
+   · el fuego morado de la garra arde, se estira y suelta chispas violetas;
+   · las cascadas de lava de la fortaleza, la baba de lava de la boca y los chorros
+     de la maza fluyen hacia abajo, con salpicaduras al caer;
+   · el río de lava ondula y brilla; los hornos y las chimeneas laten y echan humo;
+   · ascuas y ceniza suben por todo el aire; la cadena del gancho se balancea;
+   · los ojos amarillos laten;
+   · cada ~7 s el Devorador estalla: el fuego morado se dispara con una onda violeta,
+     los ojos destellan, la lava erupciona a sus pies, la escena se tiñe de rojo y tiembla.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.forja_devorador = {nombre: 'La Forja: El Devorador', mini: 'banners/forja_devorador.webp', req: 'Vence la Forja'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX, SRC = 'banners/forja_devorador.webp', img = null;
+  var LLAMA = [1050, 140, 250, 340], BASE = [1185, 468], CENTRO = [1180, 330];   /* fuego morado: caja, base y centro */
+  var OJOS = [[1495, 172], [1560, 160]];
+  /* chorros de lava que fluyen: x, y, ancho, alto, velocidad */
+  var CHORROS = [[585, 335, 75, 200, 3.2], [700, 215, 50, 190, 3.6], [995, 450, 45, 85, 2.6], [1525, 430, 50, 200, 2.2], [1870, 520, 130, 110, 2.4]];
+  var PIES = [[625, 528], [722, 400], [1017, 528], [1548, 625], [1898, 628], [1928, 628], [1962, 628], [1988, 625]];   /* salpicaduras */
+  var RIO = [0, 662, 900, 106];
+  var CADENA = [30, 30, 100, 250];
+  var HORNOS = [[330, 240], [720, 190], [860, 330], [945, 400], [1025, 365], [820, 165], [985, 250], [400, 400], [640, 300]];
+  var CHIMENEAS = [[946, 62], [1052, 64]];
+  var GEISERES = [[1290, 640], [1470, 655], [1640, 640], [1800, 618], [1150, 700], [1960, 640]];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  /* recorta de la imagen los píxeles que cumplen la condición (para la llama y los chorros) */
+  function mascara(r, cond) {
+    var c = document.createElement('canvas'); c.width = r[2]; c.height = r[3]; var x = c.getContext('2d');
+    x.drawImage(img, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]);
+    var d = x.getImageData(0, 0, r[2], r[3]), p = d.data;
+    for (var i = 0; i < p.length; i += 4) if (!cond(p[i], p[i + 1], p[i + 2])) p[i + 3] = 0;
+    x.putImageData(d, 0, 0); return c;
+  }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#1a0503';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    var tmp = document.createElement('canvas'), tx = tmp.getContext('2d');
+    if (!img) { img = new Image(); img.src = SRC; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [], capas = null;
+    var ascuas = [], chispas = [], gotas = [], humo = [], ondas = [], prox = 3, golpe = 0;
+    for (var i = 0; i < 110; i++) ascuas.push({x: rnd(0, W), y: rnd(0, H), v: rnd(.3, 1.4), f: rnd(0, 6.28), c: Math.random() < .2 ? 1 : 0});
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = Math.max(0, Math.min(1, a)); ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function preparar() {
+      try {
+        capas = {llama: mascara(LLAMA, function (r, g, b) { return b > 110 && b > g * 1.6 && r > 90; }),
+                 chorros: CHORROS.map(function (c) { return mascara(c, function (r, g) { return r > 170 && g > 60; }); })};
+      } catch (e) { capas = false; }   /* si el navegador no deja leer píxeles, se anima sin esas capas */
+    }
+    /* lava que baja: la propia textura desplazada hacia abajo, recortada a la forma del chorro */
+    function fluir(c, m, t, k) {
+      var ww = c[2], hh = c[3]; if (tmp.width !== ww || tmp.height !== hh) { tmp.width = ww; tmp.height = hh; } else tx.clearRect(0, 0, ww, hh);
+      var off = Math.floor((t * c[4] * 30 + k * 37) % hh);
+      tx.globalCompositeOperation = 'source-over'; tx.globalAlpha = 1;
+      tx.drawImage(m, 0, 0, ww, hh - off, 0, off, ww, hh - off); tx.drawImage(m, 0, hh - off, ww, off, 0, 0, ww, off);
+      /* pulsos brillantes que bajan */
+      var yb = ((t * c[4] * 45 + k * 53) % (hh + 60)) - 30, g = tx.createLinearGradient(0, yb - 30, 0, yb + 30);
+      g.addColorStop(0, 'rgba(255,240,150,0)'); g.addColorStop(.5, 'rgba(255,240,150,.9)'); g.addColorStop(1, 'rgba(255,240,150,0)');
+      tx.globalCompositeOperation = 'source-atop'; tx.fillStyle = g; tx.fillRect(0, yb - 30, ww, 60);
+      tx.globalCompositeOperation = 'destination-in'; tx.drawImage(m, 0, 0);
+      ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .55; ctx.drawImage(tmp, c[0], c[1]); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      if (!img.complete || !img.naturalWidth) return;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      if (quieto) { ctx.drawImage(img, 0, 0, W, H); vivo = false; return; }
+      if (capas === null) preparar();
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); golpe = 1;
+        ondas.push({r: 30, t: 0});
+        for (var k = 0; k < 70; k++) { var an = rnd(0, 6.28), v = rnd(3, 11); chispas.push({x: CENTRO[0], y: CENTRO[1], vx: Math.cos(an) * v, vy: Math.sin(an) * v - 2, t: 0, l: rnd(25, 50), m: 1, g: .08}); }
+        GEISERES.forEach(function (p) { for (var j = 0; j < 30; j++) gotas.push({x: p[0] + rnd(-25, 25), y: p[1], vx: rnd(-3, 3), vy: -rnd(6, 17), t: 0, lava: 1}); ondas.push({r: 10, t: 0, x: p[0], y: p[1], suelo: 1}); });
+      }
+      golpe = Math.max(0, golpe - d / 45);
+      var sh = golpe > .7 ? (Math.random() - .5) * 7 : 0;
+      ctx.drawImage(img, sh, sh * .5, W, H);
+      /* río de lava: tiras que ondulan */
+      for (var y = 0; y < RIO[3]; y += 2) { var kk = y / RIO[3];
+        var dx = Math.round((1 + 3 * kk) * Math.sin(t * 1.1 + y * 0.15)); if (dx) ctx.drawImage(img, RIO[0], RIO[1] + y, RIO[2], 2, RIO[0] + dx + sh, RIO[1] + y, RIO[2], 2); }
+      /* cadena del gancho que se balancea */
+      var bal = (3 + 4 * golpe) * Math.sin(t * 1.3);
+      for (y = 0; y < CADENA[3]; y += 2) { var dc = Math.round(bal * (y / CADENA[3])); if (dc) ctx.drawImage(img, CADENA[0], CADENA[1] + y, CADENA[2], 2, CADENA[0] + dc + sh, CADENA[1] + y, CADENA[2], 2); }
+      /* fuego morado: la llama ondula (más arriba, más) */
+      for (y = 0; y < LLAMA[3]; y += 2) { var kl = 1 - y / LLAMA[3];
+        var dl = Math.round((2 + 3 * golpe) * kl * Math.sin(t * 6 - y * 0.06) + kl * Math.sin(t * 9.7 - y * 0.11)); if (dl) ctx.drawImage(img, LLAMA[0], LLAMA[1] + y, LLAMA[2], 2, LLAMA[0] + dl + sh, LLAMA[1] + y, LLAMA[2], 2); }
+      /* chorros de lava */
+      if (capas) CHORROS.forEach(function (c, k) { fluir(c, capas.chorros[k], t, k); });
+      /* la llama respira: copia aditiva estirada desde la base */
+      if (capas) { var fl = .5 + .5 * Math.sin(t * 5.3) * Math.sin(t * 3.1 + 1), es = 1 + .05 * fl + .3 * golpe;
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .25 + .25 * fl + .5 * golpe;
+        ctx.translate(BASE[0] + sh, BASE[1]); ctx.scale(1 + .1 * golpe, es); ctx.translate(-BASE[0], -BASE[1]);
+        ctx.drawImage(capas.llama, LLAMA[0], LLAMA[1] - 4 * Math.sin(t * 7)); ctx.restore(); }
+      /* tinte del estallido: rojo al principio, oscuro después */
+      if (golpe > 0) { ctx.fillStyle = golpe > .8 ? 'rgba(255,60,20,' + ((golpe - .8) * 1.2) + ')' : 'rgba(20,0,0,' + (.35 * golpe) + ')'; ctx.fillRect(0, 0, W, H); }
+      ca.clearRect(0, 0, w, h);
+      /* hornos y chimeneas */
+      HORNOS.forEach(function (o, k) { glow(o[0], o[1], 70, 'rgba(255,120,30,A)', .1 + .08 * Math.sin(t * 2.3 + k * 1.7) + .2 * golpe); });
+      CHIMENEAS.forEach(function (c, k) { var f2 = .5 + .5 * Math.sin(t * 8 + k * 2) * Math.sin(t * 5.1 + k);
+        glow(c[0], c[1] - 6, 30 + 10 * f2, 'rgba(255,170,50,A)', .3 + .3 * f2);
+        if (Math.random() < .25 * d) humo.push({x: c[0] + rnd(-8, 8), y: c[1] - 20, vx: rnd(.3, .9), vy: -rnd(.6, 1.2), r: rnd(10, 18), t: 0, l: rnd(90, 140)});
+        if (Math.random() < .3 * d) chispas.push({x: c[0] + rnd(-10, 10), y: c[1] - 10, vx: rnd(-.5, 1), vy: -rnd(1, 2.5), t: 0, l: rnd(20, 40), m: 0, g: 0}); });
+      humo.forEach(function (s) { s.t += d; s.x += s.vx * d; s.y += s.vy * d; s.r += .35 * d;
+        var a = .3 * Math.sin(Math.PI * s.t / s.l), g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+        g.addColorStop(0, 'rgba(40,18,18,' + a + ')'); g.addColorStop(1, 'rgba(40,18,18,0)'); ctx.fillStyle = g; ctx.fillRect(s.x - s.r, s.y - s.r, s.r * 2, s.r * 2); });
+      humo = humo.filter(function (s) { return s.t < s.l; });
+      /* fuego morado: halo, chispas violetas y onda del estallido */
+      var fm = .5 + .5 * Math.sin(t * 4.1) * Math.sin(t * 6.7);
+      glow(CENTRO[0], CENTRO[1] + 40, 150 + 30 * fm + 200 * golpe, 'rgba(200,60,255,A)', .2 + .12 * fm + .5 * golpe);
+      glow(BASE[0], BASE[1] - 20, 50, 'rgba(255,200,255,A)', .35 + .2 * fm + .5 * golpe);
+      if (Math.random() < .7 * d) chispas.push({x: BASE[0] + rnd(-90, 90), y: BASE[1] - rnd(0, 120), vx: rnd(-.6, .6), vy: -rnd(1.5, 4), t: 0, l: rnd(25, 55), m: 1, g: -.02});
+      ondas.forEach(function (o) { o.t += d; o.r += 16 * d; var al = Math.max(0, 1 - o.t / 32);
+        if (o.suelo) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,170,60,' + (.5 * al) + ')'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(o.x, o.y, o.r * .6, o.r * .15, 0, 0, 6.283); ctx.stroke(); ctx.restore(); return; }
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(220,120,255,' + (.6 * al) + ')'; ctx.lineWidth = 6 * al + 1; ctx.beginPath(); ctx.arc(CENTRO[0], CENTRO[1], o.r, 0, 6.283); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,220,255,' + (.4 * al) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(CENTRO[0], CENTRO[1], o.r * .8, 0, 6.283); ctx.stroke(); ctx.restore(); });
+      ondas = ondas.filter(function (o) { return o.t < 32; });
+      /* ojos */
+      var oj = .6 + .4 * Math.sin(t * 2.2);
+      OJOS.forEach(function (o) { glow(o[0], o[1], 16 + 70 * golpe, 'rgba(255,230,80,A)', .4 + .3 * oj + .6 * golpe); glow(o[0], o[1], 5, 'rgba(255,255,220,A)', .8); });
+      if (golpe > .3) OJOS.forEach(function (o, q) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,240,140,' + (.6 * golpe) + ')'; ctx.lineWidth = 2;
+        var L = 10 + 34 * golpe; ctx.beginPath(); ctx.moveTo(o[0] - L, o[1]); ctx.lineTo(o[0] + L, o[1]); ctx.moveTo(o[0], o[1] - L * .4); ctx.lineTo(o[0], o[1] + L * .4); ctx.stroke(); ctx.restore(); });
+      /* salpicaduras al pie de los chorros */
+      PIES.forEach(function (p) { if (Math.random() < .12 * d) gotas.push({x: p[0] + rnd(-8, 8), y: p[1], vx: rnd(-1.2, 1.2), vy: -rnd(1.5, 4), t: 0, lava: 0});
+        glow(p[0], p[1], 22, 'rgba(255,190,60,A)', .25 + .15 * Math.sin(t * 7 + p[0])); });
+      gotas.forEach(function (g) { g.t += d; g.vy += .35 * d; g.x += g.vx * d; g.y += g.vy * d;
+        var c = g.t < 8 ? '#fff4b0' : '#ffb028'; px(g.x, g.y, c, 1, g.lava ? 2 : 1); px(g.x - g.vx, g.y - g.vy, '#ff6a10', .6, 1);
+        if (g.lava && g.t < 3) glow(g.x, g.y, 40, 'rgba(255,140,40,A)', .4); });
+      gotas = gotas.filter(function (g) { return g.t < 70 && g.y < H; });
+      /* chispas */
+      chispas.forEach(function (s) { s.t += d; s.vy += s.g * d; s.x += s.vx * d; s.y += s.vy * d; s.vx *= .98;
+        var a = 1 - s.t / s.l; px(s.x, s.y, s.m ? (a > .5 ? '#ffd8ff' : '#c050ff') : (a > .5 ? '#fff0a0' : '#ff8a20'), a, s.m && a > .6 ? 2 : 1); });
+      chispas = chispas.filter(function (s) { return s.t < s.l; });
+      /* ascuas y ceniza */
+      ascuas.forEach(function (e) { e.y -= e.v * d * (1 + 2 * golpe); e.x += (Math.sin(t * .8 + e.f) * .5 + .4) * d;
+        if (e.y < -4 || e.x > W + 4) { e.y = H + 2; e.x = rnd(-100, W); }
+        var a = e.c ? .35 : .5 + .5 * Math.sin(t * 4 + e.f); px(e.x, e.y, e.c ? '#7a6060' : (a > .7 ? '#ffe080' : '#ff7a20'), a, e.c ? 1 : (e.v > 1.1 ? 2 : 1)); });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.forja_devorador.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «El Santuario: El Pontífice»  (recompensa por vencer el Santuario)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS de los bloques de los otros banners (usa su selector bannerPerfil por id).
+   Archivo: banners/santuario_pontifice.webp
+   Uso:  var b = bannerPerfil(contenedor, 'santuario_pontifice');   ...   b.stop();
+   Animación:
+   · el aura morada de la cruz gira en remolinos y late;
+   · las velas parpadean y sueltan hilos de humo;
+   · los haces de luz de las vidrieras respiran, con polvo flotando dentro;
+   · el rosetón late con luz morada;
+   · la capa rota del Pontífice y los estandartes ondean;
+   · pétalos morados caen girando; niebla baja entre las ruinas; los ojos brillan;
+   · cada ~7 s el Pontífice lanza una bendición oscura: la cruz estalla en una onda
+     violeta, las velas se avivan, el rosetón destella, los pétalos salen despedidos,
+     la escena se oscurece y tiembla.
+   Con «reducir movimiento» del sistema se queda la imagen quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.santuario_pontifice = {nombre: 'El Santuario: El Pontífice', mini: 'banners/santuario_pontifice.webp', req: 'Vence el Santuario'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX, SRC = 'banners/santuario_pontifice.webp', img = null;
+  var CRUZ = [1440, 118], OJOS = [[1612, 228], [1640, 228]], ROSETON = [1710, 72];
+  var VELAS = [[43,384],[92,362],[118,428],[426,461],[438,478],[625,520],[648,508],[328,41],[389,61],[450,102],[497,123],[532,154],
+    [1130,585],[1153,590],[1177,608],[1255,545],[1282,540],[1300,578],[1323,575],[1740,535],[1770,527],[1802,533],[1845,550],[1818,578],[1872,555],[1950,446],[1980,435],[2012,412],[2040,420]];
+  var ESTANDARTES = [[40, 0, 140, 300], [645, 60, 105, 400], [1025, 395, 78, 165], [1900, 250, 85, 140]];   /* cuelgan: ondean más abajo */
+  var CAPA_I = [1160, 285, 290, 290], CAPA_D = [1790, 300, 160, 175];
+  var RAYOS = [[1185, -30, 760, 430, 60], [1110, -30, 690, 330, 45], [1240, -30, 900, 380, 35]];   /* x0,y0 → x1,y1, ancho */
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#140a20';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!img) { img = new Image(); img.src = SRC; }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var petalos = [], polvo = [], remolino = [], humo = [], chispas = [], ondas = [], niebla = [], prox = 3, golpe = 0;
+    for (var i = 0; i < 38; i++) petalos.push({x: rnd(0, W), y: rnd(-H, H), vx: rnd(-.8, -.2), vy: rnd(.5, 1.2), a: rnd(0, 6.28), va: rnd(.05, .15), f: rnd(0, 6.28)});
+    for (i = 0; i < 60; i++) { var rr = RAYOS[i % 3], u = Math.random(); polvo.push({r: i % 3, u: u, o: rnd(-1, 1), f: rnd(0, 6.28), v: rnd(.0004, .0012)}); }
+    for (i = 0; i < 46; i++) remolino.push({a: rnd(0, 6.28), r: rnd(30, 120), v: rnd(.02, .05) * (Math.random() < .5 ? 1 : -1), y: rnd(.4, .8), f: rnd(0, 6.28)});
+    for (i = 0; i < 10; i++) niebla.push({x: rnd(-200, W), y: rnd(520, 740), r: rnd(120, 230), v: rnd(.15, .4), o: rnd(.06, .13)});
+    VELAS.forEach(function (v, k) { v.ph = k * 1.91; });
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = Math.max(0, Math.min(1, a)); ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    /* tela que ondea en vertical (columnas desplazadas), más hacia el extremo libre */
+    function ondearCapa(c, haciaIzq, t, amp, sh) {
+      for (var x = 0; x < c[2]; x += 2) { var k = haciaIzq ? 1 - x / c[2] : x / c[2]; k = k * k;
+        var dy = Math.round(amp * k * Math.sin(t * 2.3 - (haciaIzq ? c[2] - x : x) * 0.03) + amp * .4 * k * Math.sin(t * 4.1 + x * .07));
+        if (dy) ctx.drawImage(img, c[0] + x, c[1], 2, c[3], c[0] + x + sh, c[1] + dy, 2, c[3]); }
+    }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      if (!img.complete || !img.naturalWidth) return;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      if (quieto) { ctx.drawImage(img, 0, 0, W, H); vivo = false; return; }
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); golpe = 1;
+        ondas.push({r: 20, t: 0}); ondas.push({r: 0, t: -6});
+        for (var k = 0; k < 60; k++) { var an = rnd(0, 6.28), v = rnd(3, 10); chispas.push({x: CRUZ[0], y: CRUZ[1], vx: Math.cos(an) * v, vy: Math.sin(an) * v, t: 0, l: rnd(25, 50)}); }
+        petalos.forEach(function (p) { var dx = p.x - CRUZ[0], dy = p.y - CRUZ[1], dd = Math.max(80, Math.hypot(dx, dy)); p.vx += dx / dd * 6; p.vy += dy / dd * 4; p.va += .3; });
+      }
+      golpe = Math.max(0, golpe - d / 45);
+      var sh = golpe > .75 ? (Math.random() - .5) * 5 : 0;
+      ctx.drawImage(img, sh, sh * .5, W, H);
+      /* estandartes */
+      ESTANDARTES.forEach(function (c, k) { for (var y = 0; y < c[3]; y += 2) { var ky = y / c[3];
+        var dx = Math.round((3 + 4 * golpe) * ky * Math.sin(t * 1.4 - y * 0.02 + k * 1.7)); if (dx) ctx.drawImage(img, c[0], c[1] + y, c[2], 2, c[0] + dx + sh, c[1] + y, c[2], 2); } });
+      /* capa del Pontífice */
+      ondearCapa(CAPA_I, true, t, 5 + 6 * golpe, sh);
+      ondearCapa(CAPA_D, false, t + 1, 4 + 5 * golpe, sh);
+      /* oscurecimiento de la bendición */
+      if (golpe > 0) { ctx.fillStyle = golpe > .85 ? 'rgba(200,120,255,' + ((golpe - .85) * 1.6) + ')' : 'rgba(10,0,20,' + (.4 * golpe) + ')'; ctx.fillRect(0, 0, W, H); }
+      ca.clearRect(0, 0, w, h);
+      /* haces de luz de las vidrieras */
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      RAYOS.forEach(function (r, k) { var a = .05 + .035 * Math.sin(t * .9 + k * 2.1) + .12 * golpe;
+        var g = ctx.createLinearGradient(r[0], r[1], r[2], r[3]); g.addColorStop(0, 'rgba(220,180,255,' + a + ')'); g.addColorStop(1, 'rgba(220,180,255,0)');
+        var nx = (r[3] - r[1]), ny = -(r[2] - r[0]), nl = Math.hypot(nx, ny), hw = r[4] / 2; nx = nx / nl * hw; ny = ny / nl * hw;
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(r[0] + nx * .7, r[1] + ny * .7); ctx.lineTo(r[2] + nx * 1.3, r[3] + ny * 1.3); ctx.lineTo(r[2] - nx * 1.3, r[3] - ny * 1.3); ctx.lineTo(r[0] - nx * .7, r[1] - ny * .7); ctx.fill(); });
+      ctx.restore();
+      polvo.forEach(function (p) { var r = RAYOS[p.r]; p.u += p.v * d; if (p.u > 1) p.u = 0;
+        var x = r[0] + (r[2] - r[0]) * p.u + p.o * r[4] * .5 + 6 * Math.sin(t * .5 + p.f), y = r[1] + (r[3] - r[1]) * p.u;
+        px(x, y, '#f0e0ff', (.3 + .3 * Math.sin(t * 2 + p.f)) * (1 - p.u), 1); });
+      /* niebla */
+      niebla.forEach(function (n) { n.x += n.v * d; if (n.x - n.r > W) n.x = -n.r;
+        var g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r); g.addColorStop(0, 'rgba(170,130,210,' + n.o + ')'); g.addColorStop(1, 'rgba(170,130,210,0)');
+        ctx.fillStyle = g; ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2); });
+      /* rosetón */
+      var ro = .5 + .5 * Math.sin(t * 1.2);
+      glow(ROSETON[0], ROSETON[1], 170 + 60 * golpe, 'rgba(190,110,255,A)', .1 + .07 * ro + .4 * golpe);
+      glow(ROSETON[0], ROSETON[1], 22, 'rgba(255,230,255,A)', .4 + .3 * ro + .5 * golpe);
+      /* velas */
+      VELAS.forEach(function (v, k) { var fl = .55 + .45 * Math.sin(t * 9 + v.ph) * Math.sin(t * 5.3 + k), big = 1 + 1.2 * golpe;
+        glow(v[0], v[1], (18 + 6 * fl) * big, 'rgba(200,100,255,A)', .3 + .25 * fl + .3 * golpe);
+        glow(v[0], v[1] - 2, 5 * big, 'rgba(255,235,255,A)', .5 + .4 * fl);
+        var lx = v[0] + 2 * Math.sin(t * 6 + v.ph); px(lx, v[1] - 8 * big - 2 * fl, '#f0b8ff', .6 * fl, 1);
+        if (Math.random() < .015 * d) humo.push({x: v[0], y: v[1] - 10, t: 0, l: rnd(50, 90), f: rnd(0, 6.28)}); });
+      humo.forEach(function (s) { s.t += d; s.y -= .6 * d; var x = s.x + 5 * Math.sin(s.t * .12 + s.f) * (s.t / s.l);
+        px(x, s.y, '#b9a6cc', .35 * (1 - s.t / s.l), 1); });
+      humo = humo.filter(function (s) { return s.t < s.l; });
+      /* aura de la cruz: remolino de chispas */
+      var cr = .5 + .5 * Math.sin(t * 2.6);
+      glow(CRUZ[0], CRUZ[1], 110 + 25 * cr + 220 * golpe, 'rgba(190,70,255,A)', .2 + .12 * cr + .5 * golpe);
+      glow(CRUZ[0], CRUZ[1], 26 + 30 * golpe, 'rgba(255,220,255,A)', .35 + .2 * cr + .5 * golpe);
+      remolino.forEach(function (p) { p.a += p.v * d * (1 + 3 * golpe); var r = p.r * (1 + .5 * golpe);
+        for (var j = 0; j < 3; j++) { var aa = p.a - j * p.v * 3; px(CRUZ[0] + Math.cos(aa) * r, CRUZ[1] + Math.sin(aa) * r * p.y, j ? '#a040ff' : '#f0c0ff', (.5 + .4 * Math.sin(t * 3 + p.f)) * (1 - j / 3), 1); } });
+      ondas.forEach(function (o) { o.t += d; if (o.t < 0) return; o.r += 18 * d; var al = Math.max(0, 1 - o.t / 34);
+        ctx.save(); ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(210,120,255,' + (.6 * al) + ')'; ctx.lineWidth = 6 * al + 1; ctx.beginPath(); ctx.arc(CRUZ[0], CRUZ[1], o.r, 0, 6.283); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,230,255,' + (.35 * al) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(CRUZ[0], CRUZ[1], o.r * .85, 0, 6.283); ctx.stroke(); ctx.restore(); });
+      ondas = ondas.filter(function (o) { return o.t < 34; });
+      /* destello en cruz sobre la cruz al bendecir */
+      if (golpe > .2) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,220,255,' + (.7 * golpe) + ')'; ctx.lineWidth = 3;
+        var L = 40 + 160 * (1 - golpe); ctx.beginPath(); ctx.moveTo(CRUZ[0] - L, CRUZ[1]); ctx.lineTo(CRUZ[0] + L, CRUZ[1]); ctx.moveTo(CRUZ[0], CRUZ[1] - L * 1.2); ctx.lineTo(CRUZ[0], CRUZ[1] + L * 1.2); ctx.stroke(); ctx.restore(); }
+      /* ojos */
+      var oj = .6 + .4 * Math.sin(t * 2.1);
+      OJOS.forEach(function (o) { glow(o[0], o[1], 12 + 50 * golpe, 'rgba(255,240,170,A)', .45 + .3 * oj + .5 * golpe); glow(o[0], o[1], 4, 'rgba(255,255,235,A)', .9); });
+      /* chispas */
+      chispas.forEach(function (s) { s.t += d; s.x += s.vx * d; s.y += s.vy * d; s.vx *= .96; s.vy = s.vy * .96 + .05 * d;
+        var a = 1 - s.t / s.l; px(s.x, s.y, a > .5 ? '#ffe0ff' : '#b050ff', a, a > .6 ? 2 : 1); });
+      chispas = chispas.filter(function (s) { return s.t < s.l; });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+      /* pétalos (encima, opacos) */
+      petalos.forEach(function (p) { p.a += p.va * d; p.va += (.08 - p.va) * .02 * d; p.vx += (-.5 - p.vx) * .02 * d; p.vy += (.8 - p.vy) * .02 * d;
+        p.x += (p.vx + .4 * Math.sin(t + p.f)) * d; p.y += p.vy * d;
+        if (p.y > H + 10 || p.x < -10 || p.x > W + 10 || p.y < -H) { p.x = rnd(0, W + 200); p.y = -10; }
+        var s = Math.abs(Math.cos(p.a)); ctx.fillStyle = s > .5 ? '#d23ad2' : '#8e2296';
+        ctx.fillRect(Math.round(p.x / 2) * 2, Math.round(p.y / 2) * 2, Math.max(2, Math.round(6 * s / 2) * 2), 4); });
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.santuario_pontifice.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «La Librería: El Escritor»  (recompensa por vencer la Librería)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS de los bloques de los otros banners (usa su selector bannerPerfil por id).
+   Archivos: banners/libreria_escritor_fondo.webp   (fondo sin las páginas sueltas)
+             banners/libreria_escritor_paginas.png  (las páginas del dibujo, recortadas)
+             banners/libreria_escritor.webp         (imagen completa, para miniatura)
+   Uso:  var b = bannerPerfil(contenedor, 'libreria_escritor');   ...   b.stop();
+   Animación:
+   · las páginas del dibujo flotan y se balancean en el aire;
+   · los tres espíritus (rojo, morado y dorado) ondulan, laten y sueltan jirones de luz;
+   · del libro abierto suben letras doradas y la pluma deja chispas al escribir;
+   · las gafas del Escritor brillan; la lámpara y las velas parpadean;
+   · la esfera armilar se mece; la tinta gotea del escritorio; polvo flotando;
+   · cada ~7 s el Escritor reescribe la historia: las gafas destellan, los espíritus
+     se encienden, las páginas se agitan y salen despedidas, brota un torbellino de
+     letras del libro, la escena se oscurece y tiembla.
+   Con «reducir movimiento» del sistema se queda la imagen completa quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.libreria_escritor = {nombre: 'La Librería: El Escritor', mini: 'banners/libreria_escritor.webp', req: 'Vence la Librería'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX;
+  var SRC_FONDO = 'banners/libreria_escritor_fondo.webp', SRC_PAG = 'banners/libreria_escritor_paginas.png', SRC_FULL = 'banners/libreria_escritor.webp';
+  var fondo = null, pag = null, full = null;
+  /* páginas: x, y, ancho, alto en el banner, y x dentro de la hoja de páginas */
+  var PAGINAS = [[411,145,70,78,0],[1045,10,72,63,72],[1431,5,66,55,146],[1884,28,75,115,214],[629,260,62,49,291],[709,353,94,62,355],[980,498,69,63,451],[790,508,76,46,522],[440,624,90,75,600],[566,678,58,42,692],[732,686,100,63,752],[1031,288,184,113,854]];
+  var ESPIRITUS = [   /* zona que ondula, centro del brillo, color */
+    {z: [1195, 50, 285, 330], c: [1340, 210], col: '255,60,50', hex: ['#ff8070', '#ff3020']},
+    {z: [1530, 30, 330, 205], c: [1690, 130], col: '170,90,255', hex: ['#d8b0ff', '#9a50ff']},
+    {z: [1775, 180, 265, 230], c: [1880, 330], col: '255,200,80', hex: ['#fff0b0', '#ffc040']}];
+  var OJOS = [[1533, 336], [1582, 340]], LAMPARA = [1191, 517], PLUMA = [1475, 594], LIBRO = [1480, 1720, 590];
+  var ESFERA = [745, 30, 240, 250];
+  var VELAS = [[56, 353], [108, 461], [26, 276], [143, 297], [389, 358], [527, 97], [707, 133], [835, 276], [876, 655], [676, 645], [302, 681]];
+  var TINTA = [1340, 1365, 1392, 1418], LETRAS = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ§¶αβγΩ';
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function cargar(src) { var i = new Image(); i.src = src; return i; }
+  function listo(i) { return i.complete && i.naturalWidth > 0; }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#140a14';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!fondo) { fondo = cargar(SRC_FONDO); pag = cargar(SRC_PAG); full = cargar(SRC_FULL); }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var letras = [], jirones = [], gotas = [], chispas = [], polvo = [], prox = 3, golpe = 0;
+    for (var i = 0; i < 70; i++) polvo.push({x: rnd(0, W), y: rnd(0, H), v: rnd(.05, .25), f: rnd(0, 6.28)});
+    var EST = PAGINAS.map(function (p, k) { return {ph: k * 1.73, f: .6 + (k * .17) % .5, ox: 0, oy: 0, vx: 0, vy: 0, giro: 0}; });
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = Math.max(0, Math.min(1, a)); ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      if (quieto) { if (listo(full)) { ctx.drawImage(full, 0, 0, W, H); vivo = false; } return; }
+      if (!listo(fondo) || !listo(pag)) { if (listo(full)) ctx.drawImage(full, 0, 0, W, H); return; }
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); golpe = 1;
+        EST.forEach(function (e, k) { var p = PAGINAS[k], dx = p[0] + p[2] / 2 - 1550, dy = p[1] + p[3] / 2 - 560, dd = Math.max(100, Math.hypot(dx, dy));
+          e.vx += dx / dd * 5; e.vy += dy / dd * 3 - 1.5; e.giro += rnd(-.25, .25); });
+        for (var k = 0; k < 45; k++) { var an = rnd(-2.8, -.35), v = rnd(4, 10); letras.push({x: rnd(LIBRO[0], LIBRO[1]), y: LIBRO[2], vx: Math.cos(an) * v, vy: Math.sin(an) * v, t: 0, l: rnd(45, 80), c: LETRAS[(Math.random() * LETRAS.length) | 0], s: rnd(14, 22), r: rnd(-.5, .5)}); }
+        TINTA.forEach(function (x) { for (var j = 0; j < 4; j++) gotas.push({x: x + rnd(-6, 6), y: 665, vy: rnd(0, 2), vx: rnd(-.6, .6), t: 0}); });
+      }
+      golpe = Math.max(0, golpe - d / 45);
+      var sh = golpe > .75 ? (Math.random() - .5) * 5 : 0;
+      ctx.drawImage(fondo, sh, sh * .5, W, H);
+      /* esfera armilar que se mece */
+      var bal = (2.5 + 4 * golpe) * Math.sin(t * 1.1);
+      for (var y = 0; y < ESFERA[3]; y += 2) { var dx = Math.round(bal * y / ESFERA[3]); if (dx) ctx.drawImage(fondo, ESFERA[0], ESFERA[1] + y, ESFERA[2], 2, ESFERA[0] + dx + sh, ESFERA[1] + y, ESFERA[2], 2); }
+      /* espíritus que ondulan como humo (más arriba, más) */
+      ESPIRITUS.forEach(function (s, k) { var z = s.z, amp = 2.5 + 4 * golpe;
+        for (var y2 = 0; y2 < z[3]; y2 += 2) { var ky = 1 - y2 / z[3] * .6;
+          var d2 = Math.round(amp * ky * Math.sin(t * 2.2 - y2 * 0.035 + k * 2) + 1.2 * Math.sin(t * 3.7 + y2 * .09 + k));
+          if (d2) ctx.drawImage(fondo, z[0], z[1] + y2, z[2], 2, z[0] + d2 + sh, z[1] + y2, z[2], 2); } });
+      /* páginas flotando */
+      EST.forEach(function (e, k) { var p = PAGINAS[k];
+        e.vx *= Math.pow(.93, d); e.vy *= Math.pow(.93, d); e.ox += e.vx * d; e.oy += e.vy * d; e.ox *= Math.pow(.96, d); e.oy *= Math.pow(.96, d); e.giro *= Math.pow(.97, d);
+        var ang = .05 * Math.sin(t * e.f * 1.3 + e.ph) + e.giro * Math.sin(t * 9 + k), by = 4 * Math.sin(t * e.f + e.ph), bx = 2.5 * Math.sin(t * e.f * .7 + k);
+        var cx = p[0] + p[2] / 2 + bx + e.ox + sh, cy = p[1] + p[3] / 2 + by + e.oy;
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang); ctx.scale(1, 1 - .08 * Math.abs(Math.sin(t * e.f * 2 + e.ph)));
+        ctx.drawImage(pag, p[4], 0, p[2], p[3], -p[2] / 2, -p[3] / 2, p[2], p[3]); ctx.restore(); });
+      /* gotas de tinta (oscuras) */
+      if (Math.random() < .04 * d) gotas.push({x: TINTA[(Math.random() * 4) | 0] + rnd(-4, 4), y: 665, vy: 0, vx: 0, t: 0});
+      ctx.fillStyle = '#0c0610';
+      gotas.forEach(function (g) { g.t += d; g.vy += .25 * d; g.y += g.vy * d; g.x += g.vx * d; ctx.fillRect(Math.round(g.x), Math.round(g.y), 3, 5); });
+      gotas = gotas.filter(function (g) { return g.y < H; });
+      if (golpe > 0) { ctx.fillStyle = golpe > .85 ? 'rgba(255,220,150,' + ((golpe - .85) * 1.4) + ')' : 'rgba(8,0,10,' + (.4 * golpe) + ')'; ctx.fillRect(0, 0, W, H); }
+      ca.clearRect(0, 0, w, h);
+      /* velas y lámpara */
+      VELAS.forEach(function (v, k) { var fl = .55 + .45 * Math.sin(t * 8.5 + k * 1.9) * Math.sin(t * 5.1 + k);
+        glow(v[0], v[1], k < 2 ? 40 + 10 * fl : 16 + 5 * fl, 'rgba(255,180,80,A)', .25 + .2 * fl); });
+      var lf = .7 + .3 * Math.sin(t * 7) * Math.sin(t * 3.3);
+      glow(LAMPARA[0], LAMPARA[1], 120 + 20 * lf, 'rgba(255,170,60,A)', .18 + .1 * lf + .2 * golpe);
+      glow(LAMPARA[0], LAMPARA[1], 20, 'rgba(255,240,190,A)', .5 + .3 * lf);
+      /* espíritus: brillo y jirones */
+      ESPIRITUS.forEach(function (s, k) { var pu = .5 + .5 * Math.sin(t * 1.7 + k * 2.1);
+        glow(s.c[0], s.c[1], 140 + 30 * pu + 100 * golpe, 'rgba(' + s.col + ',A)', .1 + .07 * pu + .35 * golpe);
+        if (Math.random() < (.5 + 2 * golpe) * d) jirones.push({x: s.z[0] + rnd(.1, .9) * s.z[2], y: s.z[1] + rnd(.2, .9) * s.z[3], vx: rnd(-.4, .4), vy: -rnd(.4, 1.4), t: 0, l: rnd(30, 60), k: k, f: rnd(0, 6.28)}); });
+      jirones.forEach(function (j) { j.t += d; j.x += (j.vx + .5 * Math.sin(j.t * .15 + j.f)) * d; j.y += j.vy * d; var a = 1 - j.t / j.l, hx = ESPIRITUS[j.k].hex;
+        px(j.x, j.y, a > .5 ? hx[0] : hx[1], a * .8, 1); });
+      jirones = jirones.filter(function (j) { return j.t < j.l; });
+      /* gafas */
+      var oj = .6 + .4 * Math.sin(t * 2.4);
+      OJOS.forEach(function (o) { glow(o[0], o[1], 16 + 70 * golpe, 'rgba(255,230,140,A)', .4 + .3 * oj + .6 * golpe); glow(o[0], o[1], 5, 'rgba(255,255,230,A)', .8); });
+      if (golpe > .3) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,240,180,' + (.6 * golpe) + ')'; ctx.lineWidth = 2;
+        OJOS.forEach(function (o) { var L = 10 + 40 * golpe; ctx.beginPath(); ctx.moveTo(o[0] - L, o[1]); ctx.lineTo(o[0] + L, o[1]); ctx.moveTo(o[0], o[1] - L * .4); ctx.lineTo(o[0], o[1] + L * .4); ctx.stroke(); }); ctx.restore(); }
+      /* pluma: chispas de tinta dorada al escribir */
+      var px0 = PLUMA[0] + 6 * Math.sin(t * 5), py0 = PLUMA[1] + 2 * Math.sin(t * 10);
+      glow(px0, py0, 14, 'rgba(255,210,120,A)', .4 + .2 * Math.sin(t * 12));
+      if (Math.random() < .5 * d) chispas.push({x: px0, y: py0, vx: rnd(-1, 1), vy: -rnd(.3, 1.5), t: 0, l: rnd(12, 25)});
+      chispas.forEach(function (s) { s.t += d; s.x += s.vx * d; s.y += s.vy * d; px(s.x, s.y, '#ffe8a0', 1 - s.t / s.l, 1); });
+      chispas = chispas.filter(function (s) { return s.t < s.l; });
+      /* letras que suben del libro */
+      if (Math.random() < .12 * d) letras.push({x: rnd(LIBRO[0], LIBRO[1]), y: LIBRO[2], vx: rnd(-.3, .3), vy: -rnd(.4, 1), t: 0, l: rnd(70, 120), c: LETRAS[(Math.random() * LETRAS.length) | 0], s: rnd(11, 16), r: rnd(-.3, .3)});
+      ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      letras.forEach(function (l) { l.t += d; l.vx *= .985; l.vy = l.vy * .985 - .01 * d; l.x += (l.vx + .3 * Math.sin(l.t * .08 + l.s)) * d; l.y += l.vy * d;
+        var a = Math.sin(Math.PI * Math.min(1, l.t / l.l)); ctx.globalAlpha = a * .9; ctx.fillStyle = '#ffd77a';
+        ctx.font = 'bold ' + Math.round(l.s) + 'px Georgia, serif'; ctx.save(); ctx.translate(l.x, l.y); ctx.rotate(l.r + l.t * .01); ctx.fillText(l.c, 0, 0); ctx.restore();
+        glow(l.x, l.y, l.s, 'rgba(255,200,90,A)', a * .25); });
+      ctx.restore();
+      letras = letras.filter(function (l) { return l.t < l.l; });
+      /* polvo */
+      polvo.forEach(function (e) { e.y -= e.v * d; e.x += Math.sin(t * .5 + e.f) * .25 * d; if (e.y < -4) { e.y = H; e.x = rnd(0, W); }
+        px(e.x, e.y, '#e8c8a0', .2 + .2 * Math.sin(t * 2 + e.f), 1); });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.libreria_escritor.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
+/* ==========================================================================
+   BANNER DE PERFIL ANIMADO · «Primera Edición» (banner del evento de lanzamiento)
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen»,
+   DESPUÉS de los bloques de los otros banners (usa su selector bannerPerfil por id).
+   Archivos: banners/lanzamiento_fondo.webp    (fondo sin las páginas que vuelan)
+             banners/lanzamiento_paginas.png   (las páginas del dibujo, recortadas)
+             banners/lanzamiento.webp          (imagen completa, para miniatura)
+   Uso:  var b = bannerPerfil(contenedor, 'lanzamiento');   ...   b.stop();
+   Animación:
+   · las páginas del cielo flotan, giran y se doblan en el viento;
+   · el haz de luz que sale del libro respira y el sol late;
+   · las runas del cielo y de las páginas del libro brillan;
+   · chispas doradas suben del libro y recorren el cielo; hojas rojas de hiedra caen;
+   · la capa de la figura ondea y la pluma brilla; las velas parpadean;
+   · las ventanas del castillo y la forja lejana laten; niebla baja en el valle;
+   · cada ~7 s el libro se ilumina: el haz se dispara, sale una onda de luz,
+     las runas destellan, las páginas salen despedidas y brota una lluvia de chispas.
+   Con «reducir movimiento» del sistema se queda la imagen completa quieta.
+   ========================================================================== */
+var BANNERS_PERFIL = BANNERS_PERFIL || {};
+BANNERS_PERFIL.lanzamiento = {nombre: 'Primera Edición', mini: 'banners/lanzamiento.webp', req: 'Evento de lanzamiento'};
+(function () {
+  var W = 2048, H = 768, PX = 2, w = W / PX, h = H / PX;
+  var SRC_FONDO = 'banners/lanzamiento_fondo.webp', SRC_PAG = 'banners/lanzamiento_paginas.png', SRC_FULL = 'banners/lanzamiento.webp';
+  var fondo = null, pag = null, full = null;
+  var PAGINAS = [[219,18,42,33,0],[294,11,47,44,44],[585,27,109,75,93],[512,72,84,54,204],[749,138,127,106,290],[892,202,92,52,419],[673,169,68,53,513],[997,112,124,64,583],[894,172,30,25,709],[1119,177,60,44,741],[1024,224,135,102,803],[957,274,34,35,940]];
+  var LIBRO = [1546, 425], SOL = [1608, 87], PLUMA = [1516, 363];
+  var RUNAS = [[453, 55], [663, 138], [903, 133], [990, 203]], RUNAS_LIBRO = [[1295, 261], [1761, 220]];
+  var VELAS = [[942,558],[911,589],[1060,568],[1085,579],[1132,512],[1577,507],[1618,492],[1649,502],[1710,584],[1643,640],[1792,635],[819,655],[778,707],[742,717]];
+  var CAPA = [1175, 440, 150, 165];
+  var LUCES = [[389, 276, '80,220,230'], [768, 389, '255,70,30'], [819, 338, '255,90,40'], [133, 174, '190,120,255'], [560, 330, '255,170,80']];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function cargar(src) { var i = new Image(); i.src = src; return i; }
+  function listo(i) { return i.complete && i.naturalWidth > 0; }
+  function crear(host) {
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H; cv.className = 'banner-perfil';
+    cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:72% 40%;z-index:0;pointer-events:none;background:#1a0c22';
+    host.insertBefore(cv, host.firstChild);
+    var ctx = cv.getContext('2d');
+    var lc = document.createElement('canvas'); lc.width = w; lc.height = h; var ca = lc.getContext('2d');
+    if (!fondo) { fondo = cargar(SRC_FONDO); pag = cargar(SRC_PAG); full = cargar(SRC_FULL); }
+    var quieto = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var vivo = true, t0 = performance.now(), last = 0, raf = 0, GL = [];
+    var chispas = [], hojas = [], estrellas = [], ondas = [], niebla = [], prox = 3, golpe = 0;
+    for (var i = 0; i < 16; i++) hojas.push({x: rnd(500, W), y: rnd(-H, H), vx: rnd(-.9, -.3), vy: rnd(.5, 1.1), a: rnd(0, 6.28), va: rnd(.05, .12), f: rnd(0, 6.28)});
+    for (i = 0; i < 50; i++) estrellas.push({x: rnd(150, 1250), y: rnd(0, 330), f: rnd(0, 6.28), v: rnd(.2, .6)});
+    for (i = 0; i < 9; i++) niebla.push({x: rnd(-200, 1100), y: rnd(420, 720), r: rnd(140, 240), v: rnd(.12, .35), o: rnd(.06, .12)});
+    var EST = PAGINAS.map(function (p, k) { return {ph: k * 1.61, f: .5 + (k * .19) % .5, ox: 0, oy: 0, vx: 0, vy: 0, giro: 0}; });
+    function glow(x, y, r, col, a) { if (a > .01) GL.push(x, y, r, col, Math.min(1, a)); }
+    function halos() { ctx.globalCompositeOperation = 'lighter';
+      for (var j = 0; j < GL.length; j += 5) { var x = GL[j], y = GL[j + 1], r = GL[j + 2], col = GL[j + 3], a = GL[j + 4];
+        var g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(.4, col.replace('A', a * .4)); g.addColorStop(1, col.replace('A', 0));
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+      ctx.globalCompositeOperation = 'source-over'; GL.length = 0; }
+    function px(x, y, c, a, s) { ca.globalAlpha = Math.max(0, Math.min(1, a)); ca.fillStyle = c; ca.fillRect(Math.round(x / PX), Math.round(y / PX), s || 1, s || 1); }
+    function frame(now) {
+      if (!vivo) return;
+      raf = requestAnimationFrame(frame);
+      if (now - last < 33) return;
+      var d = Math.min(3, (now - (last || now)) / 33.3); last = now; var t = (now - t0) / 1000;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+      if (quieto) { if (listo(full)) { ctx.drawImage(full, 0, 0, W, H); vivo = false; } return; }
+      if (!listo(fondo) || !listo(pag)) { if (listo(full)) ctx.drawImage(full, 0, 0, W, H); return; }
+      prox -= d / 30; if (prox <= 0) { prox = rnd(6.5, 8.5); golpe = 1;
+        ondas.push({r: 30, t: 0}); ondas.push({r: 0, t: -7});
+        EST.forEach(function (e, k) { var p = PAGINAS[k], dx = p[0] + p[2] / 2 - LIBRO[0], dy = p[1] + p[3] / 2 - LIBRO[1], dd = Math.max(100, Math.hypot(dx, dy));
+          e.vx += dx / dd * 5; e.vy += dy / dd * 3; e.giro += rnd(-.25, .25); });
+        for (var k = 0; k < 80; k++) { var an = rnd(-3, -.15), v = rnd(4, 13); chispas.push({x: LIBRO[0] + rnd(-60, 60), y: LIBRO[1], vx: Math.cos(an) * v, vy: Math.sin(an) * v, t: 0, l: rnd(30, 60), g: .06}); }
+      }
+      golpe = Math.max(0, golpe - d / 50);
+      ctx.drawImage(fondo, 0, 0, W, H);
+      /* capa de la figura que ondea */
+      for (var x = 0; x < CAPA[2]; x += 2) { var kx = 1 - x / CAPA[2]; kx *= kx;
+        var dy = Math.round((4 + 4 * golpe) * kx * Math.sin(t * 2.6 + x * 0.05) + 1.5 * kx * Math.sin(t * 4.3 - x * .09));
+        if (dy) ctx.drawImage(fondo, CAPA[0] + x, CAPA[1], 2, CAPA[3], CAPA[0] + x, CAPA[1] + dy, 2, CAPA[3]); }
+      /* páginas que vuelan */
+      EST.forEach(function (e, k) { var p = PAGINAS[k];
+        e.vx *= Math.pow(.93, d); e.vy *= Math.pow(.93, d); e.ox += e.vx * d; e.oy += e.vy * d; e.ox *= Math.pow(.96, d); e.oy *= Math.pow(.96, d); e.giro *= Math.pow(.97, d);
+        var ang = .07 * Math.sin(t * e.f * 1.3 + e.ph) + e.giro * Math.sin(t * 9 + k), by = 5 * Math.sin(t * e.f + e.ph), bx = 4 * Math.sin(t * e.f * .7 + k);
+        ctx.save(); ctx.translate(p[0] + p[2] / 2 + bx + e.ox, p[1] + p[3] / 2 + by + e.oy); ctx.rotate(ang); ctx.scale(1, 1 - .1 * Math.abs(Math.sin(t * e.f * 2 + e.ph)));
+        ctx.drawImage(pag, p[4], 0, p[2], p[3], -p[2] / 2, -p[3] / 2, p[2], p[3]); ctx.restore(); });
+      ca.clearRect(0, 0, w, h);
+      /* niebla del valle */
+      niebla.forEach(function (n) { n.x += n.v * d; if (n.x - n.r > 1200) n.x = -n.r;
+        var g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r); g.addColorStop(0, 'rgba(150,110,190,' + n.o + ')'); g.addColorStop(1, 'rgba(150,110,190,0)');
+        ctx.fillStyle = g; ctx.fillRect(n.x - n.r, n.y - n.r, n.r * 2, n.r * 2); });
+      /* haz de luz del libro */
+      var hz = .5 + .5 * Math.sin(t * 1.6), hw = 70 + 20 * hz + 90 * golpe;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      var g = ctx.createLinearGradient(LIBRO[0] - hw, 0, LIBRO[0] + hw, 0);
+      g.addColorStop(0, 'rgba(255,210,110,0)'); g.addColorStop(.5, 'rgba(255,230,150,' + (.16 + .08 * hz + .35 * golpe) + ')'); g.addColorStop(1, 'rgba(255,210,110,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(LIBRO[0] - hw * .3, LIBRO[1]); ctx.lineTo(LIBRO[0] - hw * 1.3, 0); ctx.lineTo(LIBRO[0] + hw * 1.3, 0); ctx.lineTo(LIBRO[0] + hw * .3, LIBRO[1]); ctx.fill();
+      for (var r = 0; r < 5; r++) { var xr = LIBRO[0] + Math.sin(t * .7 + r * 1.9) * 40, al = .1 + .1 * Math.sin(t * 3 + r * 2);   /* rayos finos que se mueven */
+        ctx.strokeStyle = 'rgba(255,245,200,' + Math.max(0, al + .3 * golpe) + ')'; ctx.lineWidth = 2 + r % 2; ctx.beginPath(); ctx.moveTo(LIBRO[0] + (r - 2) * 6, LIBRO[1] - 30); ctx.lineTo(xr + (r - 2) * 40, 0); ctx.stroke(); }
+      ctx.restore();
+      glow(LIBRO[0], LIBRO[1] - 20, 230 + 40 * hz + 200 * golpe, 'rgba(255,190,80,A)', .18 + .08 * hz + .4 * golpe);
+      glow(SOL[0], SOL[1], 90 + 15 * hz, 'rgba(255,220,140,A)', .2 + .1 * hz + .2 * golpe);
+      ondas.forEach(function (o) { o.t += d; if (o.t < 0) return; o.r += 20 * d; var al = Math.max(0, 1 - o.t / 36);
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = 'rgba(255,220,140,' + (.55 * al) + ')'; ctx.lineWidth = 6 * al + 1;
+        ctx.beginPath(); ctx.ellipse(LIBRO[0], LIBRO[1] - 40, o.r, o.r * .6, 0, 0, 6.283); ctx.stroke(); ctx.restore(); });
+      ondas = ondas.filter(function (o) { return o.t < 36; });
+      /* runas */
+      RUNAS.forEach(function (u, k) { var p = .5 + .5 * Math.sin(t * 2.3 + k * 1.7); glow(u[0], u[1], 26 + 40 * golpe, 'rgba(255,190,70,A)', .3 + .3 * p + .5 * golpe); });
+      RUNAS_LIBRO.forEach(function (u, k) { var p = .5 + .5 * Math.sin(t * 1.9 + k * 2.4); glow(u[0], u[1], 45 + 50 * golpe, 'rgba(255,200,90,A)', .25 + .25 * p + .5 * golpe); });
+      /* castillos y forja lejanos */
+      LUCES.forEach(function (l, k) { glow(l[0], l[1], 40, 'rgba(' + l[2] + ',A)', .12 + .1 * Math.sin(t * 1.8 + k * 2)); });
+      /* velas y pluma */
+      VELAS.forEach(function (v, k) { var fl = .55 + .45 * Math.sin(t * 8.5 + k * 1.9) * Math.sin(t * 5.1 + k);
+        glow(v[0], v[1], (18 + 6 * fl) * (1 + golpe), 'rgba(255,180,80,A)', .3 + .2 * fl + .2 * golpe); glow(v[0], v[1], 4, 'rgba(255,245,210,A)', .5 + .3 * fl); });
+      glow(PLUMA[0], PLUMA[1], 20, 'rgba(255,220,150,A)', .35 + .2 * Math.sin(t * 4));
+      if (Math.random() < .3 * d) chispas.push({x: PLUMA[0] + rnd(-5, 5), y: PLUMA[1], vx: rnd(-.5, .8), vy: -rnd(.3, 1.2), t: 0, l: rnd(15, 30), g: 0});
+      /* chispas que suben del libro */
+      if (Math.random() < .9 * d) chispas.push({x: LIBRO[0] + rnd(-250, 250), y: LIBRO[1] + rnd(-120, 20), vx: rnd(-.6, .6), vy: -rnd(.8, 2.5), t: 0, l: rnd(40, 80), g: -.005});
+      chispas.forEach(function (s) { s.t += d; s.vy += s.g * d; s.x += (s.vx + .3 * Math.sin(s.t * .2 + s.l)) * d; s.y += s.vy * d; s.vx *= .985;
+        var a = 1 - s.t / s.l; px(s.x, s.y, a > .5 ? '#fff6c0' : '#ffb840', a, a > .7 ? 2 : 1); });
+      chispas = chispas.filter(function (s) { return s.t < s.l; });
+      /* brillos en las estelas del cielo */
+      estrellas.forEach(function (e) { e.x += e.v * d; if (e.x > 1250) e.x = 150;
+        var a = Math.max(0, Math.sin(t * 2 + e.f)); px(e.x, e.y + 8 * Math.sin(e.x * .01 + e.f), '#ffd27a', a * .7, 1); });
+      ca.globalAlpha = 1;
+      ctx.imageSmoothingEnabled = false; ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(lc, 0, 0, W, H); ctx.globalCompositeOperation = 'source-over';
+      halos();
+      if (golpe > .85) { ctx.fillStyle = 'rgba(255,230,170,' + ((golpe - .85) * 1.5) + ')'; ctx.fillRect(0, 0, W, H); }
+      /* hojas rojas de hiedra */
+      hojas.forEach(function (p) { p.a += p.va * d; p.x += (p.vx + .5 * Math.sin(t + p.f)) * d; p.y += p.vy * d;
+        if (p.y > H + 10 || p.x < -10) { p.x = rnd(600, W + 100); p.y = rnd(-20, 380); }
+        var s = Math.abs(Math.cos(p.a)); ctx.fillStyle = s > .5 ? '#c0302a' : '#7a1a20';
+        ctx.fillRect(Math.round(p.x / 2) * 2, Math.round(p.y / 2) * 2, Math.max(2, Math.round(6 * s / 2) * 2), 4); });
+    }
+    raf = requestAnimationFrame(frame);
+    return {canvas: cv, stop: function () { vivo = false; cancelAnimationFrame(raf); if (cv.parentNode) cv.parentNode.removeChild(cv); }};
+  }
+  BANNERS_PERFIL.lanzamiento.crear = crear;
+  if (typeof bannerPerfil !== 'function' || !bannerPerfil.porId) {
+    var previo = (typeof bannerPerfil === 'function') ? bannerPerfil : null;
+    var sel = function (host, id) { if (!host) return {stop: function () {}}; var b = BANNERS_PERFIL[id]; if (b && b.crear) return b.crear(host); return previo ? previo(host, id) : {stop: function () {}}; };
+    sel.porId = true; window.bannerPerfil = bannerPerfil = sel;
+  }
+})();
+
 var BT={
+ abismo:{es:'El Abismo: El Cangrejo Gigante',en:'The Abyss: The Giant Crab',pt:'O Abismo: O Caranguejo Gigante',fr:'L\'Abîme : Le Crabe géant',ru:'Бездна: Гигантский краб',ja:'深淵:巨大ガニ'},
+ pantano:{es:'El Pantano: El Wendigo',en:'The Swamp: The Wendigo',pt:'O Pântano: O Wendigo',fr:'Le Marais : Le Wendigo',ru:'Болото: Вендиго',ja:'沼地:ウェンディゴ'},
+ forja:{es:'La Forja: El Devorador',en:'The Forge: The Devourer',pt:'A Forja: O Devorador',fr:'La Forge : Le Dévoreur',ru:'Кузница: Пожиратель',ja:'鍛冶場:捕食者'},
+ santu:{es:'El Santuario: El Pontífice',en:'The Sanctuary: The Pontiff',pt:'O Santuário: O Pontífice',fr:'Le Sanctuaire : Le Pontife',ru:'Святилище: Понтифик',ja:'聖域:教皇'},
+ libre:{es:'La Librería: El Escritor',en:'The Bookshop: The Writer',pt:'A Livraria: O Escritor',fr:'La Librairie : L\'Écrivain',ru:'Книжная лавка: Писатель',ja:'書店:作家'},
+ lanz:{es:'Primera Edición',en:'First Edition',pt:'Primeira Edição',fr:'Première édition',ru:'Первое издание',ja:'初版'},
+ r1:{es:'Vence el Abismo azul',en:'Beat the Blue Abyss',pt:'Vença o Abismo azul',fr:'Bats l\'Abîme bleu',ru:'Победи в Синей бездне',ja:'青い深淵をクリア'},
+ r2:{es:'Vence el Pantano verde',en:'Beat the Green Swamp',pt:'Vença o Pântano verde',fr:'Bats le Marais vert',ru:'Победи в Зелёном болоте',ja:'緑の沼地をクリア'},
+ r3:{es:'Vence la Forja',en:'Beat the Forge',pt:'Vença a Forja',fr:'Bats la Forge',ru:'Победи в Кузнице',ja:'鍛冶場をクリア'},
+ r4:{es:'Vence el Santuario',en:'Beat the Sanctuary',pt:'Vença o Santuário',fr:'Bats le Sanctuaire',ru:'Победи в Святилище',ja:'聖域をクリア'},
+ r5:{es:'Vence la Librería',en:'Beat the Bookshop',pt:'Vença a Livraria',fr:'Bats la Librairie',ru:'Победи в Книжной лавке',ja:'書店をクリア'},
+ rl:{es:'Canjéalo gratis en Tienda → Eventos',en:'Claim it free in Shop → Events',pt:'Resgate grátis em Loja → Eventos',fr:'Réclame-le gratuitement : Boutique → Événements',ru:'Получи бесплатно: Магазин → События',ja:'ショップ→イベントで無料入手'},
  pick:{es:'Cambiar fondo',en:'Change background',pt:'Mudar fundo',fr:'Changer de fond',ru:'Сменить фон',ja:'背景変更'},
  tit:{es:'Elige tu fondo',en:'Choose your background',pt:'Escolha seu fundo',fr:'Choisis ton fond',ru:'Выбери фон',ja:'背景を選ぶ'},
  gris:{es:'Fondo básico',en:'Basic background',pt:'Fundo básico',fr:'Fond de base',ru:'Базовый фон',ja:'基本背景'},
@@ -13505,8 +14389,15 @@ var BT={
 function bt(k){var l=(typeof LANG!=='undefined'&&LANG)||'es';return BT[k][l]||BT[k].es}
 /* banners de perfil: el gris lo tiene todo el mundo; los demás, recompensas (de momento solo en la versión de pruebas) */
 var BANN=[{id:'gris',nm:'gris',mini:null,ok:function(){return true},ds:'free'},
-          {id:'biblioteca_arcana',nm:'arc',mini:'banners/biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'},
-          {id:'cripta_muerte',nm:'muerte',mini:'banners/cripta_muerte.webp',ok:function(){return !!(meta.done&&meta.done[0])},ds:'req'}];   /* recompensa: vencer la Cripta gris (los que ya la vencieron lo tienen) */
+          {id:'biblioteca_arcana',nm:'arc',mini:'banners/mini_biblioteca_arcana.webp',ok:function(){return !!window.TEST_BUILD},ds:'soon'},
+          {id:'cripta_muerte',nm:'muerte',mini:'banners/mini_cripta_muerte.webp',ok:function(){return mapa(0)},ds:'req',rq:'req'},   /* recompensa: vencer cada mapa por primera vez (quien ya lo venció lo tiene) */
+          {id:'abismo_cangrejo',nm:'abismo',mini:'banners/mini_abismo_cangrejo.webp',ok:function(){return mapa(1)},ds:'req',rq:'r1'},
+          {id:'pantano_wendigo',nm:'pantano',mini:'banners/mini_pantano_wendigo.webp',ok:function(){return mapa(2)},ds:'req',rq:'r2'},
+          {id:'forja_devorador',nm:'forja',mini:'banners/mini_forja_devorador.webp',ok:function(){return mapa(3)},ds:'req',rq:'r3'},
+          {id:'santuario_pontifice',nm:'santu',mini:'banners/mini_santuario_pontifice.webp',ok:function(){return mapa(4)},ds:'req',rq:'r4'},
+          {id:'libreria_escritor',nm:'libre',mini:'banners/mini_libreria_escritor.webp',ok:function(){return mapa(5)},ds:'req',rq:'r5'},
+          {id:'lanzamiento',nm:'lanz',mini:'banners/mini_lanzamiento.webp',ok:function(){return !!(meta.fondos&&meta.fondos.indexOf('lanzamiento')>=0)},ds:'req',rq:'rl'}];   /* el del evento: al canjear gratis el fondo de menú de lanzamiento */
+function mapa(i){return !!(meta.done&&meta.done[i])}
 function bannSel(){var id=meta&&meta.bannerSel,b=BANN.filter(function(x){return x.id===id})[0];return (b&&b.ok())?b.id:'gris'}
 var GRIS='background:linear-gradient(135deg,#4a4a52,#2a2a30 55%,#1d1d21)';
 function aplicaBanner(){
@@ -13522,7 +14413,7 @@ function pickBanner(){
   BANN.forEach(function(x){var ok=x.ok();
     h+='<div class="embCell'+(ok?' ok mine':' lock')+(x.id===cur?' eqd':'')+'" data-b="'+x.id+'" style="padding:8px">'+
       '<span style="display:block;width:100%;aspect-ratio:2048/768;'+(x.mini?'background:url('+x.mini+') center/cover':GRIS)+';border:1px solid #3a3326;'+(ok?'':'filter:grayscale(.7) brightness(.6)')+'"></span>'+
-      '<b>'+bt(x.nm)+'</b><span>'+(x.id===cur?bt('sel'):ok?(x.ds==='free'?bt('free'):''):(x.ds==='req'?bt('req'):bt('soon')))+'</span></div>';});
+      '<b>'+bt(x.nm)+'</b><span>'+(x.id===cur?bt('sel'):ok?(x.ds==='free'?bt('free'):''):(x.ds==='req'?bt(x.rq):bt('soon')))+'</span></div>';});
   w.innerHTML=h+'</div>';o.hidden=false;
   $('embX').onclick=function(){o.hidden=true};
   w.onclick=function(ev){var c=ev.target.closest&&ev.target.closest('.embCell.ok[data-b]');if(!c)return;
