@@ -10034,7 +10034,7 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     if (meta.fondos && meta.fondos.indexOf('lanzamiento') >= 0) return 'own';
     if (window.TEST_BUILD) return 'ok';
     var n = Date.now();
-    if (EV_LANZ.inicio) { if (n < +new Date(EV_LANZ.inicio)) return 'soon'; if (EV_LANZ.fin && n > +new Date(EV_LANZ.fin)) return 'over'; return 'ok'; }
+    if (EV_LANZ.inicio) { if (n < +new Date(EV_LANZ.inicio)) return 'soon'; return 'ok'; }   /* el fondo de la tienda se queda para siempre; solo el calendario tiene fin */
     return window.TEST_BUILD ? 'ok' : 'soon';
   }
   function pintaEv() {
