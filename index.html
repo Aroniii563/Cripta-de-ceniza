@@ -322,8 +322,8 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #hp2Fill{background:linear-gradient(#c8434c,#8f242c)}
 #xp2Fill{background:linear-gradient(#6ad2ff,#2f7fa8);transform:scaleX(0)}
 .stt tr.me td{color:var(--gold);font-weight:700}
-#rankTable th,#rankTable td{text-align:left}
-#rankTable th:nth-child(n+4),#rankTable td:nth-child(n+4){text-align:right}
+#rankTable{table-layout:auto;width:100%}
+#rankTable th,#rankTable td,#rankTable th:nth-child(n),#rankTable td:nth-child(n){text-align:center!important;vertical-align:middle;padding-left:8px;padding-right:8px;white-space:nowrap}
 .mbarX{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .mbar .tabs{margin:0}
 #metaSec{margin-top:0;padding-top:0;border-top:0}
@@ -22052,10 +22052,10 @@ function frame(now){
     /* Control de rendimiento: si los fotogramas tardan, baja el número de enemigos; si sobra margen, lo recupera. */
     fpsAvg=fpsAvg*.97+Math.min(.1,raw)*.03;
     /* 1.º se baja la resolución del dibujo (no cambia el juego); solo si ya está al mínimo se limitan los enemigos */
-    if(fpsAvg>.026&&now-QS_LAST>2500&&QS>.55){QS=Math.max(.55,QS-.12);QS_LAST=now;QS_OK=0;fpsAvg=.022;try{resize()}catch(e){}}
-    else if(fpsAvg<.014&&QS<1){QS_OK+=raw;if(QS_OK>12&&now-QS_LAST>2500){QS=Math.min(1,QS+.12);QS_LAST=now;QS_OK=0;fpsAvg=.018;try{resize()}catch(e){}}}
+    if(fpsAvg>.026&&now-QS_LAST>2500&&QS>.75){QS=Math.max(.75,QS-.08);QS_LAST=now;QS_OK=0;fpsAvg=.022;try{resize()}catch(e){}}
+    else if(fpsAvg<.014&&QS<1){QS_OK+=raw;if(QS_OK>12&&now-QS_LAST>2500){QS=Math.min(1,QS+.08);QS_LAST=now;QS_OK=0;fpsAvg=.018;try{resize()}catch(e){}}}
     else QS_OK=0;
-    if(fpsAvg>.026&&QS<=.56)capScale=Math.max(.35,capScale-dt*.08);
+    if(fpsAvg>.026&&QS<=.76)capScale=Math.max(.35,capScale-dt*.08);
     else if(fpsAvg<.019)capScale=Math.min(1,capScale+dt*.04);
     try{update(dt)}catch(e){softErr('juego',e);P=PL[0]||P}
     try{dailyTick(dt)}catch(e){}
