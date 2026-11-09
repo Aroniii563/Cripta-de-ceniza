@@ -308,8 +308,8 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(28px,5vw,42px);mar
 #hp2Fill{background:linear-gradient(#c8434c,#8f242c)}
 #xp2Fill{background:linear-gradient(#6ad2ff,#2f7fa8);transform:scaleX(0)}
 .stt tr.me td{color:var(--gold);font-weight:700}
-#rankTable th,#rankTable td{text-align:left}
-#rankTable th:nth-child(n+4),#rankTable td:nth-child(n+4){text-align:right}
+#rankTable{table-layout:auto;width:100%}
+#rankTable th,#rankTable td,#rankTable th:nth-child(n),#rankTable td:nth-child(n){text-align:center!important;vertical-align:middle;padding-left:8px;padding-right:8px;white-space:nowrap}
 .mbarX{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .mbar .tabs{margin:0}
 #metaSec{margin-top:0;padding-top:0;border-top:0}
@@ -22194,11 +22194,6 @@ function frame(now){
   try{hud()}catch(e){softErr('marcador',e)}
   requestAnimationFrame(frame);
 }
-recoverRun();resize();showMenu();
-requestAnimationFrame(frame);
-})();
-</script>
-<script>
 (function(){
   var de=document.documentElement;
   function mobile(){try{return matchMedia('(pointer:coarse)').matches&&Math.min(window.innerWidth,window.innerHeight)<=600}catch(e){return false}}
@@ -22226,5 +22221,9 @@ requestAnimationFrame(frame);
   }
   document.addEventListener('touchend',lock,{once:true,passive:true});
   document.addEventListener('click',lock,{once:true});
+})();
+
+recoverRun();resize();showMenu();
+requestAnimationFrame(frame);
 })();
 </script>
