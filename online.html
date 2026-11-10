@@ -816,7 +816,7 @@ var UPS=[
   {n:'Perforación',ic:'icono_perforacion',c:'o',d:'Los proyectiles atraviesan 1 enemigo más',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){P.pierce++}},
   {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<1.75-1e-9},f:function(){P.auraR=Math.min(1.75,P.auraR+.08)}},
   {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<16},f:function(){P.orbMax=Math.min(16,P.orbMax+2)}},
-  {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+25% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.25}},
+  {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+8% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.08}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
   {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
