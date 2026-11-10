@@ -11338,7 +11338,7 @@ killEnemy=function(e){
   killEnemy_run.apply(this,arguments);
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
   var x;
-  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');
+  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');if(window.calcinadoExplotar)calcinadoExplotar(e.x,e.y,V.raido.rad[x]);
   x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;addDmg(P,V.fehu.dmg[x]);addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
 };
 /* daño: bonificaciones de Sacrificio y Sobrecoste en todas las tiradas de daño */
@@ -22084,6 +22084,78 @@ try {
     };
     render._uz = 1;
   }
+})();
+
+/* ==========================================================================
+   ANIMACIÓN DE LA RUNA «CALCINADO» · explosión al morir un enemigo calcinado
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
+   Archivos: runas/calcinado.png        (explosión: 16 fotogramas de 192x192)
+             runas/calcinado_suelo.png  (mancha chamuscada: suelo quemado + grietas)
+   Uso (solo la parte visual; el daño lo sigue haciendo el código de la runa):
+       calcinadoExplotar(e.x, e.y, radio)   radio en casillas (por defecto 1.8)
+   Llámalo en el mismo sitio en que la runa hace estallar al enemigo calcinado.
+   Animación:
+   · destello blanco en el suelo y bola de fuego que sube, se enfría y se
+     deshace en humo y copos de ceniza;
+   · onda de choque isométrica en el suelo, del tamaño del radio de la explosión;
+   · ascuas que salen despedidas y caen;
+   · deja una mancha de suelo chamuscado con grietas incandescentes que laten
+     y se apagan poco a poco (unos 4 s).
+   ========================================================================== */
+(function () {
+  var EX = {fw: 192, fh: 192, n: 16, fps: 18, gx: 96, gy: 144, rx: 88, img: new Image()};
+  var SU = {fw: 144, fh: 72, img: new Image(), vida: 4.2};
+  EX.img.src = 'runas/calcinado.png'; SU.img.src = 'runas/calcinado_suelo.png';
+  var lista = [], tAnt = 0;
+  function ok(i) { return i.complete && i.naturalWidth > 0; }
+  function ahora() { return (window.performance && performance.now ? performance.now() : Date.now()) / 1000; }
+  window.calcinadoExplotar = function (x, y, radio) {
+    if (lista.length > 40) lista.shift();
+    lista.push({x: x, y: y, R: radio || 1.8, t: 0, f: Math.random() * 6.28, flip: Math.random() < .5});
+  };
+  function avanzar() {
+    var t = ahora(), dt = tAnt ? Math.min(.1, t - tAnt) : 0; tAnt = t;
+    if (typeof state !== 'undefined' && state !== 'play') dt = 0;      /* en pausa no avanza */
+    for (var i = lista.length - 1; i >= 0; i--) { lista[i].t += dt; if (lista[i].t > SU.vida) lista.splice(i, 1); }
+  }
+  function dibujaSuelo(e) {
+    if (!ok(SU.img)) return;
+    var p = sp(e.x, e.y), w = e.R * 45.25 * 1.7, h = w * SU.fh / SU.fw;
+    var a = e.t < .08 ? e.t / .08 : e.t < 1.6 ? 1 : Math.max(0, 1 - (e.t - 1.6) / (SU.vida - 1.6));
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(p.x), Math.round(p.y)); if (e.flip) ctx.scale(-1, 1);
+    ctx.globalAlpha = a * .9; ctx.drawImage(SU.img, 0, 0, SU.fw, SU.fh, -w / 2, -h / 2, w, h);
+    /* grietas incandescentes: laten y se van enfriando */
+    var brasa = Math.max(0, 1 - e.t / (SU.vida * .8)) * (.7 + .3 * Math.sin(e.t * 9 + e.f) * Math.sin(e.t * 5.3));
+    if (brasa > .02) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, brasa * 1.2);
+      ctx.drawImage(SU.img, SU.fw, 0, SU.fw, SU.fh, -w / 2, -h / 2, w, h);
+      var g = ctx.createRadialGradient(0, 0, 0, 0, 0, w * .45); g.addColorStop(0, 'rgba(255,120,30,' + (.35 * brasa) + ')'); g.addColorStop(1, 'rgba(255,90,20,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.scale(1, .5); ctx.fillRect(-w * .45, -w * .45, w * .9, w * .9); }
+    ctx.restore();
+  }
+  function dibujaExplosion(e) {
+    var fr = Math.floor(e.t * EX.fps); if (fr >= EX.n || !ok(EX.img)) return;
+    var p = sp(e.x, e.y), sc = e.R * 45.25 / EX.rx;
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(p.x), Math.round(p.y)); if (e.flip) ctx.scale(-1, 1);
+    ctx.drawImage(EX.img, fr * EX.fw, 0, EX.fw, EX.fh, -EX.gx * sc, -EX.gy * sc, EX.fw * sc, EX.fh * sc);
+    /* resplandor de los primeros fotogramas */
+    if (fr < 7) { var a = 1 - fr / 7, r = e.R * 45.25 * (1.1 + .4 * fr / 7), g = ctx.createRadialGradient(0, -20 * sc, 0, 0, -20 * sc, r);
+      g.addColorStop(0, 'rgba(255,200,100,' + (.55 * a) + ')'); g.addColorStop(1, 'rgba(255,120,30,0)');
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(-r, -20 * sc - r, r * 2, r * 2); }
+    ctx.restore();
+  }
+  setTimeout(function () {
+    var prev = window.EXTRADRAW;
+    window.EXTRADRAW = function (list, seen) {
+      if (prev) prev(list, seen);
+      avanzar();
+      lista.forEach(function (e) {
+        list.push({d: -1e3 + .4, xd: function () { dibujaSuelo(e); }});
+        if (e.t * EX.fps < EX.n) list.push({d: e.x + e.y + .2, xd: function () { dibujaExplosion(e); }});
+      });
+    };
+  }, 0);
 })();
 
 /* ---------- Música y volumen ---------- */
