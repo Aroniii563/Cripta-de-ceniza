@@ -1487,7 +1487,7 @@ function mkPlayer(key,idx){
   p.skinId=skinFor(key);
   return p;
 }
-function startRun(key,mi){
+function startRun(key,mi){if(window.calcinadoReset)calcinadoReset();
   var c=CLASSES[key];lastKey=key;curMap=mi||0;
   var _o=NEXTOPT;NEXTOPT=null;
   RUNHARD=!!(_o&&_o.hard&&hardOk(curMap));RUNINF=!!(_o&&_o.inf&&meta.infinite&&curMap!==5);
@@ -11338,7 +11338,7 @@ killEnemy=function(e){
   killEnemy_run.apply(this,arguments);
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
   var x;
-  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');if(window.calcinadoExplotar)calcinadoExplotar(e.x,e.y,V.raido.rad[x]);
+  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x]){explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');if(window.calcinadoExplotar)calcinadoExplotar(e.x,e.y,V.raido.rad[x])}
   x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;addDmg(P,V.fehu.dmg[x]);addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
 };
 /* daño: bonificaciones de Sacrificio y Sobrecoste en todas las tiradas de daño */
@@ -22109,6 +22109,7 @@ try {
   var lista = [], tAnt = 0;
   function ok(i) { return i.complete && i.naturalWidth > 0; }
   function ahora() { return (window.performance && performance.now ? performance.now() : Date.now()) / 1000; }
+  window.calcinadoReset = function () { lista.length = 0; };
   window.calcinadoExplotar = function (x, y, radio) {
     if (lista.length > 40) lista.shift();
     lista.push({x: x, y: y, R: radio || 1.8, t: 0, f: Math.random() * 6.28, flip: Math.random() < .5});
