@@ -786,9 +786,9 @@ var CLASSES={
   druid:{key:'druid',name:'Druida',role:'Aura a su alrededor',col:'#8fcf5a',hp:53,speed:4.1,dmg:12,rate:1.5,crit:.05,armor:.1,kind:'aura',
     aura:{r:3,mult:.7},
     atk:'Aura espinosa',atkD:'Un círculo a su alrededor, con él en el centro, daña y ralentiza a los enemigos que lo pisan. Mejora su área y su daño. Armadura inicial 10%.'},
-  necro:{key:'necro',name:'Nigromante',role:'Proyectiles de almas teledirigidos',col:'#b583e8',hp:44,speed:4.2,dmg:14,rate:2.0,crit:.08,armor:0,kind:'orbit',
-    orbit:{max:5,range:8,speed:7.5,pierce:0,mult:1.6},
-    atk:'Proyectiles de almas',atkD:'Genera un proyectil cada segundo y los acumula girando a su alrededor hasta tener 5. Cuando detecta enemigos, los lanza todos y persiguen a su objetivo.'},
+  necro:{key:'necro',name:'Nigromante',role:'Proyectiles de almas teledirigidos',col:'#b583e8',hp:44,speed:4.2,dmg:20,rate:2.0,crit:.08,armor:0,kind:'orbit',
+    orbit:{max:6,range:8,speed:7.5,pierce:0,mult:1.6},
+    atk:'Proyectiles de almas',atkD:'Genera un proyectil cada segundo y los acumula girando a su alrededor hasta tener 6. Cuando detecta enemigos, los lanza todos y persiguen a su objetivo.'},
   bruja:{key:'bruja',name:'Bruja',role:'Esferas oscuras teledirigidas',col:'#b583e8',hp:42,speed:4.3,dmg:15,rate:1.25,crit:.06,armor:0,kind:'spheres',range:9,
     atk:'Esferas oscuras',atkD:'Lanza una salva de esferas oscuras a su alrededor (empieza con 2, hasta 8, y las lanza todas a la vez). Giran poco a poco hacia un enemigo y estallan al tocarlo o a los 2 segundos y vuelven a estallar en el mismo sitio. Si no hay enemigos, no aparecen.'},
   monja:{key:'monja',name:'Monja',role:'Monjes dorados que combaten por ella',col:'#e8c860',hp:54,speed:4.0,dmg:14,rate:1.0,crit:.05,armor:.1,kind:'monks',range:8,
@@ -832,8 +832,8 @@ var UPS=[
   {n:'Zonas gemelas',ic:'icono_zonas_gemelas',c:'o',d:'+1 zona por lanzamiento (máx. 6)',ok:function(){return P.c.kind==='zone'&&P.zoneN<6},f:function(){P.zoneN=Math.min(6,P.zoneN+1)}},
   {n:'Perforación',ic:'icono_perforacion',c:'o',d:'Los proyectiles atraviesan 1 enemigo más',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){P.pierce++}},
   {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<1.75-1e-9},f:function(){P.auraR=Math.min(1.75,P.auraR+.08)}},
-  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbMax+=2}},
-  {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+25% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.25}},
+  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<16},f:function(){P.orbMax=Math.min(16,P.orbMax+2)}},
+  {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+8% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.08}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
   {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
@@ -2464,7 +2464,7 @@ function statRows(){
   a('Exp. ganada','x'+r1(P.xpMul));
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR*(P.spec.terr?1.35:1)),P.auraR>=1.75-1e-9);
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
-  if(k==='orbit'){a('Proyectiles máx.',P.orbMax);a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
+  if(k==='orbit'){a('Proyectiles máx.',P.orbMax,P.orbMax>=16);a('Vel. de vuelo',r1(P.c.orbit.speed*P.orbSpd));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
   if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce,P.bounce>=10)}
   if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp))}
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
@@ -11208,7 +11208,7 @@ killEnemy=function(e){
   killEnemy_run.apply(this,arguments);
   if(RUN.inner||!RUN.a.length||P!==RUN.pl)return;
   var x;
-  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');
+  x=lv('raido');if(x>=0&&e.burn&&Math.random()<V.raido.ch[x])explodeAt(e.x,e.y,V.raido.rad[x],V.raido.m[x]*mkem('raido'),e,'#ff6a2a');if(window.calcinadoExplotar)calcinadoExplotar(e.x,e.y,V.raido.rad[x]);
   x=lv('fehu');if(x>=0&&++RUN.kc2>=V.fehu.k[x]){RUN.kc2=0;addDmg(P,V.fehu.dmg[x]);addText(P.x,P.y,'+'+(V.fehu.dmg[x]*100).toFixed(1).replace('.0','')+'% daño','#ffd25a',14);ring(P.x,P.y,1.2,.3,'#ffd25a')}
 };
 /* daño: bonificaciones de Sacrificio y Sobrecoste en todas las tiradas de daño */
@@ -21955,6 +21955,78 @@ try {
     };
     render._uz = 1;
   }
+})();
+
+/* ==========================================================================
+   ANIMACIÓN DE LA RUNA «CALCINADO» · explosión al morir un enemigo calcinado
+   Bloque autónomo: pégalo justo antes del comentario «Música y volumen».
+   Archivos: runas/calcinado.png        (explosión: 16 fotogramas de 192x192)
+             runas/calcinado_suelo.png  (mancha chamuscada: suelo quemado + grietas)
+   Uso (solo la parte visual; el daño lo sigue haciendo el código de la runa):
+       calcinadoExplotar(e.x, e.y, radio)   radio en casillas (por defecto 1.8)
+   Llámalo en el mismo sitio en que la runa hace estallar al enemigo calcinado.
+   Animación:
+   · destello blanco en el suelo y bola de fuego que sube, se enfría y se
+     deshace en humo y copos de ceniza;
+   · onda de choque isométrica en el suelo, del tamaño del radio de la explosión;
+   · ascuas que salen despedidas y caen;
+   · deja una mancha de suelo chamuscado con grietas incandescentes que laten
+     y se apagan poco a poco (unos 4 s).
+   ========================================================================== */
+(function () {
+  var EX = {fw: 192, fh: 192, n: 16, fps: 18, gx: 96, gy: 144, rx: 88, img: new Image()};
+  var SU = {fw: 144, fh: 72, img: new Image(), vida: 4.2};
+  EX.img.src = 'runas/calcinado.png'; SU.img.src = 'runas/calcinado_suelo.png';
+  var lista = [], tAnt = 0;
+  function ok(i) { return i.complete && i.naturalWidth > 0; }
+  function ahora() { return (window.performance && performance.now ? performance.now() : Date.now()) / 1000; }
+  window.calcinadoExplotar = function (x, y, radio) {
+    if (lista.length > 40) lista.shift();
+    lista.push({x: x, y: y, R: radio || 1.8, t: 0, f: Math.random() * 6.28, flip: Math.random() < .5});
+  };
+  function avanzar() {
+    var t = ahora(), dt = tAnt ? Math.min(.1, t - tAnt) : 0; tAnt = t;
+    if (typeof state !== 'undefined' && state !== 'play') dt = 0;      /* en pausa no avanza */
+    for (var i = lista.length - 1; i >= 0; i--) { lista[i].t += dt; if (lista[i].t > SU.vida) lista.splice(i, 1); }
+  }
+  function dibujaSuelo(e) {
+    if (!ok(SU.img)) return;
+    var p = sp(e.x, e.y), w = e.R * 45.25 * 1.7, h = w * SU.fh / SU.fw;
+    var a = e.t < .08 ? e.t / .08 : e.t < 1.6 ? 1 : Math.max(0, 1 - (e.t - 1.6) / (SU.vida - 1.6));
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(p.x), Math.round(p.y)); if (e.flip) ctx.scale(-1, 1);
+    ctx.globalAlpha = a * .9; ctx.drawImage(SU.img, 0, 0, SU.fw, SU.fh, -w / 2, -h / 2, w, h);
+    /* grietas incandescentes: laten y se van enfriando */
+    var brasa = Math.max(0, 1 - e.t / (SU.vida * .8)) * (.7 + .3 * Math.sin(e.t * 9 + e.f) * Math.sin(e.t * 5.3));
+    if (brasa > .02) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, brasa * 1.2);
+      ctx.drawImage(SU.img, SU.fw, 0, SU.fw, SU.fh, -w / 2, -h / 2, w, h);
+      var g = ctx.createRadialGradient(0, 0, 0, 0, 0, w * .45); g.addColorStop(0, 'rgba(255,120,30,' + (.35 * brasa) + ')'); g.addColorStop(1, 'rgba(255,90,20,0)');
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.scale(1, .5); ctx.fillRect(-w * .45, -w * .45, w * .9, w * .9); }
+    ctx.restore();
+  }
+  function dibujaExplosion(e) {
+    var fr = Math.floor(e.t * EX.fps); if (fr >= EX.n || !ok(EX.img)) return;
+    var p = sp(e.x, e.y), sc = e.R * 45.25 / EX.rx;
+    ctx.save(); ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(p.x), Math.round(p.y)); if (e.flip) ctx.scale(-1, 1);
+    ctx.drawImage(EX.img, fr * EX.fw, 0, EX.fw, EX.fh, -EX.gx * sc, -EX.gy * sc, EX.fw * sc, EX.fh * sc);
+    /* resplandor de los primeros fotogramas */
+    if (fr < 7) { var a = 1 - fr / 7, r = e.R * 45.25 * (1.1 + .4 * fr / 7), g = ctx.createRadialGradient(0, -20 * sc, 0, 0, -20 * sc, r);
+      g.addColorStop(0, 'rgba(255,200,100,' + (.55 * a) + ')'); g.addColorStop(1, 'rgba(255,120,30,0)');
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(-r, -20 * sc - r, r * 2, r * 2); }
+    ctx.restore();
+  }
+  setTimeout(function () {
+    var prev = window.EXTRADRAW;
+    window.EXTRADRAW = function (list, seen) {
+      if (prev) prev(list, seen);
+      avanzar();
+      lista.forEach(function (e) {
+        list.push({d: -1e3 + .4, xd: function () { dibujaSuelo(e); }});
+        if (e.t * EX.fps < EX.n) list.push({d: e.x + e.y + .2, xd: function () { dibujaExplosion(e); }});
+      });
+    };
+  }, 0);
 })();
 
 /* ---------- Música y volumen ---------- */
