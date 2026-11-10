@@ -22167,14 +22167,14 @@ function fetchMusic(f,cb){
   if(c0){musicCache[f]=c0;cb(c0);return}
   function viaScript(){
     try{
-      var sc=document.createElement('script');sc.async=true;sc.src=f.replace(/\.mp3$/,'.js');
+      var sc=document.createElement('script');sc.async=true;sc.src=f.replace(/\.mp3$/,'.js')+'?v=2';
       sc.onload=function(){var u=window.MUSIC_JS[f];if(u){musicCache[f]=u;cb(u)}else cb(null)};
       sc.onerror=function(){cb(null)};
       document.head.appendChild(sc);
     }catch(e){cb(null)}
   }
   try{
-    fetch(f).then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(bl){
+    fetch(f+'?v=2').then(function(r){if(!r.ok)throw 0;return r.blob()}).then(function(bl){
       var fr=new FileReader();fr.onload=function(){musicCache[f]=fr.result;cb(fr.result)};fr.onerror=viaScript;fr.readAsDataURL(bl);
     }).catch(viaScript);
   }catch(e){viaScript()}
