@@ -815,7 +815,7 @@ var UPS=[
   {n:'Zonas gemelas',ic:'icono_zonas_gemelas',c:'o',d:'+1 zona por lanzamiento (máx. 6)',ok:function(){return P.c.kind==='zone'&&P.zoneN<6},f:function(){P.zoneN=Math.min(6,P.zoneN+1)}},
   {n:'Perforación',ic:'icono_perforacion',c:'o',d:'Los proyectiles atraviesan 1 enemigo más',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){P.pierce++}},
   {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<1.75-1e-9},f:function(){P.auraR=Math.min(1.75,P.auraR+.08)}},
-  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<30},f:function(){P.orbMax=Math.min(30,P.orbMax+2)}},
+  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<16},f:function(){P.orbMax=Math.min(16,P.orbMax+2)}},
   {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+25% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.25}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
@@ -2446,7 +2446,7 @@ function statRows(){
   a('Exp. ganada','x'+r1(P.xpMul));
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR*(P.spec.terr?1.35:1)),P.auraR>=1.75-1e-9);
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
-  if(k==='orbit'){a('Proyectiles máx.',P.orbMax);a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
+  if(k==='orbit'){a('Proyectiles máx.',P.orbMax);a('Vel. de vuelo',r1(P.c.orbit.speed*P.orbSpd));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
   if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce,P.bounce>=10)}
   if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp))}
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
