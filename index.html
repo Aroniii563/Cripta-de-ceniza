@@ -861,20 +861,20 @@ function toast(m){var el=$('toast');el.textContent=m;el.hidden=false;clearTimeou
 
 /* ---------- Mejoras permanentes (se pagan con oro) ---------- */
 var META=[
-  {k:'hp',n:'Vida',e:'+6% de vida máxima',cost:50},
-  {k:'atk',n:'Ataque',e:'+5% de daño',cost:60},
-  {k:'rate',n:'Velocidad de ataque',e:'+3% de velocidad de ataque',cost:70},
-  {k:'mov',n:'Velocidad de movimiento',e:'+3% de velocidad',cost:60},
-  {k:'arm',n:'Armadura',e:'+1,5% de reducción de daño',cost:80},
-  {k:'crit',n:'Crítico',e:'+1,5% de probabilidad de crítico',cost:80},
-  {k:'reg',n:'Regeneración',e:'+0,1 de vida por segundo',cost:60},
-  {k:'ls',n:'Robo de vida',e:'+0,1% del daño infligido recuperado como vida',cost:90,max:20},
-  {k:'mag',n:'Imán',e:'+6% de radio de recogida',cost:40},
-  {k:'xp',n:'Sabiduría',e:'+3% de experiencia',cost:90},
-  {k:'gold',n:'Fortuna',e:'+10% de oro ganado por partida',cost:100}
+  {k:'hp',n:'Vida',e:'+6% de vida máxima',cost:50,f:1.25},
+  {k:'atk',n:'Ataque',e:'+5% de daño',cost:60,f:1.3},
+  {k:'rate',n:'Velocidad de ataque',e:'+3% de velocidad de ataque',cost:70,f:1.25},
+  {k:'mov',n:'Velocidad de movimiento',e:'+3% de velocidad',cost:60,f:1.12},
+  {k:'arm',n:'Armadura',e:'+1,5% de reducción de daño',cost:80,f:1.25},
+  {k:'crit',n:'Crítico',e:'+1,5% de probabilidad de crítico',cost:80,f:1.25},
+  {k:'reg',n:'Regeneración',e:'+0,1 de vida por segundo',cost:60,f:1.2},
+  {k:'ls',n:'Robo de vida',e:'+0,1% del daño infligido recuperado como vida',cost:90,f:1.15,max:20},
+  {k:'mag',n:'Imán',e:'+6% de radio de recogida',cost:40,f:1.3},
+  {k:'xp',n:'Sabiduría',e:'+3% de experiencia',cost:90,f:1.3},
+  {k:'gold',n:'Fortuna',e:'+10% de oro ganado por partida',cost:100,f:1.27}
 ];
 var META_MAX=8,metaCls='sorc';
-function metaCost(m,l){return Math.round(m.cost*Math.pow(m.k==='ls'?1.12:1.4,l))}
+function metaCost(m,l){return Math.round(m.cost*Math.pow(m.f||1.4,l))}
 /* Versión del formato de guardado: al sacar versiones nuevas se añaden aquí migraciones y el progreso de los jugadores se conserva. */
 var SAVE_V=2;
 function migrateMeta(m){
