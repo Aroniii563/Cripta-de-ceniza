@@ -10581,13 +10581,13 @@ render=function(){
    Se juega con la barra espaciadora (J2 en cooperativo local: Intro): dash hacia el enemigo más cercano;
    al llegar se genera una onda de choque que daña en área.
    Empieza con 5 dashes (hasta 20). Cuando se gastan todos, se recargan tras 2 s; la velocidad de ataque acorta esa espera.
-   Hoja animada: skins/samurai_anim.png (mira a la izquierda, 262x150, se dibuja a la mitad). Retrato: skins/samurai_retrato.png.
+   Hoja animada 3D: skins/samurai3d_anim.png (mira a la derecha, 240x190). Retrato: skins/samurai3d_retrato.png.
    ========================================================================== */
 CLASSES.samurai={key:'samurai',name:'Samurái',role:'Dash con onda de choque (barra espaciadora)',col:'#d9dee8',hp:58,speed:4.5,dmg:20,rate:1,crit:.08,armor:.1,kind:'dash',range:9,
   atk:'Dash de acero',atkD:'Pulsa la barra espaciadora para lanzarte contra el enemigo más cercano; al tocarlo se genera una onda de choque que daña en área. Empieza con 5 dashes (hasta 20). Cuando los gastas todos se recargan tras 2 s, y la velocidad de ataque acorta esa espera. Armadura inicial 10%.'};
-ANIMD.samurai={"src": "skins/samurai_anim.png", "fw": 262, "fh": 150, "pie_x": 132, "pie_y": 132, "filas": {"reposo": 6, "andar": 8, "ataque": 6, "dano": 3, "muerte": 8}, "fps": {"reposo": 6, "andar": 10, "ataque": 12, "dano": 10, "muerte": 8}, "bucle": {"reposo": true, "andar": true, "ataque": false, "dano": false, "muerte": false}, "der": false};
+ANIMD.samurai={"src": "skins/samurai3d_anim.png", "fw": 240, "fh": 190, "pie_x": 123.2, "pie_y": 154.5, "filas": {"reposo": 6, "andar": 8, "ataque": 8, "dano": 3, "muerte": 8}, "fps": {"reposo": 6, "andar": 10, "ataque": 12, "dano": 10, "muerte": 8}, "bucle": {"reposo": true, "andar": true, "ataque": false, "dano": false, "muerte": false}, "der": true};
 SKINCAT.push({id:'samurai',cls:'samurai',name:'Samurái',cost:0});
-SKIN_SRC.samurai={atlas:'skins/samurai_retrato.png',ax:0,aw:184,ah:200,aT:184};
+SKIN_SRC.samurai={atlas:'skins/samurai3d_retrato.png',ax:0,aw:213,ah:303,aT:213};
 
 /* siempre disponible en la versión de prueba */
 var ownsHero_sam=ownsHero;
