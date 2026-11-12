@@ -2294,9 +2294,10 @@ function render(){
   list.sort(function(a,b){return a.d-b.d});
   list.forEach(function(it){
     var psv=P;if(it.p)P=it.p;
-    ctx.save();
+    var ns=!!it.s&&!it.p;
+    if(!ns)ctx.save();
     try{drawIt(it)}catch(e){softErr('dibujo',e)}
-    ctx.restore();P=psv;
+    if(!ns)ctx.restore();P=psv;
   });
   ctx.globalAlpha=1;
   function drawIt(it){
@@ -2319,10 +2320,10 @@ function render(){
       return;
     }
     if(it.s){
-      var s=it.s,p=sp(s.x,s.y);
-      shadow(p,6);
+      var s=it.s,p=sp(s.x,s.y),lod=shots.length>(coop?18:36);
+      if(!lod)shadow(p,6);
       if(s.spr&&PROJS[s.spr]){
-        ctx.fillStyle=s.col;ctx.globalAlpha=.18;ctx.beginPath();ctx.arc(p.x,p.y-14,11,0,6.283);ctx.fill();ctx.globalAlpha=1;
+        if(!lod){ctx.fillStyle=s.col;ctx.globalAlpha=.18;ctx.beginPath();ctx.arc(p.x,p.y-14,11,0,6.283);ctx.fill();ctx.globalAlpha=1}
         drawProjSprite(s.spr,s,p.x,p.y-14,s.soul?1.15:1);return;
       }
       var kz=s.hm?1.5:s.bn!==undefined?1.6:1;
@@ -7074,10 +7075,16 @@ function onPill(){
   pl.hidden=!show;
   if(show){var t='Sala '+(NET.code||(NET.hostId||'').replace('cripta-',''))+' · Jugadores: '+ON.mem.length;if($('onPillTx').textContent!==t)$('onPillTx').textContent=t}
 }
-function onOpen(){onFillCls();ON.inLobby=true;$('onl').hidden=false;onPill();onMsg('');if(ON.room){onRoomUi()}else{$('onHome').hidden=false;$('onRoom').hidden=true}}
+function onOpen(){try{onPredecode()}catch(e){}onFillCls();ON.inLobby=true;$('onl').hidden=false;onPill();onMsg('');if(ON.room){onRoomUi()}else{$('onHome').hidden=false;$('onRoom').hidden=true}}
 function onStop(){
-  try{NET.close()}catch(e){}
-  NET.onmsg=NET.onpeer=NET.onleave=NET.onerror=null;NET.peers={};
+  /* antes de cortar, avisa: el invitado dice que se va y el anfitrión cierra la sala (así nadie se queda de fantasma en ella) */
+  try{if(ON.room||ON.on){if(ON.host)NET.bcast({t:'close'});else if(NET.hostId)NET.send(NET.hostId,{t:'bye'})}}catch(e){}
+  var oldPeers=NET.peers;
+  NET.onmsg=NET.onpeer=NET.onleave=NET.onerror=null;
+  setTimeout(function(){
+    if(NET.peers===oldPeers){try{NET.close()}catch(e){}NET.peers={}}
+    else Object.keys(oldPeers).forEach(function(k){try{oldPeers[k].pc.close()}catch(e){}});
+  },250);
   var was=ON.on;ON.room=false;ON.on=false;document.documentElement.classList.remove('onrun');ON.paused=false;$('pauseOv').hidden=true;ON.host=false;ON.mem=[];ON.inLobby=false;$('onl').hidden=true;onPill();
   clearInterval(ON.hb);clearInterval(ON.tx);
   if(was&&state!=='menu'){state='menu';showMenu('play')}
@@ -7125,6 +7132,7 @@ function onSendMe(){
   if(ON.host){onLobbyBroadcast();onList()}
   else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes(),lv:meta.lv,sk:meta.skinSel,sks:meta.skins})}
 }
+window.addEventListener('pagehide',function(e){if(e&&e.persisted)return;try{if(ON.room||ON.on){if(ON.host)NET.bcast({t:'close'});else if(NET.hostId)NET.send(NET.hostId,{t:'bye'})}}catch(x){}});
 function onBeat(){
   ON.hb=setInterval(function(){NET.bcast({t:'pg'});var now=performance.now();
     for(var k in NET.peers){if(NET.peers[k].open&&ON.seen[k]&&now-ON.seen[k]>7000)NET.drop(k)}},1000);
@@ -7151,8 +7159,16 @@ function onLeft(pid){
   if(i>0){ON.mem.splice(i,1);onLobbyBroadcast();onList();
     ON.mem.forEach(function(m,j){if(j>0)NET.send(m.id,{t:'you',i:j})})}
 }
+function onKick(i){
+  if(!ON.host||ON.on||i<1||!ON.mem[i])return;
+  var pid=ON.mem[i].id,nm=onName(i);
+  try{NET.send(pid,{t:'kick'})}catch(e){}
+  onLeft(pid);onMsg(nm+' ha sido expulsado de la sala');
+  setTimeout(function(){NET.drop(pid)},400);
+}
 function onHostMsg(pid,m){
   ON.seen[pid]=performance.now();
+  if(m.t==='bye'){onLeft(pid);setTimeout(function(){NET.drop(pid)},300);return}
   var mem=ON.mem.find(function(x){return x.id===pid});
   if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);if(Array.isArray(m.heroes))mem.heroes=m.heroes.filter(function(k){return CLASSES[k]}).slice(0,16);onFixCls(mem);
     /* mejoras permanentes y aspecto del invitado: la partida se calcula en el anfitrión, así que se usan las del invitado, no las del anfitrión */
@@ -7183,6 +7199,8 @@ function onGuestMsg(pid,m){
   ON.seen[pid]=performance.now();
   if(m.t==='you'){ON.me=m.i}
   else if(m.t==='full'){onMsg('La sala está llena o ya empezó.');onStop()}
+  else if(m.t==='kick'){toast('El anfitrión te ha expulsado de la sala');if(ON.on&&state!=='dead'){try{endRun('desconexion')}catch(e){}}onStop()}
+  else if(m.t==='close'){toast('El anfitrión ha cerrado la sala');if(ON.on&&state!=='dead'){try{endRun('desconexion')}catch(e){}}onStop()}
   else if(m.t==='lob'){ON.map=m.map||0;ON.hard=!!m.hard;ON.mut=!!m.mut;ON.inf=!!m.inf;ON.mem=m.m.map(function(x,i){return {id:i,cls:CLASSES[x.cls]?x.cls:'barb',rdy:x.rdy,nick:x.nick||'',skv:typeof x.sk==='string'?x.sk.slice(0,40):''}});onList()}
   else if(m.t==='pr'){onPingIn(m.ts)}
   else if(m.t==='map'){ON.mapA=m}
@@ -7234,7 +7252,11 @@ function cap(arr,c,max,fx){var o=[];for(var i=0;i<arr.length;i++){var e=arr[i];i
 
 /* ---------- inicio de partida ---------- */
 function seeded(seed,fn){var o=Math.random,x=seed>>>0;Math.random=function(){x=(x+0x6D2B79F5)>>>0;var t=x;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};try{return fn()}finally{Math.random=o}}
+/* decodifica de antemano las hojas de proyectiles y efectos: así no hay tirón la primera vez que se dibujan los del otro jugador */
+function onPredecode(){try{[PROJS,typeof FXS!=='undefined'?FXS:{}].forEach(function(M){Object.keys(M).forEach(function(k){var im=M[k]&&M[k].img;if(im&&im.decode&&!im._pd){im._pd=1;im.decode().catch(function(){})}})})}catch(e){}}
+setTimeout(onPredecode,3000);
 function onBegin(cls,me,host,msg,mapBytes){
+  try{onPredecode()}catch(e){}
   ON.on=true;ON.paused=false;$('pauseOv').hidden=true;ON.rk=false;ON.cls=cls.slice();ON.host=host;ON.me=me;ON.inLobby=false;$('onl').hidden=true;onPill();ON.q=0;ON.last=-1;ON.nid={};ON.lvl=null;ON.tk=0;
   var mi=(msg&&msg.map)||0;ON.mi=mi;
   seeded((msg&&msg.seed)||1,function(){startRun(cls[0],mi)});
@@ -22202,6 +22224,8 @@ try {
     '@keyframes coBl{50%{opacity:.4}}',
     '#onl .co-s .co-crown{position:absolute;top:2px;left:50%;width:20px;height:auto;transform:translateX(-50%);filter:drop-shadow(1px 1px 0 #000)}',
     '#onl .co-s.vac{opacity:.7}',
+    '#onl .co-kick{margin-top:3px;padding:1px 10px;font-family:var(--display);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#e0605a;background:#0c0d0e;border:0;cursor:pointer;box-shadow:0 0 0 2px #7a2a26}',
+    '#onl .co-kick:hover{background:#2a0e0c;color:#ff8a82}',
     '#onl .co-s.vac .co-por{background:repeating-linear-gradient(45deg,rgba(201,168,90,.06) 0 2px,transparent 2px 6px),#0c0d0e;align-items:center}',
     '#onl .co-s.vac .co-por span{font-family:var(--display);font-size:26px;color:rgba(201,168,90,.35);text-shadow:2px 2px 0 #000}',
     '#onl .co-s.vac .co-n{font-style:italic;font-family:var(--body);font-size:11px;color:rgba(232,225,208,.4)}',
@@ -22263,6 +22287,7 @@ try {
       cw.appendChild(cp);
     }
     var ls = $('onList'); if (ls) ls.insertAdjacentHTML('beforebegin', '<div class="co-h">' + tr('Jugadores') + '</div>');
+    if (ls) ls.addEventListener('click', function (e) { var kb = e.target.closest && e.target.closest('[data-kick]'); if (kb && typeof onKick === 'function') { e.preventDefault(); onKick(+kb.getAttribute('data-kick')); } });
     var mr = $('onMapRow'); if (mr) mr.insertAdjacentHTML('beforebegin', '<div class="co-h">' + tr('Partida') + '</div>');
     var sel = $('onCls'), lab = sel && sel.parentNode;
     if (lab && lab.tagName === 'LABEL') {
@@ -22287,7 +22312,7 @@ try {
       var k = m.cls, C = CLASSES[k] || {}, nm = (typeof onName === 'function' ? onName(i) : (m.nick || 'J' + (i + 1)));
       var stt = i === 0 ? '<span class="co-st h">' + tr('Anfitrión') + '</span>' : m.rdy ? '<span class="co-st r">' + tr('Listo') + '</span>' : '<span class="co-st w">' + tr('Esperando') + '</span>';
       h += '<div class="co-s' + (i === ON.me ? ' me' : '') + '" style="--c:' + rgb(k) + '">' + (i === 0 ? '<img class="px co-crown" alt="" src="' + PX.icons.crown + '">' : '') +
-        '<span class="co-por">' + (function () { try { var sv = typeof onSkinOf === 'function' ? onSkinOf(m, i) : null; return sv ? portHtml(sv, k) : por(k); } catch (e) { return por(k); } })() + '</span><span class="co-n">' + nm + (i === ON.me ? ' · ' + tr('tú') : '') + '</span><span class="co-c">' + (C.name || '') + '</span>' + stt + '</div>';
+        '<span class="co-por">' + (function () { try { var sv = typeof onSkinOf === 'function' ? onSkinOf(m, i) : null; return sv ? portHtml(sv, k) : por(k); } catch (e) { return por(k); } })() + '</span><span class="co-n">' + nm + (i === ON.me ? ' · ' + tr('tú') : '') + '</span><span class="co-c">' + (C.name || '') + '</span>' + stt + (ON.host && i > 0 && !ON.on ? '<button type="button" class="co-kick" data-kick="' + i + '" title="' + tr('Expulsar') + '">' + tr('Expulsar') + '</button>' : '') + '</div>';
     }
     if (ls._h !== h || !ls.querySelector('.co-s')) { ls._h = h; ls.innerHTML = h; }
     rejilla();
@@ -22303,11 +22328,11 @@ try {
 })();
 try {
   var _coTr = {
-    en: {'Crear sala': 'Create room', 'Unirse': 'Join', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Open a room and share the code with up to 3 friends.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Type the 5-letter code the host gave you.', 'Copiar': 'Copy', 'Copiado': 'Copied', 'Jugadores': 'Players', 'Partida': 'Game', 'Esperando jugador…': 'Waiting for player…', 'Anfitrión': 'Host', 'Listo': 'Ready', 'Esperando': 'Waiting', 'tú': 'you'},
-    pt: {'Crear sala': 'Criar sala', 'Unirse': 'Entrar', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Abra uma sala e compartilhe o código com até 3 amigos.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Digite o código de 5 letras que o anfitrião te passou.', 'Copiar': 'Copiar', 'Copiado': 'Copiado', 'Jugadores': 'Jogadores', 'Partida': 'Partida', 'Esperando jugador…': 'Esperando jogador…', 'Anfitrión': 'Anfitrião', 'Listo': 'Pronto', 'Esperando': 'Esperando', 'tú': 'você'},
-    fr: {'Crear sala': 'Créer un salon', 'Unirse': 'Rejoindre', 'Abre una sala y comparte el código con hasta 3 amigos.': "Ouvre un salon et partage le code avec jusqu'à 3 amis.", 'Escribe el código de 5 letras que te ha pasado el anfitrión.': "Tape le code de 5 lettres que l'hôte t'a donné.", 'Copiar': 'Copier', 'Copiado': 'Copié', 'Jugadores': 'Joueurs', 'Partida': 'Partie', 'Esperando jugador…': 'En attente d’un joueur…', 'Anfitrión': 'Hôte', 'Listo': 'Prêt', 'Esperando': 'En attente', 'tú': 'toi'},
-    ru: {'Crear sala': 'Создать комнату', 'Unirse': 'Войти', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Откройте комнату и поделитесь кодом с тремя друзьями.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Введите 5-буквенный код от хозяина.', 'Copiar': 'Копировать', 'Copiado': 'Скопировано', 'Jugadores': 'Игроки', 'Partida': 'Игра', 'Esperando jugador…': 'Ожидание игрока…', 'Anfitrión': 'Хозяин', 'Listo': 'Готов', 'Esperando': 'Ожидание', 'tú': 'вы'},
-    ja: {'Crear sala': 'ルーム作成', 'Unirse': '参加', 'Abre una sala y comparte el código con hasta 3 amigos.': 'ルームを作り、コードを最大3人の友達に共有します。', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'ホストから受け取った5文字のコードを入力します。', 'Copiar': 'コピー', 'Copiado': 'コピー済み', 'Jugadores': 'プレイヤー', 'Partida': 'ゲーム', 'Esperando jugador…': 'プレイヤー待ち…', 'Anfitrión': 'ホスト', 'Listo': '準備完了', 'Esperando': '待機中', 'tú': 'あなた'}
+    en: {"Expulsar": "Kick", "El anfitrión te ha expulsado de la sala": "The host kicked you out of the room", "El anfitrión ha cerrado la sala": "The host closed the room", 'Crear sala': 'Create room', 'Unirse': 'Join', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Open a room and share the code with up to 3 friends.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Type the 5-letter code the host gave you.', 'Copiar': 'Copy', 'Copiado': 'Copied', 'Jugadores': 'Players', 'Partida': 'Game', 'Esperando jugador…': 'Waiting for player…', 'Anfitrión': 'Host', 'Listo': 'Ready', 'Esperando': 'Waiting', 'tú': 'you'},
+    pt: {"Expulsar": "Expulsar", "El anfitrión te ha expulsado de la sala": "O anfitrião te expulsou da sala", "El anfitrión ha cerrado la sala": "O anfitrião fechou a sala", 'Crear sala': 'Criar sala', 'Unirse': 'Entrar', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Abra uma sala e compartilhe o código com até 3 amigos.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Digite o código de 5 letras que o anfitrião te passou.', 'Copiar': 'Copiar', 'Copiado': 'Copiado', 'Jugadores': 'Jogadores', 'Partida': 'Partida', 'Esperando jugador…': 'Esperando jogador…', 'Anfitrión': 'Anfitrião', 'Listo': 'Pronto', 'Esperando': 'Esperando', 'tú': 'você'},
+    fr: {"Expulsar": "Expulser", "El anfitrión te ha expulsado de la sala": "L'hôte t'a exclu du salon", "El anfitrión ha cerrado la sala": "L'hôte a fermé le salon", 'Crear sala': 'Créer un salon', 'Unirse': 'Rejoindre', 'Abre una sala y comparte el código con hasta 3 amigos.': "Ouvre un salon et partage le code avec jusqu'à 3 amis.", 'Escribe el código de 5 letras que te ha pasado el anfitrión.': "Tape le code de 5 lettres que l'hôte t'a donné.", 'Copiar': 'Copier', 'Copiado': 'Copié', 'Jugadores': 'Joueurs', 'Partida': 'Partie', 'Esperando jugador…': 'En attente d’un joueur…', 'Anfitrión': 'Hôte', 'Listo': 'Prêt', 'Esperando': 'En attente', 'tú': 'toi'},
+    ru: {"Expulsar": "Выгнать", "El anfitrión te ha expulsado de la sala": "Хозяин выгнал вас из комнаты", "El anfitrión ha cerrado la sala": "Хозяин закрыл комнату", 'Crear sala': 'Создать комнату', 'Unirse': 'Войти', 'Abre una sala y comparte el código con hasta 3 amigos.': 'Откройте комнату и поделитесь кодом с тремя друзьями.', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'Введите 5-буквенный код от хозяина.', 'Copiar': 'Копировать', 'Copiado': 'Скопировано', 'Jugadores': 'Игроки', 'Partida': 'Игра', 'Esperando jugador…': 'Ожидание игрока…', 'Anfitrión': 'Хозяин', 'Listo': 'Готов', 'Esperando': 'Ожидание', 'tú': 'вы'},
+    ja: {"Expulsar": "追放", "El anfitrión te ha expulsado de la sala": "ホストにルームから追放されました", "El anfitrión ha cerrado la sala": "ホストがルームを閉じました", 'Crear sala': 'ルーム作成', 'Unirse': '参加', 'Abre una sala y comparte el código con hasta 3 amigos.': 'ルームを作り、コードを最大3人の友達に共有します。', 'Escribe el código de 5 letras que te ha pasado el anfitrión.': 'ホストから受け取った5文字のコードを入力します。', 'Copiar': 'コピー', 'Copiado': 'コピー済み', 'Jugadores': 'プレイヤー', 'Partida': 'ゲーム', 'Esperando jugador…': 'プレイヤー待ち…', 'Anfitrión': 'ホスト', 'Listo': '準備完了', 'Esperando': '待機中', 'tú': 'あなた'}
   };
   Object.keys(_coTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_coTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _coTr[l][k]; }); });
   if (typeof i18nLoad === 'function') i18nLoad();
