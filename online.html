@@ -10836,6 +10836,7 @@ function R(){
   while(m.eq.d.length<3)m.eq.d.push(null);
   ['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return null;var p=parse(k);if(!RUNES[p.id]||(RUNES[p.id].o?'o':'d')!==tp){if(RUNES[p.id])m.inv[k]=(m.inv[k]||0)+1;return null}return k})});
   if(m.eq.o.length>1){var x=m.eq.o.splice(1).filter(Boolean);x.forEach(function(k){m.inv[k]=(m.inv[k]||0)+1})}
+  if(window.TEST_BUILD){var _eqk={};['o','d'].forEach(function(tp){m.eq[tp].forEach(function(k){if(k)_eqk[k]=1})});ORDER.forEach(function(id){var k=id+':'+RR[id];if(!(m.inv[k]>0)&&!_eqk[k])m.inv[k]=1;m.seen[id]=1})}
   return m}
 function key(id){return id+':'+RR[id]}
 function parse(k){var a=k.split(':');return {id:a[0],r:+a[1]}}
