@@ -4923,7 +4923,11 @@ try{
   });
 }catch(e){}
 var loadMapAssets_fin=loadMapAssets;
-loadMapAssets=function(mi){var had=(loadedEnemyMap===mi);loadMapAssets_fin(mi);if(!had&&mi===FIN_MAP)Object.keys(FIN_ESPR).forEach(function(k){ESPR[k]=FIN_ESPR[k]})};
+loadMapAssets=function(mi){var had=(loadedEnemyMap===mi);loadMapAssets_fin(mi);if(!had&&mi===FIN_MAP)Object.keys(FIN_ESPR).forEach(function(k){ESPR[k]=FIN_ESPR[k]});
+  if(mi===FIN_MAP)try{[0,2500].forEach(function(dl){setTimeout(function(){
+    Object.keys(FIN_ESPR).forEach(function(k){var o=FIN_ESPR[k];if(o&&o.img&&o.img.decode)o.img.decode().catch(function(){});if(o&&o.flash){var c=document.createElement('canvas');c.width=c.height=1;c.getContext('2d').drawImage(o.flash,0,0,1,1)}});
+    Object.keys(FIN_FX).forEach(function(k){var o=FIN_FX[k];if(o&&o.img&&o.img.decode)o.img.decode().catch(function(){})});
+  },dl)})}catch(e){}};
 BOSS_CFG.escritor={r:.55,speed:2.6,hp:3,dmg:1.2};
 var FIN_SPIRITS=['verguenza','rabia','miedo'],FIN_SPIRIT_NAMES=['Vergüenza','Rabia','Miedo'],FIN_SPIRIT_COL=['#3ab864','#d84228','#8034b8'];
 BOSS_CFG.verguenza={r:.55,speed:2.4,hp:1.2,dmg:1.05};
@@ -22928,7 +22932,7 @@ function frame(now){
     if(fpsAvg>.026&&now-QS_LAST>2500&&QS>.75){QS=Math.max(.75,QS-.08);QS_LAST=now;QS_OK=0;fpsAvg=.022;try{resize()}catch(e){}}
     else if(fpsAvg<.014&&QS<1){QS_OK+=raw;if(QS_OK>12&&now-QS_LAST>2500){QS=Math.min(1,QS+.08);QS_LAST=now;QS_OK=0;fpsAvg=.018;try{resize()}catch(e){}}}
     else QS_OK=0;
-    if(fpsAvg>.026&&QS<=.76)capScale=Math.max(.35,capScale-dt*.08);
+    if(fpsAvg>.026&&(QS<=.76||(coop&&PL.length>1&&QS<=.9)))capScale=Math.max(coop?.3:.35,capScale-dt*(coop?.16:.08));
     else if(fpsAvg<.019)capScale=Math.min(1,capScale+dt*.04);
     try{update(dt)}catch(e){softErr('juego',e);P=PL[0]||P}
     try{dailyTick(dt)}catch(e){}
