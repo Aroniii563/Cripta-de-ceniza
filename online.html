@@ -815,7 +815,7 @@ var ETYPES={
 /* El daño de las mejoras se suma al daño base del personaje (no al que tenga en ese momento) */
 function addDmg(p,x){if(p.dmgB==null){p.dmgB=p.dmg;p.dmgA=0}var o=1+p.dmgA;p.dmgA+=x;p.dmg*=(1+p.dmgA)/o}
 /* Alcance máximo: Bárbaro 8, Jinete 4,5 */
-function reachCap(p){var m={barb:8,jinete:4.5,jdrag:4.5}[p.c.key];return m?m/p.c.range:1e9}
+function reachCap(p){var m={barb:8,jinete:4.5}[p.c.key];return m?m/p.c.range:1e9}
 var UPS=[
   {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){addDmg(P,.08)}},
   {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'||P.rate<7.45-1e-9},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
@@ -830,7 +830,7 @@ var UPS=[
   {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+8% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.08}},
   {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
   {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
-  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider'||P.c.kind==='rider2')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
+  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
   {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp+=(P.hp0||P.maxHp)*.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 75%)',ok:function(){return P.armor<.75-1e-9},f:function(){P.armor=Math.min(.75,P.armor+.07)}},
@@ -6367,7 +6367,7 @@ function animSet(p,st){var a=animState(p);a.st=st;a.t=0}
 /* el ataque del Hechicero empieza su animación y lanza la zona en el fotograma 3 */
 var doAttack_ani_base=doAttack;
 doAttack=function(second){
-  if(second||!animSheetFor(P)||P.c.kind!=='zone'&&P.c.kind!=='melee'&&P.c.kind!=='rider'&&P.c.kind!=='rider2'&&P.c.kind!=='proj'&&P.c.kind!=='aura')return doAttack_ani_base(second);
+  if(second||!animSheetFor(P)||P.c.kind!=='zone'&&P.c.kind!=='melee'&&P.c.kind!=='rider'&&P.c.kind!=='proj'&&P.c.kind!=='aura')return doAttack_ani_base(second);
   var me=P;animSet(me,'ataque');
   later.push({t:.2,f:function(){
     if(state!=='play'||me.dead)return;
@@ -6432,178 +6432,6 @@ var SPD={"barrera": {"src": "mejoras/barrera.png", "fw": 150, "fh": 170, "rows":
 try{
   Object.keys(SPD).forEach(function(k){var d=SPD[k];if(!d.src)return;var im=new Image();im.onload=function(){SPI[k]=im};im.src=d.src});
 }catch(e){}
-
-/* ---------- Jinete dragón (personaje aparte, prueba): montada en un dragón verde que escupe fuego ----------
-   Clase 'jdrag' (kind 'rider2'). La Jinete original ('jinete', dragones que muerden) no se toca.
-   - Ataca cuerpo a cuerpo con la espada corta (igual que la Jinete: arco del Bárbaro con la mitad de alcance).
-   - Su dragón escupe fuego cada 3,2 s (se acorta con la velocidad de ataque y con «Fuelle de dragón») si hay un
-     enemigo a menos de JF_LEN casillas: chorro de 1,1 s en cono que hace el 30% del daño cada 0,18 s.
-   - Hojas: skins/jdrag_anim.png (+ _02.._08) y skins/jdrag_retratos.png; fuego: ataques/jin_fuego.png. */
-var JDD={"fuego": {"src": "ataques/jin_fuego.png", "fw": 72, "fh": 72, "n": 6}},JDI={};
-try{
-  Object.keys(JDD).forEach(function(k){var d=JDD[k];var im=new Image();im.onload=function(){JDI[k]=im};im.src=d.src});
-}catch(e){}
-/* boca del dragón dentro del fotograma (px de la hoja a 2x, mirando a la derecha) */
-var JD_BOCA={x:158.9,y:93.5};
-var JF_CD=3.2,JF_DUR=1.1,JF_LEN=3.4,JF_ANG=.36,JF_TICK=.18,JF_DMG=.3,JF_LIFE=.42;
-var jdFire=[];
-
-/* clase nueva + hojas de animación y retratos */
-(function(){
-  var base={"fw": 169, "fh": 164, "pie_x": 103.2, "pie_y": 133.5, "filas": {"reposo": 6, "andar": 8, "ataque": 6, "dano": 3, "muerte": 8}, "fps": {"reposo": 6, "andar": 10, "ataque": 12, "dano": 10, "muerte": 8}, "bucle": {"reposo": true, "andar": true, "ataque": false, "dano": false, "muerte": false}, "der": true};
-  var NM=['Jinete dragón','Dragón carmesí','Dragón de escarcha','Dragón del ocaso','Dragón dorado','Dragón de obsidiana','Dragón del arrecife','Dragón de magma'];
-  CLASSES.jdrag={key:'jdrag',name:'Jinete dragón',role:'Montada en un dragón que escupe fuego',col:'#6fcf6a',hp:52,speed:4.4,dmg:16,rate:1.6,crit:.05,armor:.05,kind:'rider2',range:1.6,arc:2.1,
-    atk:'Aliento de dragón',atkD:'Golpea cuerpo a cuerpo con su espada corta como el Bárbaro, pero con la mitad de alcance. Su dragón escupe fuego cada pocos segundos: un chorro en cono hacia el enemigo más cercano que quema a todos los que alcanza.'};
-  try{HERO_PAID.push('jdrag')}catch(e){}
-  for(var i=0;i<8;i++){
-    var id=i?'jdrag_0'+(i+1):'jdrag';
-    var d=JSON.parse(JSON.stringify(base));d.src=i?'skins/jdrag_0'+(i+1)+'_anim.png':'skins/jdrag_anim.png';d.boca_x=JD_BOCA.x;d.boca_y=JD_BOCA.y;ANIMD[id]=d;
-    SKIN_DATA.skins[id]={atlas:'skins/jdrag_retratos.png',ax:i*216,aw:216,ah:333,aT:216*8};
-    SKINCAT.push({id:id,cls:'jdrag',name:NM[i],cost:i?2000:0});
-  }
-})();
-
-var mkPlayer_jd_base=mkPlayer;
-mkPlayer=function(key,idx){
-  var p=mkPlayer_jd_base(key,idx);
-  p.jfCd=1;p.jfT=0;p.jfA=0;p.jfTk=0;p.jfEm=0;p.jfTgt=null;
-  p.jfMul=1;p.jfLen=1;p.jfRate=1;
-  return p;
-};
-var genMap_jd_base=genMap;
-genMap=function(){genMap_jd_base();jdFire=[]};
-
-/* mejoras propias de la Jinete dragón */
-UPS.push(
-  {n:'Aliento abrasador',ic:'icono_aliento_abrasador',c:'o',d:'+25% de daño del fuego del dragón (máx. +200%)',ok:function(){return P.c.kind==='rider2'&&P.jfMul<3-1e-9},f:function(){P.jfMul=Math.min(3,P.jfMul+.25)}},
-  {n:'Gran llamarada',ic:'icono_gran_llamarada',c:'o',d:'+15% de alcance y anchura del fuego (máx. +60%)',ok:function(){return P.c.kind==='rider2'&&P.jfLen<1.6-1e-9},f:function(){P.jfLen=Math.min(1.6,P.jfLen+.15)}},
-  {n:'Fuelle de dragón',ic:'icono_fuelle_dragon',c:'o',d:'El dragón escupe fuego un 20% más a menudo (máx. x2)',ok:function(){return P.c.kind==='rider2'&&P.jfRate<2-1e-9},f:function(){P.jfRate=Math.min(2,P.jfRate+.2)}}
-);
-try{
-  SPD.icono_jinete_aliento={src:'mejoras/icono_jinete_aliento.png'};
-  SPD.icono_aliento_abrasador={src:'mejoras/icono_aliento_abrasador.png'};
-  SPD.icono_gran_llamarada={src:'mejoras/icono_gran_llamarada.png'};
-  SPD.icono_fuelle_dragon={src:'mejoras/icono_fuelle_dragon.png'};
-}catch(e){}
-
-function jfInterval(p){return JF_CD*(p.c.rate/Math.max(.01,p.rate))/p.jfRate}
-function jfRange(p){return JF_LEN*p.jfLen}
-function jfHalf(p){return JF_ANG*(1+(p.jfLen-1)*.8)}
-function jfNearest(p,r){
-  var b=null,bd=1e9;
-  for(var k=0;k<enemies.length;k++){var e=enemies[k];if(e.dead)continue;var d=Math.hypot(e.x-p.x,e.y-p.y)-(e.r||0);if(d<r&&d<bd){bd=d;b=e}}
-  return b;
-}
-/* emite bocanadas (sólo visual) para cualquier jugador que esté escupiendo */
-function jfMouth(p){
-  var D=ANIMD[p.skinId];
-  if(D&&D.boca_x!=null)return {x:(D.boca_x-D.pie_x)*.5,y:(D.boca_y-D.pie_y)*.5+3};
-  return {x:14,y:-24};   /* aspectos especiales con otra hoja: boca aproximada */
-}
-function jfEmit(p,dt){
-  var m=jfMouth(p);
-  p.jfEm-=dt;
-  while(p.jfEm<=0){
-    p.jfEm+=.035;
-    var a=p.jfA+(Math.random()*2-1)*jfHalf(p)*.75,L=jfRange(p),v=L/JF_LIFE*(.85+Math.random()*.25);
-    jdFire.push({o:p,x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,t:0,life:JF_LIFE*(.85+Math.random()*.3),fl:Math.random()<.5,
-      bx:(p.flip?1:-1)*m.x,by:m.y});
-  }
-}
-function jfUpdate(dt){
-  var p=P;
-  if(p.jfT>0){
-    var t=p.jfTgt;
-    if(t&&!t.dead){var ta=Math.atan2(t.y-p.y,t.x-p.x),da=Math.atan2(Math.sin(ta-p.jfA),Math.cos(ta-p.jfA));p.jfA+=Math.max(-2.4*dt,Math.min(2.4*dt,da))}
-    var sx=Math.cos(p.jfA)-Math.sin(p.jfA);if(Math.abs(sx)>.05)p.flip=sx>0;
-    p.jfT-=dt;p.jfTk-=dt;
-    jfEmit(p,dt);
-    if(p.jfTk<=0){
-      p.jfTk+=JF_TICK;
-      var L=jfRange(p),h=jfHalf(p);
-      for(var k=0;k<enemies.length;k++){
-        var e=enemies[k];if(e.dead)continue;
-        var dx=e.x-p.x,dy=e.y-p.y,d=Math.hypot(dx,dy);
-        if(d>L+(e.r||.3))continue;
-        var da2=Math.abs(Math.atan2(Math.sin(Math.atan2(dy,dx)-p.jfA),Math.cos(Math.atan2(dy,dx)-p.jfA)));
-        if(d>.6&&da2>h+Math.atan2(e.r||.3,d))continue;
-        hitEnemy(e,roll(JF_DMG*p.jfMul),dx/(d||1),dy/(d||1),.3,true);
-      }
-    }
-    if(p.jfT<=0){p.jfT=0;p.jfCd=jfInterval(p)}
-    return;
-  }
-  p.jfCd-=dt;
-  if(p.jfCd<=0){
-    var e2=jfNearest(p,jfRange(p)*.95);
-    if(e2){p.jfTgt=e2;p.jfA=Math.atan2(e2.y-p.y,e2.x-p.x);p.jfT=JF_DUR;p.jfTk=.05;p.jfEm=0;S('sorc',p.x,p.y,0,.55)}
-    else p.jfCd=.25;
-  }
-}
-var playerStep_jd_base=playerStep;
-playerStep=function(dt){
-  playerStep_jd_base(dt);
-  if(!P||P.c.kind!=='rider2')return;
-  if(P.dead){P.jfT=0;return}
-  jfUpdate(dt);
-};
-
-/* ---------- dibujo ---------- */
-var hazItems_jd_base=hazItems;
-hazItems=function(list){
-  hazItems_jd_base(list);
-  for(var i=0;i<jdFire.length;i++){var f=jdFire[i];list.push({d:f.x+f.y+.4,hz:{k:'jd_fb',f:f}})}
-};
-var updateHaz_jd_base=updateHaz;
-updateHaz=function(dt){
-  updateHaz_jd_base(dt);
-  /* jugadores remotos (online): sólo el efecto visual */
-  if(typeof PL!=='undefined')for(var j=0;j<PL.length;j++){var q=PL[j];if(q!==P&&q.c&&q.c.kind==='rider2'&&q.jfT>0&&q.jfLen)jfEmit(q,dt)}
-  for(var i=jdFire.length-1;i>=0;i--){
-    var f=jdFire[i];f.t+=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=Math.pow(.25,dt);f.vy*=Math.pow(.25,dt);
-    if(f.t>=f.life)jdFire.splice(i,1);
-  }
-};
-var drawHz_jd_base=drawHz;
-drawHz=function(h){
-  if(h.k==='jd_fb'){
-    var f=h.f,im=JDI.fuego,D=JDD.fuego;if(!im)return;
-    var u=f.t/f.life,p=sp(f.x,f.y),fr=Math.min(D.n-1,Math.floor(u*D.n)),w=D.fw*.5,hh=D.fh*.5;
-    var ox=f.bx*(1-u*.6),oy=f.by*(1-u*.45);
-    ctx.save();ctx.translate(Math.round(p.x+ox),Math.round(p.y+oy));
-    if(f.fl)ctx.scale(-1,1);
-    if(u>.8)ctx.globalAlpha=Math.max(0,(1-u)/.2);
-    ctx.drawImage(im,fr*D.fw,0,D.fw,D.fh,-w/2,-hh/2,w,hh);
-    ctx.restore();
-    return;
-  }
-  return drawHz_jd_base(h);
-};
-
-/* ---------- interfaz: icono del ataque y estadísticas ---------- */
-var startRun_jd_base=startRun;
-startRun=function(key,mi){
-  startRun_jd_base(key,mi);
-  try{if(typeof PVK!=='undefined'&&PVK.indexOf('jfT')<0)PVK.push('jfT','jfA','jfLen')}catch(e){}
-  try{
-    var b=$('atkBtn'),nm=$('atkName');
-    if(CLASSES[key].kind==='rider2'&&SPD.icono_jinete_aliento){b.style.backgroundImage='url('+SPD.icono_jinete_aliento.src+')';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
-  }catch(e){}
-};
-var statRows_jd_base=statRows;
-statRows=function(){
-  var h=statRows_jd_base();
-  if(!P||P.c.kind!=='rider2')return h;
-  function a(l,v,mx){return '<div class="r"><span>'+l+'</span><b'+(mx?' class="mx"':'')+'>'+v+'</b></div>'}
-  var r=a('Alcance',r1(P.c.range*P.reach),P.reach>=reachCap(P)-1e-9)
-    +a('Fuego cada',r1(jfInterval(P))+' s',P.jfRate>=2-1e-9)
-    +a('Daño del fuego',pc(JF_DMG*P.jfMul)+' / 0,18 s',P.jfMul>=3-1e-9)
-    +a('Alcance del fuego',r1(jfRange(P)),P.jfLen>=1.6-1e-9);
-  var i=h.indexOf('<div class="sp">');
-  return i<0?h+r:h.slice(0,i)+r+h.slice(i);
-};
-
-try{if(window.TEST_BUILD)twSeed()}catch(e){}
 var BAR_DUR=2,LT_CD=1.5,LT_N=10,LT_RANGE=9,CROW_RANGE=7;
 
 var mkPlayer_sp_base=mkPlayer;
@@ -7505,7 +7333,7 @@ function onBegin(cls,me,host,msg,mapBytes){
 function onAtkIcon(key){
   try{
     var b=$('atkBtn'),nm=$('atkName'),c=CLASSES[key];nm.textContent=c.atk;
-    var KI={spears:'icono_lanzas_que_vuelven',urns:'icono_urnas_de_luz',rider:'icono_jinete_dragon',rider2:'icono_jinete_aliento',meteor:'icono_lluvia_de_fuego'}[c.kind],isA=KI&&SPD[KI];
+    var KI={spears:'icono_lanzas_que_vuelven',urns:'icono_urnas_de_luz',rider:'icono_jinete_dragon',meteor:'icono_lluvia_de_fuego'}[c.kind],isA=KI&&SPD[KI];
     if(isA){b.style.backgroundImage='url('+SPD[KI].src+')';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
     else{var WI={sorc:'hechicero',barb:'barbaro',rogue:'picaro',pal:'paladin',druid:'druida',necro:'nigromante',monja:'monja',bruja:'bruja'}[key];
       if(WI){b.style.backgroundImage='url(mejoras/icono_arma_'+WI+'.png)';b.style.backgroundSize='100% 100%';b.style.imageRendering='pixelated';nm.textContent=''}
@@ -11284,7 +11112,7 @@ function doTerremoto(r){
 }
 /* Réplicas: cada sombra es una copia viva del personaje (sin vida ni control) que ejecuta su propio ataque de clase durante un instante */
 var CLONE_N={proj:'projN',zone:'zoneN',orbit:'orbMax',spheres:'sphMax',spears:'amMax',urns:'angN',meteor:'mtN'};
-var CLIFE={proj:.25,melee:.25,zone:.25,aura:.25,rider:1.6,rider2:1.6,orbit:1.8,spears:2.4,urns:1.2,meteor:2.8,monks:2.6,spheres:2.6};
+var CLIFE={proj:.25,melee:.25,zone:.25,aura:.25,rider:1.6,orbit:1.8,spears:2.4,urns:1.2,meteor:2.8,monks:2.6,spheres:2.6};
 function mkClone(p,gx,gy,em){
   var c={},k,v;
   for(k in p){v=p[k];c[k]=Array.isArray(v)?[]:v}
@@ -13735,7 +13563,6 @@ var CARTAS_PX={
   amazona:{"src":"cartas/carta_amazona.png","w":257,"h":341,"glow":"rgba(255,90,70,.45)","ic":[50.78,39.15,22.92,17.27],"p":[26.07,56.01,47.86,5.87],"b":[25.29,65.69,49.42,17.89]},
   angel:{"src":"cartas/carta_angel.png","w":262,"h":337,"glow":"rgba(255,250,220,.55)","ic":[50.19,36.05,23.43,18.21],"p":[25.95,52.52,48.47,6.23],"b":[25.19,63.2,48.85,21.07]},
   jinete:{"src":"cartas/carta_jinete.png","w":280,"h":335,"glow":"rgba(90,230,130,.45)","ic":[50.0,38.96,20.59,17.21],"p":[26.43,54.33,47.14,7.46],"b":[26.43,65.67,47.5,18.51]},
-  jdrag:{"src":"cartas/carta_jinete.png","w":280,"h":335,"glow":"rgba(90,230,130,.45)","ic":[50.0,38.96,20.59,17.21],"p":[26.43,54.33,47.14,7.46],"b":[26.43,65.67,47.5,18.51]},
   piro:{"src":"cartas/carta_piro.png","w":266,"h":343,"glow":"rgba(255,130,40,.55)","ic":[49.81,39.65,22.84,17.71],"p":[26.32,55.98,46.62,6.12],"b":[26.32,65.89,46.62,17.2]},
   samurai:{"src":"cartas/carta_samurai.png","w":440,"h":634,"glow":"rgba(255,80,70,.5)","ic":[51.75,40.29,25.4,17.3],"p":[24.72,54.11,53.95,5.09],"b":[23.93,63.27,55.87,18.64]}
 };
