@@ -10509,6 +10509,11 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     cl: {es: 'Cerrar', en: 'Close', pt: 'Fechar', fr: 'Fermer', ru: 'Закрыть', ja: '閉じる'},
     pend: {es: 'por reclamar', en: 'to claim', pt: 'para receber', fr: 'à récupérer', ru: 'к получению', ja: '受取可能'},
     test: {es: 'Avanzar un día (prueba)', en: 'Advance one day (test)', pt: 'Avançar um dia (teste)', fr: 'Avancer un jour (test)', ru: 'Следующий день (тест)', ja: '1日進める(テスト)'},
+    left: {es: 'Tiempo restante para reclamar:', en: 'Time left to claim:', pt: 'Tempo restante para receber:', fr: 'Temps restant pour récupérer :', ru: 'Осталось времени, чтобы забрать:', ja: '受け取りまでの残り時間:'},
+    ended: {es: 'El evento ha terminado', en: 'The event has ended', pt: 'O evento terminou', fr: "L'événement est terminé", ru: 'Событие завершено', ja: 'イベントは終了しました'},
+    dd: {es: 'd', en: 'd', pt: 'd', fr: 'j', ru: 'д', ja: '日'},
+    hh: {es: 'h', en: 'h', pt: 'h', fr: 'h', ru: 'ч', ja: '時間'},
+    mm: {es: 'min', en: 'min', pt: 'min', fr: 'min', ru: 'мин', ja: '分'},
     ok: {es: '¡Recompensas reclamadas!', en: 'Rewards claimed!', pt: 'Recompensas recebidas!', fr: 'Récompenses récupérées !', ru: 'Награды получены!', ja: '報酬を受け取りました!'}
   };
   function T(k) { var l = (typeof LANG !== 'undefined' && LANG) || 'es'; return CT[k][l] || CT[k].es; }
@@ -10527,6 +10532,13 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     var E = window.EV_LANZ || {};
     if (E.fin && Date.now() > +new Date(E.fin)) return false;
     return hoy() > 0;
+  }
+  function resta() {   /* texto con el tiempo que queda hasta el fin del evento */
+    var E = window.EV_LANZ || {}; if (!E.fin) return '';
+    var ms = +new Date(E.fin) - Date.now();
+    if (ms <= 0) return T('ended');
+    var m = Math.floor(ms / 6e4), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
+    return T('left') + ' ' + (d ? d + ' ' + T('dd') + ' ' : '') + (d || h ? h + ' ' + T('hh') + ' ' : '') + (d ? '' : mi + ' ' + T('mm'));
   }
   function cobrados() { return meta.calDias | 0; }                /* días ya cobrados (siempre son los primeros N) */
   function listo(d) { return d < 7 || EV_SKINS.length > 0; }       /* el día 7 espera a tener las skins */
@@ -10586,16 +10598,17 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     var n = pendientes().length, b = $('calClaim');
     b.disabled = !n; b.textContent = n ? T('claim') + ' (' + n + ')' : T('none');
     var tb = $('calTest'); if (tb) { tb.hidden = !window.TEST_BUILD; tb.textContent = T('test'); }
-    $('calT').textContent = T('tit'); $('calS').textContent = T('sub'); $('calX').textContent = T('cl');
+    $('calT').textContent = T('tit'); $('calS').textContent = T('sub') + ' ' + resta(); $('calX').textContent = T('cl');
   }
   function resumen() {
     var s = $('calSum'); if (!s) return;
     var n = pendientes().length, h = hoy();
-    s.textContent = T('day') + ' ' + h + '/7' + (n ? ' · ' + n + ' ' + T('pend') : '');
+    s.textContent = T('day') + ' ' + h + '/7' + (n ? ' · ' + n + ' ' + T('pend') : '') + (resta() ? ' · ' + resta().replace(T('left') + ' ', '') : '');
     s.className = n ? 'new' : '';
     var nm = document.querySelector('#calOpen .nm'); if (nm) nm.textContent = T('tit');
   }
   function abre() { pinta(); $('calOv').hidden = false; }
+  setInterval(function () { try { var o = $('calOv'); if (o && !o.hidden) { $('calS').textContent = T('sub') + ' ' + resta(); } resumen(); } catch (e) {} }, 60000);
   function cierra() { $('calOv').hidden = true; }
 
   var st = document.createElement('style');
