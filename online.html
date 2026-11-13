@@ -498,6 +498,17 @@ button:disabled,.btn:disabled,.mdcard[disabled]{cursor:url("data:image/png;base6
 input[type=text],input[type=search],input[type=email],input[type=password],textarea{cursor:text!important}
 #cv{cursor:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAmElEQVR4nGNkIAB4ePn+45P/8vkTIz55JkIWUApYiFX45MwkFL6MSR5R+mjug6FvAdFxcPP8LgYGBgaGQ4fOkWQBzX3ASGk6J6SffnGAns5hYW4esQyvAXtn+zAwMDAwqBu6oYjD8snQT6ajqYggwOs6BgaEC2GpBZaTGxc/Y2BgGAT1AdE+wFUfDLgPhr4FRMcBLjDgcQAA+Kg0Co3dJGYAAAAASUVORK5CYII=") 12 12,crosshair!important}
 
+/* móvil apaisado: interfaz más pequeña (fuentes y botones) */
+@media (max-height:520px){
+html .ov:not(#lvlOv),html #dailyOv,html #calOv,html #hud{--ms:.74;scale:var(--ms);transform-origin:0 0;inset:0 auto auto 0!important;width:calc(100% / var(--ms))!important;height:calc(100% / var(--ms))!important}
+html #tbRow,html #pauseBtn{scale:.78;transform-origin:100% 0}
+html #guiaBtn,html #ttBtn,html #repBtn{scale:.78;transform-origin:100% 100%}
+html #tutBox{scale:.8;transform-origin:50% 0}
+}
+@media (max-height:400px){
+html .ov:not(#lvlOv),html #dailyOv,html #calOv,html #hud{--ms:.66}
+html #tbRow,html #pauseBtn,html #guiaBtn,html #ttBtn,html #repBtn{scale:.7}
+}
 </style>
 
 <div id="app">
