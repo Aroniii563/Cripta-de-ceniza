@@ -10540,9 +10540,7 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     var ms = +new Date(E.fin) - Date.now();
     if (ms <= 0) return T('ended');
     var m = Math.floor(ms / 6e4), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
-    var LC = {es: 'es-ES', en: 'en-GB', pt: 'pt-PT', fr: 'fr-FR', ru: 'ru-RU', ja: 'ja-JP'}[(typeof LANG !== 'undefined' && LANG) || 'es'] || 'es-ES';
-    var fin = new Date(E.fin).toLocaleString(LC, {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'});
-    return T('left') + ' ' + (d ? d + ' ' + T('dd') + ' ' : '') + (d || h ? h + ' ' + T('hh') + ' ' : '') + (d ? '' : mi + ' ' + T('mm')) + '(' + T('until') + ' ' + fin + ', ' + T('pen') + ')';
+    return T('left') + ' ' + (d ? d + ' ' + T('dd') + ' ' : '') + (d || h ? h + ' ' + T('hh') + ' ' : '') + (d ? '' : mi + ' ' + T('mm'));
   }
   function cobrados() { return meta.calDias | 0; }                /* días ya cobrados (siempre son los primeros N) */
   function listo(d) { return d < 7 || EV_SKINS.length > 0; }       /* el día 7 espera a tener las skins */
