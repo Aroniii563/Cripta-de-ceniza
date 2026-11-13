@@ -10294,7 +10294,7 @@ var fondoLanzamiento = (function () {
    Para fijar el día de lanzamiento: EV_LANZ.inicio = 'AAAA-MM-DD' (y opcionalmente EV_LANZ.fin).
    Mientras no haya fecha, el canje solo está disponible en la versión de pruebas (window.TEST_BUILD).
    ========================================================================== */
-var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /* viernes 13 a las 17:30 (hora de Canarias = UTC) */ window.EV_LANZ = EV_LANZ;
+var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /* viernes 13 a las 18:30 hora peninsular (17:30 UTC) */ window.EV_LANZ = EV_LANZ;
 (function () {
   var shop = document.getElementById('pShop'); if (!shop) return;
   var TXT = {
@@ -10354,7 +10354,7 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
   function pintaEv() {
     var s = estado();
     var ac = s === 'ok' ? '<button class="btn buy" type="button" data-evc="1">' + T('claim') + '</button>' :
-      '<span class="st">' + (s === 'own' ? T('own') : s === 'over' ? T('over') : T('soon') + (EV_LANZ.inicio ? ' · ' + new Date(EV_LANZ.inicio).toLocaleString([], {day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}) : '')) + '</span>';
+      '<span class="st">' + (s === 'own' ? T('own') : s === 'over' ? T('over') : T('soon') + (EV_LANZ.inicio ? ' · ' + new Date(EV_LANZ.inicio).toLocaleString([], {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}) + ' (' + {es:'hora peninsular',en:'mainland Spain time',pt:'hora da Espanha continental',fr:"heure de l'Espagne continentale",ru:'время материковой Испании',ja:'スペイン本土時間'}[(typeof LANG !== 'undefined' && LANG) || 'es'] + ')' : '')) + '</span>';
     ev.innerHTML = '<div class="evc"><h2 class="evh">' + T('tit') + '</h2><p class="evl">' + T('lead') + '</p></div><div class="evsp"></div>' +
       '<div class="evc evk"><img src="fondos/tienda_lanzamiento.webp" alt=""><div><span class="nm">' + T('item') + '</span><span class="pr">' + T('free') + '</span>' + ac + '</div></div>';
     if (fondo && fondo.canvas && fondo.canvas.parentNode !== ev) ev.insertBefore(fondo.canvas, ev.firstChild);
@@ -10510,6 +10510,8 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     pend: {es: 'por reclamar', en: 'to claim', pt: 'para receber', fr: 'à récupérer', ru: 'к получению', ja: '受取可能'},
     test: {es: 'Avanzar un día (prueba)', en: 'Advance one day (test)', pt: 'Avançar um dia (teste)', fr: 'Avancer un jour (test)', ru: 'Следующий день (тест)', ja: '1日進める(テスト)'},
     left: {es: 'Tiempo restante para reclamar:', en: 'Time left to claim:', pt: 'Tempo restante para receber:', fr: 'Temps restant pour récupérer :', ru: 'Осталось времени, чтобы забрать:', ja: '受け取りまでの残り時間:'},
+    pen: {es: 'hora peninsular', en: 'mainland Spain time', pt: 'hora da Espanha continental', fr: "heure de l'Espagne continentale", ru: 'время материковой Испании', ja: 'スペイン本土時間'},
+    until: {es: 'Termina el', en: 'Ends on', pt: 'Termina em', fr: 'Se termine le', ru: 'Заканчивается', ja: '終了:'},
     ended: {es: 'El evento ha terminado', en: 'The event has ended', pt: 'O evento terminou', fr: "L'événement est terminé", ru: 'Событие завершено', ja: 'イベントは終了しました'},
     dd: {es: 'd', en: 'd', pt: 'd', fr: 'j', ru: 'д', ja: '日'},
     hh: {es: 'h', en: 'h', pt: 'h', fr: 'h', ru: 'ч', ja: '時間'},
@@ -10538,7 +10540,9 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
     var ms = +new Date(E.fin) - Date.now();
     if (ms <= 0) return T('ended');
     var m = Math.floor(ms / 6e4), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mi = m % 60;
-    return T('left') + ' ' + (d ? d + ' ' + T('dd') + ' ' : '') + (d || h ? h + ' ' + T('hh') + ' ' : '') + (d ? '' : mi + ' ' + T('mm'));
+    var LC = {es: 'es-ES', en: 'en-GB', pt: 'pt-PT', fr: 'fr-FR', ru: 'ru-RU', ja: 'ja-JP'}[(typeof LANG !== 'undefined' && LANG) || 'es'] || 'es-ES';
+    var fin = new Date(E.fin).toLocaleString(LC, {timeZone: 'Europe/Madrid', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'});
+    return T('left') + ' ' + (d ? d + ' ' + T('dd') + ' ' : '') + (d || h ? h + ' ' + T('hh') + ' ' : '') + (d ? '' : mi + ' ' + T('mm')) + '(' + T('until') + ' ' + fin + ', ' + T('pen') + ')';
   }
   function cobrados() { return meta.calDias | 0; }                /* días ya cobrados (siempre son los primeros N) */
   function listo(d) { return d < 7 || EV_SKINS.length > 0; }       /* el día 7 espera a tener las skins */
@@ -10603,7 +10607,7 @@ var EV_LANZ = {inicio: '2026-11-13T17:30:00Z', fin: '2026-11-27T17:30:00Z'};   /
   function resumen() {
     var s = $('calSum'); if (!s) return;
     var n = pendientes().length, h = hoy();
-    s.textContent = T('day') + ' ' + h + '/7' + (n ? ' · ' + n + ' ' + T('pend') : '') + (resta() ? ' · ' + resta().replace(T('left') + ' ', '') : '');
+    s.textContent = T('day') + ' ' + h + '/7' + (n ? ' · ' + n + ' ' + T('pend') : '') + (resta() ? ' · ' + resta().replace(T('left') + ' ', '').replace(/\(.*\)$/, '').trim() : '');
     s.className = n ? 'new' : '';
     var nm = document.querySelector('#calOpen .nm'); if (nm) nm.textContent = T('tit');
   }
