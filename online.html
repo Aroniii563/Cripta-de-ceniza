@@ -8447,7 +8447,7 @@ if(window.CRIPTA_WEB){(function(){
   }
 
   /* --- sin clan: unirse o crear --- */
-  var form={name:'',tag:'',icon:0,open:true};
+  var form={name:'',tag:'',icon:0,open:true},editIc=false;
   function renderNo(){
     var h='<h3>Unirse con un código</h3><div class="cfm"><input type="text" id="clCode" maxlength="6" placeholder="Código de invitación" autocomplete="off"><button class="btn" id="clJoinCode" type="button">Unirse</button></div>'+
       '<h3>Buscar un clan por su nombre</h3><div class="cfm"><input type="text" id="clFind" maxlength="20" placeholder="Nombre exacto del clan" autocomplete="off"><button class="btn alt" id="clFindGo" type="button">Buscar</button></div><div id="clFound"></div>'+
@@ -8506,8 +8506,10 @@ if(window.CRIPTA_WEB){(function(){
     h+='<p class="lead">Recompensa semanal para todos los miembros que aporten al menos 100 puntos: 1.º 50.000 de oro · 2.º a 10.º 25.000 · 11.º a 50.º 12.500 · del 51.º en adelante 5.000. Se cobra al abrir el juego la semana siguiente.</p>';
     var ctl='';
     if(role==='l')ctl+='<button class="btn alt sm" type="button" data-ca="open">'+(c.open?'Cambiar a solo con invitación':'Cambiar a abierto')+'</button>';
+    if(role==='l')ctl+='<button class="btn alt sm" type="button" data-ca="icon">'+(editIc?'Cerrar iconos':'Cambiar icono')+'</button>';
     ctl+='<button class="btn alt sm" type="button" data-ca="leave" style="border-color:#b8363f">Salir del clan</button>';
     h+='<div class="crow">'+ctl+'</div>';
+    if(role==='l'&&editIc)h+='<p class="lead">Elige el nuevo icono del clan:</p><div class="cic" id="clIcons2">'+ICONS.map(function(n,i){return '<button type="button" data-ce="'+i+'" aria-pressed="'+(i===(c.icon|0))+'" aria-label="Icono">'+ic(i,32)+'</button>'}).join('')+'</div>';
     h+='<div class="tscroll"><table class="stt"><tr><th>#</th><th class="cl">Jugador</th><th>Rango</th><th>Semana</th><th>Total</th><th></th></tr>';
     ms.forEach(function(m,i){
       var isMe=m.id===C.user.uid,act='';
@@ -8550,11 +8552,13 @@ if(window.CRIPTA_WEB){(function(){
     if(e.target.closest('#clJoinCode')){doJoinCode();return}
     if(e.target.closest('#clFindGo')){doFind();return}
     if(e.target.closest('#clCreate')){doCreate();return}
+    if((t=e.target.closest('[data-ce]'))){var ni=+t.getAttribute('data-ce');editIc=false;run(function(){return C.setClan(D.me.clan,{open:!!D.clan.open,icon:ni})},'Icono del clan cambiado.');return}
     if((t=e.target.closest('[data-ci]'))){form.icon=+t.getAttribute('data-ci');form.name=ge('clName').value;form.tag=ge('clTag').value;form.open=ge('clOpen').checked;renderNo();return}
     if((t=e.target.closest('[data-cj]'))){var id=t.getAttribute('data-cj');run(function(){return C.joinClan(id)},'¡Te has unido al clan!');return}
     if((t=e.target.closest('[data-ca]'))){
       var a=t.getAttribute('data-ca'),u=t.getAttribute('data-u');
       if(a==='copy'){try{navigator.clipboard.writeText(D.code);say('Código copiado.')}catch(x){say(D.code)}}
+      else if(a==='icon'){editIc=!editIc;renderMine();return}
       else if(a==='open')run(function(){return C.setClan(D.me.clan,{open:!D.clan.open,icon:D.clan.icon|0})},'Ajuste guardado.');
       else if(a==='leave')confirmDo('¿Salir del clan? Tus puntos aportados se quedarán en el clan.',function(){return C.leaveClan()},'Has salido del clan.');
       else if(a==='kick')confirmDo('¿Expulsar a este jugador del clan?',function(){return C.kick(u)},'Jugador expulsado.');
