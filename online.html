@@ -891,6 +891,7 @@ function loadMeta(){
   if(!m.bestiary)m.bestiary={};
   if(!m.diary)m.diary=[false,false,false,false,false];
   if(!m.infinite)m.infinite=false;
+  if(!m.off||typeof m.off!=='object')m.off={};
   if(!m.heroes){m.heroes=HERO_FREE.slice();
     /* quien ya jugaba con un personaje de pago lo conserva */
     HERO_PAID.forEach(function(k){if((m.stats.cls[k]&&m.stats.cls[k].runs>0)||(m.lv&&m.lv[k]&&Object.keys(m.lv[k]).length))m.heroes.push(k)})}
@@ -907,6 +908,9 @@ var meta=loadMeta();
 function saveMeta(){try{localStorage.setItem('cripta_meta',JSON.stringify(meta))}catch(e){}}
 function lvOf(cls,k){var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(20,v):v}
 function mMax(m){return m.max||META_MAX}
+/* Mejoras permanentes al máximo que el jugador ha desactivado para jugar con más dificultad (meta.off[clase][mejora]). Solo cuentan mientras la mejora siga al máximo. */
+function metaOff(cls,k){var o=meta.off&&meta.off[cls];if(!o||!o[k])return false;var v=lvOf(cls,k),m=META.filter(function(q){return q.k===k})[0];return !!m&&v>0&&v>=(m.max||metaMax())}
+function lvEff(cls,k){return metaOff(cls,k)?0:lvOf(cls,k)}
 /* ---------- Aspectos: catálogo, tienda y vestuario ---------- */
 var SKINCAT=[
   {id:'sorc',cls:'sorc',name:'Hechicero',cost:0},{id:'barb',cls:'barb',name:'Bárbaro',cost:0},
@@ -1236,7 +1240,7 @@ function postRank(lvl){
   if(RUNHARD||RUNMUT)return;
   if(TW.on){
     if(!won)return;
-    var te={mode:'torre',cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:5,ts:Date.now()};
+    var te={mode:'torre',cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(tc()),level:lvl,kills:kills,map:5,ts:Date.now()};
     var ta=loadRankTw();ta.push(te);ta.sort(function(x,y){return x.time-y.time});saveRankTw(ta.slice(0,40));
     if(!rankDb||!rankUid)return;
     var tref=rankDb.collection('ranking').doc(rankUid);
@@ -1249,7 +1253,7 @@ function postRank(lvl){
     return;
   }
   if(t<30)return;
-  var e={mode:coop?'coop':PL[0].key,cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(t),level:lvl,kills:kills,map:curMap,ts:Date.now()};
+  var e={mode:coop?'coop':PL[0].key,cls:coop?PL[0].key+'+'+PL[1].key:PL[0].key,time:Math.floor(tc()),level:lvl,kills:kills,map:curMap,ts:Date.now()};
   var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,40));
   if(!rankDb||!rankUid)return;
   var ref=rankDb.collection('ranking').doc(rankUid);
@@ -1363,7 +1367,8 @@ var PATCH_NOTES=[
   var mn=document.getElementById('menu');if(!mn)return;mn.appendChild(bn);
   var pb=document.getElementById('patchBtn'),mode='';
   function draw(){
-    if(!mode){bn.hidden=true;return}
+    var mt=typeof menuTab!=='undefined'?menuTab:'none';
+    if(!mode||(mt!=='none'&&mt!=='play')){bn.hidden=true;return}
     var t=lg();bn.querySelector('.tx').textContent=mode==='new'?t.upd.replace('{v}',GAME_VERSION):t.stale;
     bn.querySelector('.go').textContent=mode==='new'?t.btn:t.rel;bn.hidden=false;
   }
@@ -1422,7 +1427,7 @@ $('refundBtn').addEventListener('click',function(){
   meta.gold+=tot;meta.lv[metaCls]={};saveMeta();buildMeta();
 });
 /* Oro por partida: escaso a propósito (bajas, tiempo y nivel), con un bonus del 50% por mapa más duro. */
-function goldFor(k,time,level,mi,cls){return Math.floor((k*.08+time*.15+level*2)*(1+.5*mi)*(1+.1*lvOf(cls,'gold')))}
+function goldFor(k,time,level,mi,cls){return Math.floor((k*.08+time*.15+level*2)*(1+.5*mi)*(1+.1*lvEff(cls,'gold')))}
 /* Registra la partida en curso (muerte, abandono o cierre de la página) una sola vez. */
 function addStats(cls,k,time,g,bosses){
   var s=meta.stats,c=s.cls[cls]||(s.cls[cls]={runs:0,kills:0,time:0,gold:0});
@@ -1433,13 +1438,13 @@ function endRun(why){
   if(!P||P.awarded)return {g:0,newBest:false};
   P=PL[0];P.awarded=true;
   var lvl=0;PL.forEach(function(q){lvl=Math.max(lvl,q.level)});
-  var g=goldFor(kills,t,lvl,curMap,P.key);if(RUNMUT)g=Math.round(g*1.25);
+  var g=goldFor(kills,tc(),lvl,curMap,P.key);if(RUNMUT)g=Math.round(g*1.25);
   meta.gold+=g;try{dailyAdd('gold',g)}catch(e){}
-  addStats(P.key,kills,t,g,bossKills);
-  meta.last={cls:P.key,map:curMap,kills:kills,time:t,gold:g,level:lvl,why:why};
+  addStats(P.key,kills,tc(),g,bossKills);
+  meta.last={cls:P.key,map:curMap,kills:kills,time:tc(),gold:g,level:lvl,why:why};
   meta.run=null;
   var b=loadBest(),o=b[P.key],newBest=false;
-  if(!coop&&!TW.on){newBest=!o||t>o.time;if(newBest&&t>=5){b[P.key]={time:t,level:lvl,kills:kills};saveBest(b)}else newBest=false}
+  if(!coop&&!TW.on){newBest=!o||tc()>o.time;if(newBest&&tc()>=5){b[P.key]={time:tc(),level:lvl,kills:kills};saveBest(b)}else newBest=false}
   saveMeta();
   postRank(lvl);
   return {g:g,newBest:newBest};
@@ -1447,7 +1452,7 @@ function endRun(why){
 /* Copia de seguridad de la partida en curso: si se cierra la pestaña sin salir, se cuenta al volver. */
 function snapshotRun(){
   if(!P||P.awarded)return;
-  var ml0=0;PL.forEach(function(q){ml0=Math.max(ml0,q.level)});meta.run={cls:P.key,map:curMap,kills:kills,time:t,level:ml0,bosses:bossKills};
+  var ml0=0;PL.forEach(function(q){ml0=Math.max(ml0,q.level)});meta.run={cls:P.key,map:curMap,kills:kills,time:tc(),level:ml0,bosses:bossKills};
   saveMeta();
 }
 function recoverRun(){
@@ -1464,6 +1469,8 @@ function recoverRun(){
 /* ---------- Estado ---------- */
 var state='menu',P=null,map,vari,enemies=[],shots=[],orbs=[],fxs=[],texts=[],parts=[],zones=[],later=[],sfx=[],corpses=[];
 var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
+/* Tiempo que cuenta para el reloj, el oro, las marcas y el ranking: sin modo infinito se detiene en el minuto 20 (cuando aparece el jefe final). */
+function tc(){return(RUNINF||(typeof TW!=='undefined'&&TW.on))?t:Math.min(t,1200)}
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
 var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
 var RUNHARD=false,RUNINF=false,RUNMUT=false,MUT={id:null,spawn:1,hp:1,xp:1,rep:false,slip:false,inv:false,dir:1,sx:0,sy:0},NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.38,.25,.18,.10,.075,.075];
@@ -1530,7 +1537,7 @@ function mkPlayer(key,idx){
     auraR:1,auraDmg:1,orbMax:c.orbit?c.orbit.max:0,orbSpd:1,orbList:[],orbT:1,orbA:0,launchT:0,volley:false,orbGen:1,
     level:1,xp:0,need:xpNeed(1),atkCd:0,inv:0,pend:0,pendS:0,dead:false,reviveT:0,
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
-  var L=function(k){return lvOf(key,k)};
+  var L=function(k){return lvEff(key,k)};
   p.maxHp=c.hp*(1+.06*L('hp'));p.hp=p.maxHp;p.hp0=p.maxHp;p.dmg=c.dmg*(1+.05*L('atk'));p.dmgB=p.dmg;p.dmgA=0;p.rate=c.rate*(1+.03*L('rate'));p.rate0=p.rate;
   p.speed=c.speed*(1+.03*L('mov'));p.armor=Math.min(.75,c.armor+.015*L('arm'));p.crit=Math.min(1,c.crit+.015*L('crit'));
   p.regen=.1*L('reg');p.steal=.001*L('ls');p.pick=3.2*(1+.06*L('mag'));p.xpMul=1+.03*L('xp');
@@ -1708,7 +1715,7 @@ function victory(){
   $('deadTitle').textContent='¡Victoria!';
   $('deadSub').textContent=(curMap===5?'Has derrotado al Escritor.'+(newInf?' ¡Modo infinito desbloqueado en los demás mapas!':''):'Has vencido al jefe del minuto 20 de '+MAPS[curMap].n+(RUNHARD?' en dificultad Difícil':'')+'.')+(curMap<MAPS.length-1?' Has desbloqueado el siguiente mapa.':'')+(newPage?' Has desbloqueado una página del diario.':'');
   var dp=$('deadPage');if(newPage){dp.innerHTML='<img src="'+diaryImg(curMap+1)+'" alt="Página del diario">';dp.hidden=false;dp.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dp.hidden=true;
-  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
+  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(tc())+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
   saveMeta();
   $('deadOv').hidden=false;
 }
@@ -1718,7 +1725,7 @@ function die(){
   var r=endRun('muerte'),g=r.g,newBest=r.newBest,lv=0;
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
   $('deadSub').textContent=coop?('Cayeron '+PL.map(function(q){return q.c.name}).join(', ')+'. Partida cooperativa.'):('Caíste como '+P.c.name+'. '+(newBest?'Es tu mejor partida con esta clase.':'Tu mejor marca con esta clase sigue en pie.'));
-  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
+  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(tc())+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+g+'</b></div>';
   $('deadOv').hidden=false;
 }
 function nearestEnemy(maxD){
@@ -2515,7 +2522,7 @@ function hud(){
   setTxt('xpTxt',Math.floor(P.xp)+' / '+P.need);
   setTxt('lvlTxt',String(P.level));
   setTxt('xpNext','Siguiente nivel: '+P.need+' XP');
-  setTxt('timeTxt',fmt(t));
+  setTxt('timeTxt',fmt(tc()));
   if(coop&&PL[1]){
     var q2=PL[1];
     $('hp2Fill').style.transform='scaleX('+Math.max(0,q2.hp/q2.maxHp)+')';
@@ -7184,7 +7191,7 @@ function onSkinOf(m,i){
 function onLobbyBroadcast(){NET.bcast({t:'lob',map:ON.map,hard:ON.hard?1:0,mut:ON.mut?1:0,inf:ON.inf?1:0,m:ON.mem.map(function(m,i){return {cls:m.cls,rdy:m.rdy,nick:m.nick||'',sk:onSkinOf(m,i)}})})}
 function onSendMe(){
   if(ON.host){onLobbyBroadcast();onList()}
-  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes(),lv:meta.lv,sk:meta.skinSel,sks:meta.skins})}
+  else{var m=ON.mem[ON.me];NET.send(NET.hostId,{t:'me',cls:m.cls,rdy:m.rdy,nick:getNick(),owned:onOwned(),heroes:onHeroes(),lv:meta.lv,off:meta.off,sk:meta.skinSel,sks:meta.skins})}
 }
 window.addEventListener('pagehide',function(e){if(e&&e.persisted)return;try{if(ON.room||ON.on){if(ON.host)NET.bcast({t:'close'});else if(NET.hostId)NET.send(NET.hostId,{t:'bye'})}}catch(x){}});
 function onBeat(){
@@ -7227,6 +7234,7 @@ function onHostMsg(pid,m){
   if(m.t==='me'&&mem&&CLASSES[m.cls]){mem.cls=m.cls;mem.rdy=!!m.rdy;mem.nick=String(m.nick||'').slice(0,16);if(Array.isArray(m.owned))mem.owned=m.owned.slice(0,12);if(Array.isArray(m.heroes))mem.heroes=m.heroes.filter(function(k){return CLASSES[k]}).slice(0,16);onFixCls(mem);
     /* mejoras permanentes y aspecto del invitado: la partida se calcula en el anfitrión, así que se usan las del invitado, no las del anfitrión */
     if(m.lv&&typeof m.lv==='object'){var lv2={};Object.keys(m.lv).slice(0,40).forEach(function(c){if(!CLASSES[c]||!m.lv[c]||typeof m.lv[c]!=='object')return;var o={};Object.keys(m.lv[c]).slice(0,20).forEach(function(k){var v=+m.lv[c][k];if(isFinite(v))o[k]=Math.max(0,Math.min(40,Math.floor(v)))});lv2[c]=o});mem.lv=lv2}
+    if(m.off&&typeof m.off==='object'){var of2={};Object.keys(m.off).slice(0,40).forEach(function(c){if(!CLASSES[c]||!m.off[c]||typeof m.off[c]!=='object')return;var o={};Object.keys(m.off[c]).slice(0,20).forEach(function(k){if(m.off[c][k])o[k]=true});of2[c]=o});mem.off=of2}
     if(m.sk&&typeof m.sk==='object'){var sk2={};Object.keys(m.sk).slice(0,40).forEach(function(c){if(typeof m.sk[c]==='string')sk2[c]=m.sk[c].slice(0,40)});mem.sk=sk2}
     if(Array.isArray(m.sks))mem.sks=m.sks.filter(function(x){return typeof x==='string'}).slice(0,300).map(function(x){return x.slice(0,40)});
     onLobbyBroadcast();onList()}
@@ -7316,8 +7324,8 @@ function onBegin(cls,me,host,msg,mapBytes){
   seeded((msg&&msg.seed)||1,function(){startRun(cls[0],mi)});
   RUNHARD=!!(msg&&msg.hard)&&mi!==CEN_MAP;RUNINF=!!(msg&&msg.inf)&&mi!==5&&mi!==CEN_MAP;RUNMUT=!!(msg&&msg.mut)&&mi!==CEN_MAP&&!RUNHARD;HM=(RUNHARD||RUNMUT)?1+(HARDP[curMap]||.15):1;
   PL=cls.map(function(k,i){var mm=host&&i>0?ON.mem[i]:null,sv0=null;
-    if(mm&&mm.lv){sv0={lv:meta.lv,sk:meta.skinSel,sks:meta.skins};meta.lv=mm.lv;if(mm.sk)meta.skinSel=mm.sk;if(mm.sks)meta.skins=mm.sks}
-    var p;try{p=mkPlayer(k,i)}finally{if(sv0){meta.lv=sv0.lv;meta.skinSel=sv0.sk;meta.skins=sv0.sks}}
+    if(mm&&mm.lv){sv0={lv:meta.lv,off:meta.off,sk:meta.skinSel,sks:meta.skins};meta.lv=mm.lv;meta.off=mm.off||{};if(mm.sk)meta.skinSel=mm.sk;if(mm.sks)meta.skins=mm.sks}
+    var p;try{p=mkPlayer(k,i)}finally{if(sv0){meta.lv=sv0.lv;meta.off=sv0.off;meta.skinSel=sv0.sk;meta.skins=sv0.sks}}
     p.x=N/2+.5+SPOT[i][0];p.y=N/2+.5+SPOT[i][1];p.awarded=false;p.inp={};p.flip=false;p.offer=null;p.nm=(msg&&msg.nm&&msg.nm[i])||'Jugador '+(i+1);return p});
   try{PL.forEach(function(p){if(p.skinId)animEnsure(p.skinId)})}catch(e){}
   coop=true;P=PL[me];ON.own=P;if(window.mutReset)mutReset();
@@ -7634,7 +7642,7 @@ var postRank_on=postRank;postRank=function(l){
   var own=ON.own;if(!own||!ON.cls||ON.rk)return;ON.rk=true;
   var tw=!!TW.on,mode=tw?'onlinetorre':'online';
   if(tw?!won:t<30)return;
-  var e={mode:mode,cls:ON.cls.join('+'),time:Math.floor(t),level:own.level,kills:kills,map:tw?5:curMap,ts:Date.now()};
+  var e={mode:mode,cls:ON.cls.join('+'),time:Math.floor(tc()),level:own.level,kills:kills,map:tw?5:curMap,ts:Date.now()};
   var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,60));
   if(!rankDb||!rankUid)return;
   var ref=rankDb.collection('ranking').doc(rankUid);
@@ -8146,7 +8154,7 @@ if(window.CRIPTA_WEB){(function(){
     }else if(tw){mode='torre';cls=coop?PL[0].key+'+'+PL[1].key:PL[0].key;mp=5}
     else{mode=coop?'coop':PL[0].key;cls=coop?PL[0].key+'+'+PL[1].key:PL[0].key}
     if(tw?!won:t<30)return;
-    var e={mode:mode,cls:cls,time:Math.floor(t),level:lv,kills:kl,map:mp,ts:Date.now()};
+    var e={mode:mode,cls:cls,time:Math.floor(tc()),level:lv,kills:kl,map:mp,ts:Date.now()};
     if(mode==='torre'){var ta=loadRankTw();ta.push(e);ta.sort(function(x,y){return x.time-y.time});saveRankTw(ta.slice(0,40))}
     else{var a=loadRankLocal();a.push(e);a.sort(function(x,y){return y.time-x.time});saveRankLocal(a.slice(0,60))}
     if(session&&window.__clanContribute)window.__clanContribute(e);
@@ -21943,6 +21951,27 @@ try {
     '@media (min-width:1800px){#metaList.mu{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:12px!important}#metaList.mu .mu-n{font-size:16px}#metaList.mu .mu-tot{font-size:26px}#metaList.mu .btn.buy{letter-spacing:.06em;font-size:11px}}'
   ].join('\n');
   var st = document.createElement('style'); st.id = 'mejorasVicPx'; st.textContent = css; document.head.appendChild(st);
+  var st2 = document.createElement('style'); st2.textContent = [
+    '#metaList.mu .mu-hint{font-size:11px;line-height:1.3;color:#7fb4ff;text-align:center}',
+    '#metaList.mu .mu-c.off .mu-tot{opacity:.35;text-decoration:line-through}',
+    '#metaList.mu .mu-c.off .mu-i,#metaList.mu .mu-c.off .mu-seg{filter:grayscale(1) brightness(.7)}',
+    '#metaList.mu .btn.mu-tg{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}',
+    '#metaList.mu .mu-sw{position:relative;display:inline-block;width:30px;height:16px;background:#5a4a1c;border-radius:9px;flex:none;transition:background .15s}',
+    '#metaList.mu .mu-sw i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .15s}',
+    '#metaList.mu .mu-tg:not(.offb) .mu-sw{background:#3f8f3a}#metaList.mu .mu-tg:not(.offb) .mu-sw i{transform:translateX(14px)}',
+    '#metaList.mu .btn.mu-tg.offb{filter:saturate(.35) brightness(.85)}',
+    '#metaSec .mu-head .mu-bulk{margin:6px 0 0 8px;font-size:12px;padding:6px 10px}'
+  ].join('\n'); document.head.appendChild(st2);
+  document.getElementById('metaSec').addEventListener('click', function (e) {
+    var tg = e.target.closest('[data-tg]'), ta = e.target.closest('[data-tgall]'); if (!tg && !ta) return;
+    var o = meta.off[metaCls] || (meta.off[metaCls] = {});
+    if (tg) { var kk = tg.getAttribute('data-tg'); if (o[kk]) delete o[kk]; else o[kk] = true; }
+    else {
+      var on = ta.getAttribute('data-tgall') === 'on';
+      META.forEach(function (m) { var v = lvOf(metaCls, m.k); if (v > 0 && v >= mMax(m)) { if (on) delete o[m.k]; else o[m.k] = true; } });
+    }
+    saveMeta(); buildMeta();
+  });
 
   function rgbOf(k) {
     if (typeof CARTA_PALO !== 'undefined' && CARTA_PALO[k]) return CARTA_PALO[k][0];
@@ -21981,6 +22010,12 @@ try {
       '<div class="mu-kpi"><span>Niveles <b>' + lvTot + '/' + maxTot + '</b></span><span>Oro invertido <b>' + gTot + '</b></span><span>Máximo por mejora <b>' + META_MAX + '</b></span></div>' +
       '<div class="mu-bar"><i style="width:' + Math.round(lvTot / maxTot * 100) + '%"></i></div></span>';
     if (rbtn) { head.appendChild(rbtn); rbtn.disabled = !lvTot; }
+    var nMax = 0, nOff = 0;
+    META.forEach(function (m) { if (lvOf(k, m.k) > 0 && lvOf(k, m.k) >= mMax(m)) { nMax++; if (metaOff(k, m.k)) nOff++; } });
+    if (nMax) {
+      var bk = document.createElement('button'); bk.type = 'button'; bk.className = 'btn alt mu-bulk'; bk.setAttribute('data-tgall', nOff === nMax ? 'on' : 'off');
+      bk.textContent = trx(nOff === nMax ? 'Activar todas las mejoras al máximo' : 'Desactivar las mejoras al máximo'); head.appendChild(bk);
+    }
     /* selector */
     tabs.classList.add('mu-av');
     [].forEach.call(tabs.querySelectorAll('.tab[data-t]'), function (b) {
@@ -21992,14 +22027,15 @@ try {
     list.classList.add('mu');
     var h = '';
     META.forEach(function (m) {
-      var l = lvOf(k, m.k), max = l >= mMax(m), c = metaCost(m, l), can = meta.gold >= c, cat = CAT[m.k] || 'u', seg = '';
+      var l = lvOf(k, m.k), max = l >= mMax(m), c = metaCost(m, l), can = meta.gold >= c, cat = CAT[m.k] || 'u', seg = '', off = max && metaOff(k, m.k);
       for (var i = 0; i < mMax(m); i++) seg += '<b class="' + (i < l ? 'on' : (i === l && !max && can ? 'nx' : '')) + '"></b>';
       var tot = l ? total(m.e, l) : '+0';
-      h += '<div class="mu-c ' + cat + (max ? ' max' : '') + '" data-mk="' + m.k + '"><div class="mu-t"><span class="mu-i"><img class="px" alt="" src="' + (PX.icons[m.k] || PX.icons.atk) + '"></span>' +
+      h += '<div class="mu-c ' + cat + (max ? ' max' : '') + (off ? ' off' : '') + '" data-mk="' + m.k + '"><div class="mu-t"><span class="mu-i"><img class="px" alt="" src="' + (PX.icons[m.k] || PX.icons.atk) + '"></span>' +
         '<span style="min-width:0"><span class="mu-k">' + CATN[cat] + '</span><div class="mu-n">' + m.n + '</div></span><span class="mu-lv">' + (max ? 'MÁX' : rom(l) + ' / ' + rom(mMax(m))) + '</span></div>' +
         '<div class="mu-tot' + (l ? '' : ' cero') + '">' + tot + '</div><div class="mu-e">' + m.e + ' por nivel</div><div class="mu-seg">' + seg + '</div>' +
-        '<button class="btn buy" type="button" data-b="' + m.k + '"' + ((max || !can) ? ' disabled' : '') + '>' +
-        (max ? trx('Nivel máximo') : '<img class="pxc" alt="" src="' + PX.coin + '">' + trx('Mejorar · ' + c + ' oro')) + '</button></div>';
+        (max ? '<div class="mu-hint">' + trx('Al máximo: puedes desactivarla sin perder el logro.') + '</div>' +
+          '<button class="btn buy mu-tg' + (off ? ' offb' : '') + '" type="button" data-tg="' + m.k + '" aria-pressed="' + (!off) + '"><span class="mu-sw"><i></i></span>' + trx(off ? 'Desactivada' : 'Activa') + '</button></div>' :
+          '<button class="btn buy" type="button" data-b="' + m.k + '"' + (!can ? ' disabled' : '') + '><img class="pxc" alt="" src="' + PX.coin + '">' + trx('Mejorar · ' + c + ' oro') + '</button></div>');
     });
     list.innerHTML = h;
     /* animación de compra */
@@ -22023,6 +22059,17 @@ try {
     ja: {'Ataque': '攻撃', 'Defensa': '防御', 'Utilidad': '補助', 'Fortuna': '幸運', 'Niveles': 'レベル', 'Oro invertido': '投資した金', 'Máximo por mejora': '強化ごとの上限', 'MÁX': 'MAX', 'Nivel máximo': '最大レベル'}
   };
   Object.keys(_muTr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_muTr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _muTr[l][k]; }); });
+  if (typeof i18nLoad === 'function') i18nLoad();
+} catch (e) {}
+try {
+  var _otr = {
+    en: {'Activa': 'Active', 'Desactivada': 'Off', 'Al máximo: puedes desactivarla sin perder el logro.': 'At max: you can turn it off without losing the progress.', 'Activar todas las mejoras al máximo': 'Turn on all maxed upgrades', 'Desactivar las mejoras al máximo': 'Turn off maxed upgrades'},
+    pt: {'Activa': 'Ativa', 'Desactivada': 'Desativada', 'Al máximo: puedes desactivarla sin perder el logro.': 'No máximo: podes desativá-la sem perder o progresso.', 'Activar todas las mejoras al máximo': 'Ativar todas as melhorias no máximo', 'Desactivar las mejoras al máximo': 'Desativar as melhorias no máximo'},
+    fr: {'Activa': 'Active', 'Desactivada': 'Désactivée', 'Al máximo: puedes desactivarla sin perder el logro.': 'Au maximum : tu peux la désactiver sans perdre ta progression.', 'Activar todas las mejoras al máximo': 'Activer toutes les améliorations au maximum', 'Desactivar las mejoras al máximo': 'Désactiver les améliorations au maximum'},
+    ru: {'Activa': 'Вкл.', 'Desactivada': 'Выкл.', 'Al máximo: puedes desactivarla sin perder el logro.': 'На максимуме: можно отключить, не теряя прогресс.', 'Activar todas las mejoras al máximo': 'Включить все максимальные улучшения', 'Desactivar las mejoras al máximo': 'Отключить максимальные улучшения'},
+    ja: {'Activa': 'オン', 'Desactivada': 'オフ', 'Al máximo: puedes desactivarla sin perder el logro.': '最大レベルのとき、進行を失わずにオフにできます。', 'Activar todas las mejoras al máximo': '最大の強化をすべてオンにする', 'Desactivar las mejoras al máximo': '最大の強化をオフにする'}
+  };
+  Object.keys(_otr).forEach(function (l) { if (I18N_DATA[l]) Object.keys(_otr[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = _otr[l][k]; }); });
   if (typeof i18nLoad === 'function') i18nLoad();
 } catch (e) {}
 /* ==========================================================================
