@@ -11591,7 +11591,7 @@ V.jormungandr={b:[.2,.2,.2,.2],cap:[.8,.8,.8,.8],rad:[2.5,2.5,2.5,2.5]};
 V.yggdrasil={cd:[6,6,6,5],n:[4,4,4,5],rad:[7,7,7,7],dur:[2.5,2.5,2.5,3],tree:[.35,.35,.35,.35],life:[3,3,3,3.5]};
 RUNES.jormungandr={o:0,n:'Serpiente del mundo',w:'Jörmungandr',g:'ᛃ',d:function(r){var v=V.jormungandr;return 'Cada enemigo quemado recibe un '+pc(v.b)[r]+'% más de daño de quemadura por cada enemigo quemado a menos de '+String(v.rad[r]).replace('.',',')+' casillas (máx. +'+pc(v.cap)[r]+'%). Con Constrictor (Jera): la serpiente se vuelve permanente: gira a tu alrededor quemando enemigos, sale a rodear y explotar a un grupo y renace junto a ti, creciendo un poco en cada ciclo.'}};
 RUNES.yggdrasil={o:0,n:'Raíces ancestrales',w:'Yggdrasil',g:'ᛉ',d:function(r){var v=V.yggdrasil;return 'Cada '+v.cd[r]+' s brotan raíces bajo '+v.n[r]+' enemigos cercanos (radio '+v.rad[r]+') que los ralentizan durante '+String(v.dur[r]).replace('.',',')+' s. Con Espinas (Thurisaz): Bosque Primigenio, los caminos de espinas se vuelven raíces que se ramifican hacia otros enemigos y al final de cada una crece un árbol espectral que daña la zona.'}};
-['jormungandr','yggdrasil'].forEach(function(id){if(ORDER.indexOf(id)<0){ORDER.push(id);DEF.push(id)}RR[id]=id==='jormungandr'?2:3});
+['jormungandr','yggdrasil'].forEach(function(id){if(ORDER.indexOf(id)<0){ORDER.push(id);DEF.push(id)}RR[id]=2});
 CD.yggdrasil=V.yggdrasil.cd;
 
 /* ---------- hojas de sprites (render 3D → píxel) ---------- */
