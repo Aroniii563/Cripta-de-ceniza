@@ -10917,6 +10917,9 @@ function R(){
   if(!m.inv)m.inv={};if(!m.eq)m.eq={o:[null],d:[null,null,null]};if(!m.seen)m.seen={};
   if(!m.mig){m.mig=1;var ni={};Object.keys(m.inv).forEach(function(k){var nk=mig(k);ni[nk]=(ni[nk]||0)+m.inv[k]});m.inv=ni;m.eq.o=m.eq.o.map(mig);m.eq.d=m.eq.d.map(mig)}
   if(!m.mig2){m.mig2=1;var ni2={};Object.keys(m.inv).forEach(function(k){var p0=parse(k);if(!RUNES[p0.id])return;var nk=key(p0.id);ni2[nk]=(ni2[nk]||0)+m.inv[k]});m.inv=ni2;['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return null;var p1=parse(k);return RUNES[p1.id]?key(p1.id):null})})}
+  /* si cambia la calidad de una runa, sus copias guardadas con la calidad antigua pasan a la nueva (sin duplicarse) */
+  Object.keys(m.inv).forEach(function(k){var p0=parse(k);if(!RUNES[p0.id]||RR[p0.id]===undefined||p0.r===RR[p0.id])return;var nk=key(p0.id),n=m.inv[k]||0;delete m.inv[k];if(n>0)m.inv[nk]=window.TEST_BUILD?Math.max(m.inv[nk]||0,n):(m.inv[nk]||0)+n});
+  ['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return k;var p0=parse(k);return RUNES[p0.id]&&RR[p0.id]!==undefined&&p0.r!==RR[p0.id]?key(p0.id):k})});
   while(m.eq.d.length<3)m.eq.d.push(null);
   ['o','d'].forEach(function(tp){m.eq[tp]=m.eq[tp].map(function(k){if(!k)return null;var p=parse(k);if(!RUNES[p.id]||(RUNES[p.id].o?'o':'d')!==tp){if(RUNES[p.id])m.inv[k]=(m.inv[k]||0)+1;return null}return k})});
   if(m.eq.o.length>1){var x=m.eq.o.splice(1).filter(Boolean);x.forEach(function(k){m.inv[k]=(m.inv[k]||0)+1})}
