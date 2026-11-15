@@ -24222,7 +24222,16 @@ var ATKSTY = {
     a.src = d.vuelo; b.src = d.imp; IMG[k] = {v: a, i: b};
   });
   function sel(cls) { try { var s = (meta.atkSel || {})[cls]; return s && (SPR[s] || SPR[s + '0'] || SZ[s] || BZ[s] || DZ[s] || WZ[s] || MZ[s] || AZ[s] || GZ[s] || JZ[s] || PZ[s]) && tiene(s) ? s : null; } catch (e) { return null; } }
-  function tiene(id) { try { return id === 'necro_almas' || id === 'sorc_runas' || id === 'barb_hachazo' || id === 'rogue_dagas' || id === 'pal_escudo' || id === 'druid_zarzas' || id === 'bruja_esferas' || id === 'monja_oro' || id === 'amz_lanzas' || id === 'ang_urnas' || id === 'jin_dragones' || id === 'pir_meteoros' || !!window.TEST_BUILD || (meta.atkSkins || []).indexOf(id) >= 0; } catch (e) { return false; } }
+  /* Cómo se consiguen (por héroe: tienda 5000 de oro, 20 partidas, derrotar al Escritor en Difícil) */
+  var ATKHOW = {necro: ['Calaveras ardientes', 'Velas de difunto', 'Mariposas de la muerte'], sorc: ['Llama del Vacío', 'Círculo de Escarcha', 'Lluvia de Estrellas'], barb: ['Tajo Sangriento', 'Tajo Sísmico', 'Hachazo del Trueno'], rogue: ['Dagas de Sombra', 'Monedas de Oro', 'Naipes del Tahúr'], pal: ['Escudo de Plata Lunar', 'Martillo Sagrado', 'Campana de Vísperas'], druid: ['Zarza Marchita', 'Flor de Cerezo', 'Anillo de Setas'], bruja: ['Esfera de Sangre', 'Calderos Voladores', 'Ojos de Tritón'], monja: ['Monjes de Plata', 'Monjes de Fuego Sacro', 'Monjes Sombra'], amazona: ['Lanzas de Jade', 'Lanzas de Hielo', 'Lanzas del Relámpago'], angel: ['Luz Carmesí', 'Trompetas del Juicio', 'Ojos Seráficos'], jinete: ['Dragones de Fuego', 'Serpientes Aladas', 'Dragones Esqueleto'], piro: ['Fuego Azul', 'Estrellas Fugaces', 'Calaveras en Llamas']};
+  var ATK_COST = 5000, ATK_RUNS = 20, HOWS = ['tienda', 'partidas', 'escritor'];
+  Object.keys(ATKHOW).forEach(function (c) { ATKHOW[c].forEach(function (n, k) { ATKSTY[c].forEach(function (o) { if (o.name === n) { o.how = HOWS[k]; if (k === 0) o.cost = ATK_COST; } }); }); });
+  function runsDe(cls) { try { var c = meta.stats.cls[cls]; return (c && c.runs) || 0; } catch (e) { return 0; } }
+  function tiene(id) { try {
+    if (id === 'necro_almas' || id === 'sorc_runas' || id === 'barb_hachazo' || id === 'rogue_dagas' || id === 'pal_escudo' || id === 'druid_zarzas' || id === 'bruja_esferas' || id === 'monja_oro' || id === 'amz_lanzas' || id === 'ang_urnas' || id === 'jin_dragones' || id === 'pir_meteoros') return true;
+    if ((meta.atkSkins || []).indexOf(id) >= 0) return true;
+    var f = busca(id); if (f && f.o.how === 'partidas' && runsDe(f.cls) >= ATK_RUNS) return true;
+    return false; } catch (e) { return false; } }
   function esNecro(p) { return p && ((p.key || (p.c && p.c.key)) === 'necro'); }
 
   /* ---- almas en órbita: el juego dibuja 'skull'; si el nigromante tiene estilo, se cambia el sprite ---- */
@@ -24676,7 +24685,8 @@ var ATKSTY = {
     var on = (sel(cls) || ATKSTY[cls][0].id) === o.id, own = tiene(o.id);
     return '<div class="skc' + (on ? ' on' : '') + '">' + prev(o) + '<span class="nm">' + trd(o.name) + '</span><span class="ef atkd">' + trd(o.d) + '</span>' +
       (own ? '<button class="btn' + (on ? ' alt' : '') + '" type="button" data-atk-e="' + o.id + '"' + (on ? ' disabled' : '') + '>' + trd(on ? 'Equipado' : 'Equipar') + '</button>'
-           : '<span class="price">' + trd('Bloqueado') + '</span><button class="btn alt" type="button" disabled>' + trd('Bloqueado') + '</button>') + '</div>';
+           : o.how === 'tienda' ? '<span class="price"><b>' + o.cost + '</b> <span>' + trd('oro') + '</span></span><button class="btn buy" type="button" data-atk-b="' + o.id + '"' + (meta.gold < o.cost ? ' disabled' : '') + '>' + trd(meta.gold < o.cost ? 'Te faltan' : 'Comprar') + (meta.gold < o.cost ? ' <b>' + (o.cost - meta.gold) + '</b> <span>' + trd('oro') + '</span>' : '') + '</button>'
+           : '<span class="price">' + (o.how === 'partidas' ? '<span>' + trd('Bloqueado: juega 20 partidas con este héroe') + '</span> <b>(' + Math.min(runsDe(cls), ATK_RUNS) + '/' + ATK_RUNS + ')</b>' : trd('Bloqueado: derrota al Escritor en Difícil')) + '</span><button class="btn alt" type="button" disabled>' + trd('Bloqueado') + '</button>') + '</div>';
   }
   var hd = function (tx) { return '<h3 class="skh" style="grid-column:1/-1;margin:12px 0 0;font-size:20px">' + trd(tx) + '</h3>'; };
   /* Aspectos: pestañas Héroes / Menú; en Héroes, Trajes / Ataques bajo los personajes */
@@ -24708,6 +24718,12 @@ var ATKSTY = {
   });
   function busca(id) { for (var c in ATKSTY) for (var i = 0; i < ATKSTY[c].length; i++) if (ATKSTY[c][i].id === id) return {o: ATKSTY[c][i], cls: c}; return null; }
   $('skinList').addEventListener('click', function (e) {
+    var bb = e.target.closest('[data-atk-b]');
+    if (bb && !bb.disabled) {
+      var g = busca(bb.getAttribute('data-atk-b'));
+      if (g && g.o.how === 'tienda' && !tiene(g.o.id) && meta.gold >= g.o.cost) { meta.gold -= g.o.cost; meta.atkSkins = meta.atkSkins || []; meta.atkSkins.push(g.o.id); saveMeta(); try { $('goldTxt').textContent = meta.gold; } catch (x) {} buildSkins(); }
+      return;
+    }
     var b = e.target.closest('[data-atk-e]'); if (!b || b.disabled) return;
     var f = busca(b.getAttribute('data-atk-e')); if (!f || !tiene(f.o.id)) return;
     meta.atkSel = meta.atkSel || {}; meta.atkSel[f.cls] = f.o.id; saveMeta(); buildSkins();
@@ -24719,6 +24735,22 @@ var ATKSTY = {
   try {
     var UIT = {en: {'Héroes': 'Heroes', 'Menú': 'Menu', 'Trajes': 'Outfits', 'Ataques': 'Attacks'}, pt: {'Héroes': 'Heróis', 'Menú': 'Menu', 'Trajes': 'Trajes', 'Ataques': 'Ataques'}, fr: {'Héroes': 'Héros', 'Menú': 'Menu', 'Trajes': 'Tenues', 'Ataques': 'Attaques'}, ru: {'Héroes': 'Герои', 'Menú': 'Меню', 'Trajes': 'Костюмы', 'Ataques': 'Атаки'}, ja: {'Héroes': 'ヒーロー', 'Menú': 'メニュー', 'Trajes': '衣装', 'Ataques': '攻撃'}};
     if (typeof I18N_DATA !== 'undefined') Object.keys(UIT).forEach(function (l) { if (I18N_DATA[l]) Object.keys(UIT[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = UIT[l][k]; }); });
+    if (typeof i18nLoad === 'function') i18nLoad();
+  } catch (e) {}
+  /* Escritor en Difícil: desbloquea el ataque «escritor» del héroe con el que se gana */
+  try {
+    var _atkV = victory;
+    victory = function () {
+      var cls = null, ok = false;
+      try { ok = state === 'play' && RUNHARD && curMap === 5; cls = P && P.key; } catch (x) {}
+      var r = _atkV.apply(this, arguments);
+      try { if (ok && cls && ATKSTY[cls]) { ATKSTY[cls].forEach(function (o) { if (o.how === 'escritor') { meta.atkSkins = meta.atkSkins || []; if (meta.atkSkins.indexOf(o.id) < 0) meta.atkSkins.push(o.id); } }); saveMeta(); } } catch (x) {}
+      return r;
+    };
+  } catch (e) {}
+  try {
+    var UI2 = {en: {'oro': 'gold', 'Bloqueado: juega 20 partidas con este héroe': 'Locked: play 20 runs with this hero'}, pt: {'oro': 'ouro', 'Bloqueado: juega 20 partidas con este héroe': 'Bloqueado: jogue 20 partidas com este herói'}, fr: {'oro': 'or', 'Bloqueado: juega 20 partidas con este héroe': 'Verrouillé : joue 20 parties avec ce héros'}, ru: {'oro': 'золота', 'Bloqueado: juega 20 partidas con este héroe': 'Закрыто: сыграйте 20 забегов этим героем'}, ja: {'oro': 'ゴールド', 'Bloqueado: juega 20 partidas con este héroe': 'ロック中：このヒーローで20回プレイ'}};
+    if (typeof I18N_DATA !== 'undefined') Object.keys(UI2).forEach(function (l) { if (I18N_DATA[l]) Object.keys(UI2[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = UI2[l][k]; }); });
     if (typeof i18nLoad === 'function') i18nLoad();
   } catch (e) {}
   window.atkPrueba = function (id) {
