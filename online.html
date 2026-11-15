@@ -20840,6 +20840,8 @@ try{
     inf: ['Modo infinito', 'Infinite mode', 'Modo infinito', 'Mode infini', 'Бесконечный режим', '無限モード'],
     boss: ['Jefes', 'Bosses', 'Chefes', 'Boss', 'Боссы', 'ボス'],
     exp: ['Exploración', 'Exploration', 'Exploração', 'Exploration', 'Исследование', '探索'],
+    runs: ['Partidas', 'Runs', 'Partidas', 'Parties', 'Забеги', 'プレイ回数'],
+    atk: ['Ataques', 'Attacks', 'Ataques', 'Attaques', 'Атаки', '攻撃'],
     lvl: ['Nivel de partida', 'Run level', 'Nível na partida', 'Niveau en partie', 'Уровень в партии', 'ラン中のレベル']
   };
   /* plantillas de descripción */
@@ -20863,6 +20865,8 @@ try{
     towerfast3: ['Pasa {m} en menos de tres minutos.', 'Clear {m} in under three minutes.', 'Conclua {m} em menos de três minutos.', 'Termine {m} en moins de trois minutes.', 'Пройдите «{m}» менее чем за три минуты.', '{m}を3分未満でクリアする。'],
     kills: ['Mata a {n} enemigos con {a}.', 'Defeat {n} enemies with {c}.', 'Derrote {n} inimigos com {c}.', 'Terrasse {n} ennemis avec {c}.', '{c}: победите {n} врагов.', '{c}で敵を{n}体倒す。'],
     skins: ['Compra todos los aspectos {de}.', 'Buy every skin of {c}.', 'Compre todas as skins de {c}.', 'Achète tous les skins de {c}.', '{c}: купите все облики.', '{c}の全スキンを購入する。'],
+    runs: ['Juega 20 partidas con {a}.', 'Play 20 runs with {c}.', 'Jogue 20 partidas com {c}.', 'Joue 20 parties avec {c}.', '{c}: сыграйте 20 забегов.', '{c}で20回プレイする。'],
+    atk: ['Consigue todos los estilos de ataque {de}.', 'Unlock every attack style of {c}.', 'Desbloqueie todos os estilos de ataque de {c}.', 'Débloque tous les styles d\'attaque de {c}.', '{c}: откройте все стили атаки.', '{c}の全攻撃スタイルを解放する。'],
     upg: ['Adquiere todas las mejoras {de} al nivel máximo.', 'Buy every upgrade for {c} at max level.', 'Adquira todas as melhorias de {c} no nível máximo.', 'Acquiers toutes les améliorations de {c} au niveau max.', '{c}: приобретите все улучшения на максимальном уровне.', '{c}の全強化を最大レベルまで獲得する。'],
     best: ['Completa el bestiario.', 'Complete the bestiary.', 'Complete o bestiário.', 'Complète le bestiaire.', 'Заполните бестиарий.', 'ベスティアリーを完成させる。'],
     daily: ['Completa {n} misiones diarias.', 'Complete {n} daily missions.', 'Complete {n} missões diárias.', 'Accomplis {n} missions quotidiennes.', 'Выполните ежедневных заданий: {n}.', 'デイリーミッションを{n}回達成する。'],
@@ -20917,6 +20921,8 @@ try{
     ewa: ['Raíz y garra', 'Root and Claw', 'Raiz e Garra', 'Racine et griffe', 'Корень и коготь', '根と爪'],
     kills: ['Matanza {de}', '{c}: Massacre', '{c}: Massacre', '{c} : massacre', '{c}: бойня', '{c}：大虐殺'],
     skins: ['Guardarropa {de}', '{c}: Wardrobe', '{c}: Guarda-roupa', '{c} : garde-robe', '{c}: гардероб', '{c}：衣装棚'],
+    runs: ['Oficio {de}', '{c}: Seasoned', '{c}: Calejado', '{c} : aguerri', '{c}: закалка', '{c}：歴戦'],
+    atk: ['Arsenal {de}', '{c}: Arsenal', '{c}: Arsenal', '{c} : arsenal', '{c}: арсенал', '{c}：武器庫'],
     upg: ['Maestría {de}', '{c}: Mastery', '{c}: Maestria', '{c} : maîtrise', '{c}: мастерство', '{c}：極意'],
     best: ['Cronista de monstruos', 'Chronicler of Monsters', 'Cronista de Monstros', 'Chroniqueur de monstres', 'Летописец чудовищ', '怪物の記録者'],
     pages: ['Archivista', 'Archivist', 'Arquivista', 'Archiviste', 'Архивариус', '記録保管官'],
@@ -21023,6 +21029,15 @@ try{
   });
   CL.forEach(function (k) {
     add('u_' + k, 'upg', 5000, {nm: 'upg', dt: 'upg', cl: k, prog: function () { return upgProg(k); }, ok: function () { var p = upgProg(k); return p[0] >= p[1]; }});
+  });
+  /* partidas jugadas y estilos de ataque por héroe */
+  function runsProg(k) { var c = meta.stats && meta.stats.cls && meta.stats.cls[k]; return [Math.min(20, (c && c.runs) || 0), 20]; }
+  function atkProg(k) { try { var l = window.__ATK.list(k), n = 0; l.forEach(function (o) { if (window.__ATK.tiene(o.id)) n++; }); return [n, l.length]; } catch (e) { return [0, 4]; } }
+  CL.forEach(function (k) {
+    add('r_' + k, 'runs', 1000, {nm: 'runs', dt: 'runs', cl: k, prog: function () { return runsProg(k); }, ok: function () { return runsProg(k)[0] >= 20; }});
+  });
+  CL.forEach(function (k) {
+    add('a_' + k, 'atk', 2000, {nm: 'atk', dt: 'atk', cl: k, prog: function () { return atkProg(k); }, ok: function () { var p = atkProg(k); return p[1] > 0 && p[0] >= p[1]; }});
   });
   /* colección */
   add('best', 'col', 3000, {nm: 'best', dt: 'best', prog: bestProg, ok: function () { var p = bestProg(); return p[1] > 0 && p[0] >= p[1]; }});
@@ -24753,6 +24768,7 @@ var ATKSTY = {
     if (typeof I18N_DATA !== 'undefined') Object.keys(UI2).forEach(function (l) { if (I18N_DATA[l]) Object.keys(UI2[l]).forEach(function (k) { if (I18N_DATA[l][k] === undefined) I18N_DATA[l][k] = UI2[l][k]; }); });
     if (typeof i18nLoad === 'function') i18nLoad();
   } catch (e) {}
+  window.__ATK = {tiene: tiene, list: function (c) { return ATKSTY[c] || []; }};
   window.atkPrueba = function (id) {
     id = id || 'necro_calaveras'; var f = busca(id); if (!f) return 'No existe';
     meta.atkSkins = meta.atkSkins || []; if (meta.atkSkins.indexOf(id) < 0) meta.atkSkins.push(id);
