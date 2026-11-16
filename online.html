@@ -10956,28 +10956,30 @@ st.textContent='#pRunas .rwrap{display:flex;gap:24px;align-items:stretch}#pRunas
  '#runHud i{position:absolute;left:0;bottom:0;width:100%;background:rgba(0,0,0,.65)}';
 document.head.appendChild(st);
 var st2=document.createElement('style');
-st2.textContent='#pRunas .rhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}#pRunas .rhead h2{margin:0}'+
- '#pRunas .rdustc{padding:4px 12px;border:1px solid #6a5a8e;border-radius:999px;background:#1a1426;color:#c9b0ff;font-size:14px;white-space:nowrap}#pRunas .rdustc b{color:#e8dcff}'+
- '#pRunas .rtabs{display:flex;gap:8px;margin:0 0 14px}#pRunas .rtab{flex:1;max-width:240px;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:#0c1415;color:var(--muted);font:inherit;font-weight:700;cursor:pointer}'+
- '#pRunas .rtab small{opacity:.8;font-weight:400;margin-left:4px}#pRunas .rtab.o[aria-pressed="true"]{border-color:#d9444e;background:#2a1215;color:#ff9aa0}#pRunas .rtab.d[aria-pressed="true"]{border-color:#4f8fe0;background:#101d33;color:#9cc4ff}'+
- '#pRunas .rtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}'+
- '#pRunas .rt{position:relative;aspect-ratio:1/1.1;display:flex;align-items:center;justify-content:center;padding:8px;border:2px solid var(--c);border-radius:12px;background:radial-gradient(circle at 50% 40%,#2a2d30,#101213);cursor:pointer;transition:transform .12s,box-shadow .12s}'+
- '#pRunas .rt:hover,#pRunas .rt.on{transform:translateY(-2px);box-shadow:0 0 14px -2px var(--c)}#pRunas .rt img{height:auto!important;max-height:100%;max-width:78%;object-fit:contain;filter:drop-shadow(0 0 5px var(--c))}'+
- '#pRunas .rt .rn2{position:absolute;right:5px;bottom:5px;min-width:22px;padding:1px 6px;border:1px solid #8a7a52;border-radius:7px;background:#14110b;color:#f1e7cc;font-size:13px;text-align:center}'+
- '#pRunas .rt .rck{position:absolute;left:5px;top:5px;width:20px;height:20px;border-radius:50%;background:#5c8a4f;color:#fff;font-size:13px;line-height:20px;text-align:center;font-style:normal}'+
- '#pRunas .rt.z{opacity:.6}#pRunas .rt.lk{border-color:#3a3d40}#pRunas .rt.lk img{filter:grayscale(1) brightness(.4)}'+
- '#pRunas .rhint{margin:12px 0 4px;text-align:center;font-size:13px;color:var(--muted)}#pRunas .rinfo{margin:12px 0 0;font-size:13px;color:var(--muted)}#pRunas .rinfo summary{cursor:pointer;color:var(--gold)}'+
- '#pRunas .rjt{display:none;margin:0 0 74px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);text-align:center}#pRunas .rjt small{color:var(--muted);text-transform:none;letter-spacing:0;margin-left:6px}'+
- '#rnSheet .rsh-ov{position:fixed;inset:0;z-index:350;display:flex;align-items:center;justify-content:center;background:rgba(5,6,7,.66);animation:rnIn .15s ease-out}'+
- '#rnSheet .rsheet{position:relative;width:min(460px,92vw);max-height:86vh;overflow:auto;padding:18px 20px 20px;border:2px solid var(--c);border-radius:16px;background:#121416;box-shadow:0 0 30px -6px var(--c)}'+
- '#rnSheet .rx{position:absolute;right:10px;top:8px;width:32px;height:32px;border:0;background:none;color:#b9b3a2;font-size:24px;cursor:pointer}'+
- '#rnSheet .rsh{display:flex;align-items:center;gap:14px;margin:0 28px 12px 0}#rnSheet .rsi{flex:none;width:84px;height:92px;display:flex;align-items:center;justify-content:center;border:2px solid var(--c);border-radius:12px;background:#0a0b0c}'+
- '#rnSheet .rsn{font-size:20px;font-weight:700;color:#efe8d4;text-transform:uppercase;letter-spacing:.03em}#rnSheet .rsc{margin-top:2px;font-size:13px;color:var(--c);text-transform:uppercase;letter-spacing:.05em}'+
- '#rnSheet .rsd{padding:12px 0;border-top:1px solid #3a3d40;font-size:15px;line-height:1.45;color:#dcd6c6}#rnSheet .rsd small{color:var(--muted)}'+
- '#rnSheet .rsb{display:flex;flex-direction:column;gap:8px;margin-top:6px}#rnSheet .rsb .btn{width:100%}#rnSheet .rsb .btn[disabled]{opacity:.4;cursor:default}#rnSheet .rgrab{display:none}'+
- '@media(max-width:820px){#pRunas .rjt{display:block}#pRunas .rtiles{grid-template-columns:repeat(4,1fr);gap:8px}#pRunas .rtab{max-width:none}#rnSheet .rsh-ov{align-items:flex-end}'+
- '#rnSheet .rsheet{width:100%;max-height:82vh;border-radius:18px 18px 0 0;border-bottom:0;animation:rshUp .22s ease-out}#rnSheet .rgrab{display:block;width:44px;height:4px;margin:-8px auto 12px;border-radius:2px;background:#5a5d60}}'+
- '@keyframes rshUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}@media(prefers-reduced-motion:reduce){#rnSheet .rsheet,#rnSheet .rsh-ov{animation:none}}';
+st2.textContent='#pRunas .rhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 6px}#pRunas .rhead h2{margin:0}'+
+ '#pRunas .rinfo{margin:0 0 14px;font-size:13px;color:var(--muted)}#pRunas .rinfo summary{cursor:pointer;color:var(--gold);font-family:var(--display);letter-spacing:.08em}#pRunas .rinfo .lead{margin:8px 0 0}'+
+ '#pRunas .rtabs{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 20px}#pRunas .rtabs .tab{font-size:19px;padding:9px 34px!important;letter-spacing:.16em}#pRunas .rtabs .tab small{font-size:15px;margin-left:8px}'+
+ '#pRunas .rtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 18px;max-width:780px}'+
+ '#pRunas .rt{--c:#b8b2a0;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1/1.12;padding:4px;border:0;background:none;cursor:pointer;transition:transform .14s ease-out}'+
+ '#pRunas .rt img{width:74%;height:auto!important;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 16px var(--c));transition:filter .14s}'+
+ '#pRunas .rt:hover,#pRunas .rt.on{transform:translateY(-3px) scale(1.04)}#pRunas .rt:hover img,#pRunas .rt.on img{filter:drop-shadow(0 0 8px var(--c)) drop-shadow(0 0 22px var(--c)) brightness(1.1)}'+
+ '#pRunas .rt:focus-visible{outline:2px dashed var(--gold);outline-offset:2px}'+
+ '#pRunas .rt .rn2{position:absolute;right:12%;bottom:6%;min-width:26px;padding:1px 7px;border:2px solid #6b4e1c;background:#0c0d0e;color:#f1e7cc;font-family:var(--display);font-size:15px;text-align:center;box-shadow:2px 2px 0 #000}'+
+ '#pRunas .rt .rck{position:absolute;left:12%;top:8%;width:22px;height:22px;background:#5c8a4f;border:2px solid #0c0d0e;color:#fff;font-size:14px;line-height:18px;text-align:center;font-style:normal;box-shadow:2px 2px 0 #000}'+
+ '#pRunas .rt.z img{opacity:.55}#pRunas .rt.lk img{opacity:.7;filter:grayscale(1) brightness(.35)}'+
+ '#pRunas .rhint{margin:14px 0 4px;max-width:780px;text-align:center;font-size:13px;color:var(--muted)}'+
+ '#pRunas .rjt{display:none;margin:0 0 74px;font-family:var(--display);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);text-align:center}#pRunas .rjt small{color:var(--muted);text-transform:none;letter-spacing:0;margin-left:6px}'+
+ '#pRunas .rdust{margin:6px 0 10px;text-align:center}'+
+ '#rnSheet{position:fixed;inset:0;z-index:350}#rnSheet .rsheet{position:relative;width:min(480px,100%);max-height:calc(100vh - 32px);overflow:auto;scrollbar-width:thin}'+
+ '#rnSheet .rx{position:absolute;right:8px;top:6px;width:32px;height:32px;border:0;background:none;color:#b9b3a2;font-size:26px;cursor:pointer}#rnSheet .rx:hover{color:#fff}'+
+ '#rnSheet .rsh{display:flex;align-items:center;gap:16px;margin:0 30px 10px 0}#rnSheet .rsi{flex:none;width:92px;height:100px;display:flex;align-items:center;justify-content:center}#rnSheet .rsi img{height:88px;image-rendering:pixelated}'+
+ '#rnSheet .rsn{margin:0!important;color:var(--c)!important}#rnSheet .rsc{margin-top:4px;font-family:var(--display);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--c)}'+
+ '#rnSheet .rsd{padding:12px 0 6px;border-top:1px solid #3a3d40;font-size:15px;line-height:1.5;color:#dcd6c6}#rnSheet .rsd small{color:var(--muted)}'+
+ '#rnSheet .rsb{display:flex;flex-direction:column;gap:8px;margin-top:10px}#rnSheet .rsb .btn{width:100%}#rnSheet .rgrab{display:none}'+
+ '@media(max-width:820px){#pRunas .rjt{display:block}#pRunas .rtabs{gap:6px;margin-bottom:14px;justify-content:center;flex-wrap:nowrap}#pRunas .rtabs .tab{width:auto!important;flex:0 0 auto}#pRunas .rtabs .tab{font-size:10px;padding:0 6px!important;letter-spacing:.1em;border-width:6px!important;border-image-width:6px!important}#pRunas .rtabs .tab small{font-size:11px;margin-left:5px}'+
+ '#pRunas .rtiles{gap:12px 6px}#pRunas .rt img{width:80%}#pRunas .rt .rn2{font-size:13px;min-width:22px;right:8%}'+
+ '#rnSheet{justify-content:flex-end;align-items:center;padding:0}#rnSheet .rsheet{width:100%;max-height:82vh;animation:rshUp .22s ease-out}#rnSheet .rgrab{display:block;width:44px;height:4px;margin:-4px auto 10px;background:#5a5d60}}'+
+ '@keyframes rshUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}@media(prefers-reduced-motion:reduce){#rnSheet .rsheet{animation:none}}';
 document.head.appendChild(st2);
 var sec=document.createElement('section');sec.id='pRunas';sec.hidden=true;
 document.getElementById('pStats').parentNode.insertBefore(sec,document.getElementById('pStats'));
@@ -11033,7 +11035,7 @@ function applyBuild(i){
 }
 try{var _rnUi={"en": {"Ofensivas": "Offensive", "Joyero rúnico": "Rune jewel box", "{n} equipadas": "{n} equipped", "Cómo funcionan las runas": "How runes work", "Quitar": "Remove", "Sin descubrir": "Undiscovered", "Pulsa sobre una runa para ver sus propiedades.": "Tap a rune to see its properties."}, "pt": {"Ofensivas": "Ofensivas", "Joyero rúnico": "Joalheiro rúnico", "{n} equipadas": "{n} equipadas", "Cómo funcionan las runas": "Como funcionam as runas", "Quitar": "Remover", "Sin descubrir": "Por descobrir", "Pulsa sobre una runa para ver sus propiedades.": "Toque numa runa para ver as suas propriedades."}, "fr": {"Ofensivas": "Offensives", "Joyero rúnico": "Écrin runique", "{n} equipadas": "{n} équipées", "Cómo funcionan las runas": "Comment fonctionnent les runes", "Quitar": "Retirer", "Sin descubrir": "Non découverte", "Pulsa sobre una runa para ver sus propiedades.": "Touche une rune pour voir ses propriétés."}, "ru": {"Ofensivas": "Атакующие", "Joyero rúnico": "Рунная шкатулка", "{n} equipadas": "Экипировано: {n}", "Cómo funcionan las runas": "Как работают руны", "Quitar": "Снять", "Sin descubrir": "Не открыта", "Pulsa sobre una runa para ver sus propiedades.": "Нажмите на руну, чтобы увидеть её свойства."}, "ja": {"Ofensivas": "攻撃", "Joyero rúnico": "ルーンの宝石箱", "{n} equipadas": "装備中 {n}", "Cómo funcionan las runas": "ルーンの仕組み", "Quitar": "外す", "Sin descubrir": "未発見", "Pulsa sobre una runa para ver sus propiedades.": "ルーンをタップすると効果が表示されます。"}};Object.keys(_rnUi).forEach(function(l){if(I18N_DATA[l])Object.keys(_rnUi[l]).forEach(function(k){if(I18N_DATA[l][k]===undefined)I18N_DATA[l][k]=_rnUi[l][k]})})}catch(e){}
 var rtab='o',rsel=null;
-var shEl=document.createElement('div');shEl.id='rnSheet';document.body.appendChild(shEl);
+var shEl=document.createElement('div');shEl.id='rnSheet';shEl.className='ov center mdl';shEl.hidden=true;shEl.setAttribute('data-rclose','1');shEl.setAttribute('data-nt-skip','1');document.body.appendChild(shEl);var shOpen=false;
 function build(){
   var m=R(),lead='<p class="lead">Las 24 runas del futhark antiguo. Cada partida te da <b style="color:#c9b0ff">polvo rúnico</b> con el que compras runas al azar (las más raras salen menos). Si repites una, puedes venderla por polvo: una común no da para otra runa, una rara casi, una épica da una y una legendaria dos. <b style="color:#d9444e">Ofensiva</b> (1 hueco, rojo): se activa sola por tiempo o al golpear. <b style="color:#4f8fe0">Defensivas</b> (3 huecos, azul): te protegen. De momento solo funcionan en solitario y cooperativo local.</p>',h='<div class="rwrap"><div class="rleft">';
   var ks=Object.keys(m.inv).filter(function(k){return m.inv[k]>0&&RUNES[parse(k).id]}).sort(function(a,b){return RR[parse(b).id]-RR[parse(a).id]||ORDER.indexOf(parse(a).id)-ORDER.indexOf(parse(b).id)});
@@ -11060,17 +11062,17 @@ function build(){
       else if(es)bt+='<button class="btn" type="button" data-sl="'+es+'">Quitar</button>';
       if(n>0)bt+='<button class="btn alt" type="button" data-sell="'+kk+'"'+(can?'':' disabled title="Solo puedes vender runas repetidas"')+'>Vender (+'+SELLV[r]+')</button>';
     }
-    return '<div class="rsh-ov" data-rclose="1"><div class="rsheet" role="dialog" aria-modal="true" style="--c:'+RCOL[r]+'"><span class="rgrab"></span><button class="rx" type="button" data-rclose="1" aria-label="Cerrar">×</button>'+
-      '<div class="rsh"><div class="rsi">'+im(id,76,d?';filter:drop-shadow(0 0 6px '+RCOL[r]+')':';filter:grayscale(1) brightness(.45)')+'</div><div class="rst"><div class="rsn">'+(d?u.n:'???')+'</div><div class="rsc">'+RAR[r]+(n>1?' ×'+n:'')+'</div></div></div>'+
-      '<div class="rsd">'+(d?u.d(r):'<small>'+u.w+' · </small><span style="color:var(--muted)">Sin descubrir</span>')+'</div>'+(bt?'<div class="rsb">'+bt+'</div>':'')+'</div></div>';
+    return '<div class="mbox rsheet" role="dialog" aria-modal="true" style="--c:'+RCOL[r]+'"><span class="rgrab"></span><button class="rx" type="button" data-rclose="1" aria-label="Cerrar">×</button>'+
+      '<div class="rsh"><div class="rsi">'+im(id,88,d?';filter:drop-shadow(0 0 8px '+RCOL[r]+')':';filter:grayscale(1) brightness(.4)')+'</div><div class="rst"><h2 class="rsn">'+(d?u.n:'???')+'</h2><div class="rsc">'+RAR[r]+(n>1?' ×'+n:'')+'</div></div></div>'+
+      '<div class="rsd">'+(d?u.d(r):'<small>'+u.w+' · </small><span style="color:var(--muted)">Sin descubrir</span>')+'</div>'+(bt?'<div class="rsb">'+bt+'</div>':'')+'</div>';
   }
   function tabsH(){
-    return '<div class="rtabs"><button type="button" class="rtab o" data-rt="o" aria-pressed="'+(rtab==='o')+'">Ofensivas <small>'+cnt(OFF)+'/'+OFF.length+'</small></button><button type="button" class="rtab d" data-rt="d" aria-pressed="'+(rtab==='d')+'">Defensivas <small>'+cnt(DEF)+'/'+DEF.length+'</small></button></div>';
+    return '<div class="tabs rtabs"><button type="button" class="tab" data-rt="o" aria-pressed="'+(rtab==='o')+'">Ofensivas <small>'+cnt(OFF)+'/'+OFF.length+'</small></button><button type="button" class="tab" data-rt="d" aria-pressed="'+(rtab==='d')+'">Defensivas <small>'+cnt(DEF)+'/'+DEF.length+'</small></button></div>';
   }
   var nEq=m.eq.o.filter(Boolean).length+m.eq.d.filter(Boolean).length;
-  h+='<div class="rhead"><h2>Runas</h2><span class="rdustc">Polvo rúnico: <b>'+m.dust+'</b></span></div>'+tabsH()+tiles(rtab==='o'?OFF:DEF)+'<details class="rinfo"><summary>Cómo funcionan las runas</summary>'+lead+'</details></div>';
-  h+='<div class="rright"><div class="rjt">Joyero rúnico <small>'+nEq+'/'+(SLOTS.o+SLOTS.d)+' equipadas</small></div><div class="rmed"><button class="btn rbopen" type="button" data-bopen="1">Builds</button><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><button class="btn" data-buy="1"'+(m.dust<COST?' style="opacity:.55"':'')+'>Comprar runa ('+COST+' polvo)</button></div></div>';
-  sec.innerHTML=h;shEl.innerHTML=sheet();
+  h+='<div class="rhead"><h2>Runas</h2></div><details class="rinfo"'+(window.innerWidth>820?' open':'')+'><summary>Cómo funcionan las runas</summary>'+lead+'</details>'+tabsH()+tiles(rtab==='o'?OFF:DEF)+'</div>';
+  h+='<div class="rright"><div class="rjt">Joyero rúnico <small>'+nEq+'/'+(SLOTS.o+SLOTS.d)+' equipadas</small></div><div class="rmed"><button class="btn rbopen" type="button" data-bopen="1">Builds</button><img src="runas/medallon.png" alt="">'+slot('o',0)+slot('d',0)+slot('d',1)+slot('d',2)+'</div><div class="rdust">Polvo rúnico: <b>'+m.dust+'</b></div><button class="btn" data-buy="1"'+(m.dust<COST?' style="opacity:.55"':'')+'>Comprar runa ('+COST+' polvo)</button></div></div>';
+  sec.innerHTML=h;shEl.innerHTML=sheet();shEl.hidden=!rsel;if(!!rsel!==shOpen){shOpen=!!rsel;document.body.classList.toggle('setOpen',shOpen)}
 }
 
 /* ---------- recuadro de aviso al hacer una tirada ---------- */
@@ -11103,7 +11105,7 @@ function rollBox(np,isNew){
 }
 function secClick(e){
   var b=e.target.closest('[data-eq],[data-sell],[data-sl],[data-buy],[data-bopen],[data-rt],[data-rune],[data-rclose]');if(!b)return;var m=R();
-  if(b.dataset.rclose!==undefined){if(b.classList.contains('rsh-ov')&&e.target!==b)return;rsel=null;build();return}
+  if(b.dataset.rclose!==undefined){if(b===shEl&&e.target!==shEl)return;rsel=null;build();return}
   if(b.dataset.rt){rtab=b.dataset.rt;rsel=null;build();return}
   if(b.dataset.rune){rsel=b.dataset.rune;build();return}
   if(b.dataset.bopen){openB();return}
@@ -11120,7 +11122,7 @@ function secClick(e){
 sec.addEventListener('click',secClick);shEl.addEventListener('click',secClick);
 window.addEventListener('keydown',function(e){if(e.key==='Escape'&&rsel&&!sec.hidden&&bov.hidden){rsel=null;build();e.stopPropagation()}},true);
 var showTab_run=showTab;
-showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runas')build();else{rsel=null;shEl.innerHTML=''}};
+showTab=function(tab){showTab_run(tab);sec.hidden=(tab!=='runas');if(tab==='runas')build();else{rsel=null;shEl.innerHTML='';shEl.hidden=true;if(shOpen){shOpen=false;document.body.classList.remove('setOpen')}}};
 
 /* ---------- partida ---------- */
 var CD={hagalaz:V.hagalaz.cd,gebo:V.gebo.cd,uruz:V.uruz.cd,thurisaz:V.thurisaz.cd,jera:V.jera.cd,teiwaz:V.teiwaz.cd,laguz:V.laguz.cd,eihwaz:V.eihwaz.cd,berkano:V.berkano.cd};
