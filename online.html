@@ -816,33 +816,35 @@ var ETYPES={
 function addDmg(p,x){if(p.dmgB==null){p.dmgB=p.dmg;p.dmgA=0}var o=1+p.dmgA;p.dmgA+=x;p.dmg*=(1+p.dmgA)/o}
 /* Alcance máximo: Bárbaro 8, Jinete 4,5 */
 function reachCap(p){var m={barb:8,jinete:4.5}[p.c.key];return m?m/p.c.range:1e9}
+/* modo semanal: las mejoras de partida con tope dejan de tenerlo (no se aplica a armadura, crítico ni robo de vida) */
+function uc(n){return WK.on?n*1000:n}
 var UPS=[
   {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){addDmg(P,.08)}},
-  {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'||P.rate<7.45-1e-9},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
+  {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'||P.rate<uc(7.45)-1e-9},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
   {n:'Ojo certero',ic:'icono_ojo_certero',c:'o',d:'+8% de crítico (daño x2, máx. 100%)',ok:function(){return P.crit<1-1e-9},f:function(){P.crit=Math.min(1,P.crit+.08)}},
-  {n:'Descarga doble',ic:'icono_descarga_doble',c:'o',d:'+1 proyectil por ataque',ok:function(){return P.c.kind==='proj'&&!P.bounce&&!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN++}},
-  {n:'Estallido',ic:'icono_estallido',c:'o',d:'+2 proyectiles por ataque, repartidos en círculo (máx. 20)',ok:function(){return !!P.c.proj&&!!P.c.proj.radial&&P.projN<PROJ_MAX},f:function(){P.projN=Math.min(PROJ_MAX,P.projN+2)}},
-  {n:'Zona ampliada',ic:'icono_zona_ampliada',c:'o',d:'+5% de radio de tus zonas (máx. +50% sobre el radio base)',ok:function(){return P.c.kind==='zone'&&P.zoneR<1.5-1e-9},f:function(){P.zoneR=Math.min(1.5,P.zoneR+.05)}},
-  {n:'Zonas gemelas',ic:'icono_zonas_gemelas',c:'o',d:'+1 zona por lanzamiento (máx. 6)',ok:function(){return P.c.kind==='zone'&&P.zoneN<6},f:function(){P.zoneN=Math.min(6,P.zoneN+1)}},
+  {n:'Descarga doble',ic:'icono_descarga_doble',c:'o',d:'+1 proyectil por ataque',ok:function(){return P.c.kind==='proj'&&!P.bounce&&!P.c.proj.radial&&P.projN<uc(PROJ_MAX)},f:function(){P.projN++}},
+  {n:'Estallido',ic:'icono_estallido',c:'o',d:'+2 proyectiles por ataque, repartidos en círculo (máx. 20)',ok:function(){return !!P.c.proj&&!!P.c.proj.radial&&P.projN<uc(PROJ_MAX)},f:function(){P.projN=Math.min(uc(PROJ_MAX),P.projN+2)}},
+  {n:'Zona ampliada',ic:'icono_zona_ampliada',c:'o',d:'+5% de radio de tus zonas (máx. +50% sobre el radio base)',ok:function(){return P.c.kind==='zone'&&P.zoneR<uc(1.5)-1e-9},f:function(){P.zoneR=Math.min(uc(1.5),P.zoneR+.05)}},
+  {n:'Zonas gemelas',ic:'icono_zonas_gemelas',c:'o',d:'+1 zona por lanzamiento (máx. 6)',ok:function(){return P.c.kind==='zone'&&P.zoneN<uc(6)},f:function(){P.zoneN=Math.min(uc(6),P.zoneN+1)}},
   {n:'Perforación',ic:'icono_perforacion',c:'o',d:'Los proyectiles atraviesan 1 enemigo más',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){P.pierce++}},
-  {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<1.75-1e-9},f:function(){P.auraR=Math.min(1.75,P.auraR+.08)}},
-  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<16},f:function(){P.orbMax=Math.min(16,P.orbMax+2)}},
+  {n:'Aura ampliada',ic:'icono_aura_ampliada',c:'o',d:'+8% de radio de tu aura (máx. +75% sobre el radio base)',ok:function(){return P.c.kind==='aura'&&P.auraR<uc(1.75)-1e-9},f:function(){P.auraR=Math.min(uc(1.75),P.auraR+.08)}},
+  {n:'Almas extra',ic:'icono_almas_extra',c:'o',d:'+2 proyectiles en cada andanada',ok:function(){return P.c.kind==='orbit'&&P.orbMax<uc(16)},f:function(){P.orbMax=Math.min(uc(16),P.orbMax+2)}},
   {n:'Almas veloces',ic:'icono_almas_veloces',c:'o',d:'+8% de velocidad de tus proyectiles',ok:function(){return P.c.kind==='orbit'},f:function(){P.orbSpd*=1.08}},
-  {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+1)}},
-  {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<5},f:function(){P.projN=Math.min(5,P.projN+1)}},
-  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<reachCap(P)-1e-9},f:function(){P.reach=Math.min(reachCap(P),P.reach+.18)}},
+  {n:'Rebotes extra',ic:'icono_rebotes_extra',c:'o',d:'+1 rebote por proyectil (máx. 10)',ok:function(){return P.bounce>0&&P.bounce<uc(10)},f:function(){P.bounce=Math.min(uc(10),P.bounce+1)}},
+  {n:'Proyectil adicional',ic:'icono_orbe_adicional',c:'o',d:'+1 proyectil por ataque (máx. 5)',ok:function(){return P.bounce>0&&P.projN<uc(5)},f:function(){P.projN=Math.min(uc(5),P.projN+1)}},
+  {n:'Alcance largo',ic:'icono_alcance_largo',c:'o',d:'+18% de alcance y arco',ok:function(){return (P.c.kind==='melee'||P.c.kind==='rider')&&P.reach<uc(reachCap(P))-1e-9},f:function(){P.reach=Math.min(uc(reachCap(P)),P.reach+.18)}},
   {n:'Vitalidad',ic:'icono_vitalidad',c:'d',d:'+10% de vida máxima',f:function(){P.maxHp+=(P.hp0||P.maxHp)*.1}},
   {n:'Regeneración',ic:'icono_regeneracion',c:'d',d:'+0,7 de vida por segundo',f:function(){P.regen+=.7}},
   {n:'Coraza',ic:'icono_coraza',c:'d',d:'+7% de reducción de daño (máx. 75%)',ok:function(){return P.armor<.75-1e-9},f:function(){P.armor=Math.min(.75,P.armor+.07)}},
   {n:'Sed de sangre',ic:'icono_sed_de_sangre',c:'d',d:'Recuperas 0,5% del daño infligido (máx. 3%)',ok:function(){return P.steal<.03-1e-9},f:function(){P.steal=Math.min(.03,P.steal+.005)}},
   {n:'Pies ligeros',ic:'icono_pies_ligeros',c:'u',d:'+8% de velocidad de movimiento',f:function(){P.speed*=1.08}},
-  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida (máx. 50)',ok:function(){return P.pick<50-1e-9},f:function(){P.pick=Math.min(50,P.pick*1.15)}},
+  {n:'Imán de almas',ic:'icono_iman_de_almas',c:'u',d:'+15% de radio de recogida (máx. 50)',ok:function(){return P.pick<uc(50)-1e-9},f:function(){P.pick=Math.min(uc(50),P.pick*1.15)}},
   {n:'Sabiduría',ic:'icono_sabiduria',c:'u',d:'+5% de experiencia ganada',f:function(){P.xpMul+=.05}}
 ];
 var CATS={o:'Ofensiva',d:'Defensa',u:'Utilidad',s:'Mejora especial'};
 /* Mejoras especiales del ataque: las concede cada jefe derrotado. */
 var SPECS=[
-  {id:'bounce',n:'Proyectiles rebotantes',c:'s',ic:'icono_orbes_rebotantes',d:'Tus proyectiles rebotan 2 veces más en las paredes (máx. 10)',ok:function(){return P.c.kind==='proj'&&P.bounce<10},f:function(){P.bounce=Math.min(10,P.bounce+2)}},
+  {id:'bounce',n:'Proyectiles rebotantes',c:'s',ic:'icono_orbes_rebotantes',d:'Tus proyectiles rebotan 2 veces más en las paredes (máx. 10)',ok:function(){return P.c.kind==='proj'&&P.bounce<uc(10)},f:function(){P.bounce=Math.min(uc(10),P.bounce+2)}},
   {id:'boom',n:'Detonación',c:'s',ic:'icono_detonacion',d:'Los enemigos que matas explotan y dañan a los cercanos',f:function(){}},
   {id:'split',n:'Fisión',c:'s',ic:'icono_fision',d:'Tus proyectiles se dividen en dos al impactar',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){}},
   {id:'echo',n:'Eco',c:'s',ic:'icono_eco',d:'Cada ataque se repite una segunda vez al instante',f:function(){}},
@@ -907,11 +909,10 @@ function metaMax(){syncOwned();var n=0;meta.owned.forEach(function(o){if(o)n++})
 var meta=loadMeta();
 function saveMeta(){try{localStorage.setItem('cripta_meta',JSON.stringify(meta))}catch(e){}}
 function lvOf(cls,k){
-  if(WK.on){var wm=META.filter(function(q){return q.k===k&&(!q.cls||q.cls===cls)})[0];if(wm)return wm.max||(10+2*(Math.max(1,meta.owned.length)-1))}   /* modo semanal: todas las mejoras permanentes al máximo, igual para todos */
   var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(20,v):v}
 function mMax(m){return m.max||META_MAX}
 /* Mejoras permanentes al máximo que el jugador ha desactivado para jugar con más dificultad (meta.off[clase][mejora]). Solo cuentan mientras la mejora siga al máximo. */
-function metaOff(cls,k){if(WK.on)return false;var o=meta.off&&meta.off[cls];if(!o||!o[k])return false;var v=lvOf(cls,k),m=META.filter(function(q){return q.k===k})[0];return !!m&&v>0&&v>=(m.max||metaMax())}
+function metaOff(cls,k){var o=meta.off&&meta.off[cls];if(!o||!o[k])return false;var v=lvOf(cls,k),m=META.filter(function(q){return q.k===k})[0];return !!m&&v>0&&v>=(m.max||metaMax())}
 function lvEff(cls,k){return metaOff(cls,k)?0:lvOf(cls,k)}
 /* ---------- Aspectos: catálogo, tienda y vestuario ---------- */
 var SKINCAT=[
@@ -5429,10 +5430,10 @@ doAttack=function(second){var k=P.c.kind;if(k==='monks'||k==='spheres')return;re
 
 /* mejoras propias de cada clase */
 UPS.push(
-  {n:'Otro monje',ic:'icono_otro_monje',c:'o',d:'+1 monje invocado (máx. 10)',ok:function(){return P.c.kind==='monks'&&P.monkMax<10},f:function(){P.monkMax++}},
-  {n:'Golpe ampliado',ic:'icono_golpe_ampliado',c:'o',d:'+10% de alcance y arco del golpe de tus monjes (máx. +50%)',ok:function(){return P.c.kind==='monks'&&P.monkReach<1.5-1e-9},f:function(){P.monkReach=Math.min(1.5,P.monkReach+.1)}},
-  {n:'Esfera extra',ic:'icono_esfera_extra',c:'o',d:'+1 esfera a la vez (máx. 8)',ok:function(){return P.c.kind==='spheres'&&P.sphMax<8},f:function(){P.sphMax++}},
-  {n:'Esferas veloces',ic:'icono_esferas_veloces',c:'o',d:'+15% de velocidad de vuelo de las esferas (máx. 8)',ok:function(){return P.c.kind==='spheres'&&5.5*P.sphSpd<8-1e-6},f:function(){P.sphSpd=Math.min(8/5.5,P.sphSpd*1.15)}},
+  {n:'Otro monje',ic:'icono_otro_monje',c:'o',d:'+1 monje invocado (máx. 10)',ok:function(){return P.c.kind==='monks'&&P.monkMax<uc(10)},f:function(){P.monkMax++}},
+  {n:'Golpe ampliado',ic:'icono_golpe_ampliado',c:'o',d:'+10% de alcance y arco del golpe de tus monjes (máx. +50%)',ok:function(){return P.c.kind==='monks'&&P.monkReach<uc(1.5)-1e-9},f:function(){P.monkReach=Math.min(uc(1.5),P.monkReach+.1)}},
+  {n:'Esfera extra',ic:'icono_esfera_extra',c:'o',d:'+1 esfera a la vez (máx. 8)',ok:function(){return P.c.kind==='spheres'&&P.sphMax<uc(8)},f:function(){P.sphMax++}},
+  {n:'Esferas veloces',ic:'icono_esferas_veloces',c:'o',d:'+15% de velocidad de vuelo de las esferas (máx. 8)',ok:function(){return P.c.kind==='spheres'&&5.5*P.sphSpd<uc(8)-1e-6},f:function(){P.sphSpd=Math.min(uc(8)/5.5,P.sphSpd*1.15)}},
   {n:'Estallido ampliado',ic:'icono_estallido_ampliado',c:'o',d:'+20% de radio de la explosión de tus esferas',ok:function(){return P.c.kind==='spheres'},f:function(){P.sphRad*=1.2}}
 );
 SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.c.kind!=='monks'&&P.c.kind!=='spheres'&&(!o||o())}}});
@@ -5698,7 +5699,7 @@ doAttack=function(second){if(P.c.kind==='spears')return;return doAttack_am_base(
 
 /* mejoras propias de la Amazona */
 UPS.push(
-  {n:'Más lanzas',ic:'icono_mas_lanzas',c:'o',d:'+1 lanza a la vez (máx. 15)',ok:function(){return P.c.kind==='spears'&&P.amMax<15},f:function(){P.amMax=Math.min(15,P.amMax+1)}},
+  {n:'Más lanzas',ic:'icono_mas_lanzas',c:'o',d:'+1 lanza a la vez (máx. 15)',ok:function(){return P.c.kind==='spears'&&P.amMax<uc(15)},f:function(){P.amMax=Math.min(uc(15),P.amMax+1)}},
   {n:'Llamada rápida',ic:'icono_llamada_rapida',c:'o',d:'Llamas a tus lanzas 0,5 s antes (de 4 s hasta un mínimo de 2,5 s)',ok:function(){return P.c.kind==='spears'&&P.amCallInt>2.5+1e-9},f:function(){P.amCallInt=Math.max(2.5,P.amCallInt-.5)}},
   {n:'Regreso afilado',ic:'icono_regreso_afilado',c:'o',d:'+10% del daño de las lanzas al volver (de 60% hasta un máximo de 90%)',ok:function(){return P.c.kind==='spears'&&P.amRet<.9-1e-9},f:function(){P.amRet=Math.min(.9,P.amRet+.1)}}
 );
@@ -5883,9 +5884,9 @@ function angInterval(p){return Math.max(1,(1/p.rate)*p.angCd)}
 
 /* mejoras propias del Ángel */
 UPS.push(
-  {n:'Más urnas',ic:'icono_mas_urnas',c:'o',d:'+1 urna a tu alrededor (máx. 8)',ok:function(){return P.c.kind==='urns'&&P.angN<8},f:function(){P.angN=Math.min(8,P.angN+1)}},
-  {n:'Rayo divino',ic:'icono_rayo_divino',c:'o',d:'+20% de anchura de los rayos (máx. +100%)',ok:function(){return P.c.kind==='urns'&&P.angW<2-1e-6},f:function(){P.angW=Math.min(2,P.angW+.2)}},
-  {n:'Órbita veloz',ic:'icono_orbita_veloz',c:'o',d:'+20% de velocidad de giro y +10% de radio de la órbita (máx. 5 veces)',ok:function(){return P.c.kind==='urns'&&P.angSpin<2-1e-6},f:function(){P.angSpin=Math.min(2,P.angSpin+.2);P.angRad=Math.min(1.5,P.angRad+.1)}}
+  {n:'Más urnas',ic:'icono_mas_urnas',c:'o',d:'+1 urna a tu alrededor (máx. 8)',ok:function(){return P.c.kind==='urns'&&P.angN<uc(8)},f:function(){P.angN=Math.min(uc(8),P.angN+1)}},
+  {n:'Rayo divino',ic:'icono_rayo_divino',c:'o',d:'+20% de anchura de los rayos (máx. +100%)',ok:function(){return P.c.kind==='urns'&&P.angW<uc(2)-1e-6},f:function(){P.angW=Math.min(uc(2),P.angW+.2)}},
+  {n:'Órbita veloz',ic:'icono_orbita_veloz',c:'o',d:'+20% de velocidad de giro y +10% de radio de la órbita (máx. 5 veces)',ok:function(){return P.c.kind==='urns'&&P.angSpin<uc(2)-1e-6},f:function(){P.angSpin=Math.min(uc(2),P.angSpin+.2);P.angRad=Math.min(uc(1.5),P.angRad+.1)}}
 );
 SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.c.kind!=='urns'&&(!o||o())}}});
 
@@ -6054,8 +6055,8 @@ genMap=function(){genMap_jn_base();jnFx=[]};
 
 /* mejoras propias del Jinete */
 UPS.push(
-  {n:'Otro dragón',ic:'icono_otro_dragon',c:'o',d:'+1 dragón (máx. 3)',ok:function(){return P.c.kind==='rider'&&P.dgMax<3},f:function(){P.dgMax=Math.min(3,P.dgMax+1)}},
-  {n:'Mordisco feroz',ic:'icono_mordisco_feroz',c:'o',d:'+25% del daño de tus dragones (máx. +200%)',ok:function(){return P.c.kind==='rider'&&P.dgMul<3-1e-9},f:function(){P.dgMul=Math.min(3,P.dgMul+.25)}}
+  {n:'Otro dragón',ic:'icono_otro_dragon',c:'o',d:'+1 dragón (máx. 3)',ok:function(){return P.c.kind==='rider'&&P.dgMax<uc(3)},f:function(){P.dgMax=Math.min(uc(3),P.dgMax+1)}},
+  {n:'Mordisco feroz',ic:'icono_mordisco_feroz',c:'o',d:'+25% del daño de tus dragones (máx. +200%)',ok:function(){return P.c.kind==='rider'&&P.dgMul<uc(3)-1e-9},f:function(){P.dgMul=Math.min(uc(3),P.dgMul+.25)}}
 );
 
 function jnNewDragon(i){
@@ -6213,9 +6214,9 @@ SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.
 
 /* mejoras propias de la Piromántica */
 UPS.push(
-  {n:'Más meteoros',ic:'icono_mas_meteoros',c:'o',d:'+1 meteoro por tanda (máx. 10)',ok:function(){return P.c.kind==='meteor'&&P.mtN<MT_MAXN},f:function(){P.mtN=Math.min(MT_MAXN,P.mtN+1)}},
-  {n:'Fuego persistente',ic:'icono_fuego_persistente',c:'o',d:'+0,5 s de duración del suelo en llamas (máx. +3 s)',ok:function(){return P.c.kind==='meteor'&&P.mtFire<3-1e-9},f:function(){P.mtFire=Math.min(3,P.mtFire+.5)}},
-  {n:'Cráter ampliado',ic:'icono_crater_ampliado',c:'o',d:'+20% de radio de la explosión y del fuego (máx. +100%)',ok:function(){return P.c.kind==='meteor'&&P.mtR<2-1e-9},f:function(){P.mtR=Math.min(2,P.mtR+.2)}},
+  {n:'Más meteoros',ic:'icono_mas_meteoros',c:'o',d:'+1 meteoro por tanda (máx. 10)',ok:function(){return P.c.kind==='meteor'&&P.mtN<uc(MT_MAXN)},f:function(){P.mtN=Math.min(uc(MT_MAXN),P.mtN+1)}},
+  {n:'Fuego persistente',ic:'icono_fuego_persistente',c:'o',d:'+0,5 s de duración del suelo en llamas (máx. +3 s)',ok:function(){return P.c.kind==='meteor'&&P.mtFire<uc(3)-1e-9},f:function(){P.mtFire=Math.min(uc(3),P.mtFire+.5)}},
+  {n:'Cráter ampliado',ic:'icono_crater_ampliado',c:'o',d:'+20% de radio de la explosión y del fuego (máx. +100%)',ok:function(){return P.c.kind==='meteor'&&P.mtR<uc(2)-1e-9},f:function(){P.mtR=Math.min(uc(2),P.mtR+.2)}},
   {n:'Lluvia rápida',ic:'icono_lluvia_rapida',c:'o',d:'-12% de tiempo entre tandas (mínimo 0,8 s)',ok:function(){return P.c.kind==='meteor'&&mtInterval()>MT_MINIV+1e-9},f:function(){P.mtCad*=.88}}
 );
 
@@ -10902,8 +10903,8 @@ doAttack=function(second){if(P.c.kind==='dash')return;return doAttack_sam_base(s
 
 /* mejoras propias del Samurái */
 UPS.push(
-  {n:'Más dashes',ic:'icono_mas_lanzas',c:'o',d:'+1 dash (máx. 20)',ok:function(){return P.c.kind==='dash'&&P.samMax<SAM_MAXN},f:function(){P.samMax=Math.min(SAM_MAXN,P.samMax+1);P.samN=Math.min(P.samMax,P.samN+1)}},
-  {n:'Onda expansiva',ic:'icono_zona_ampliada',c:'o',d:'+10% de radio de la onda de choque (máx. +100%)',ok:function(){return P.c.kind==='dash'&&P.samR<2-1e-9},f:function(){P.samR=Math.min(2,P.samR+.1)}}
+  {n:'Más dashes',ic:'icono_mas_lanzas',c:'o',d:'+1 dash (máx. 20)',ok:function(){return P.c.kind==='dash'&&P.samMax<uc(SAM_MAXN)},f:function(){P.samMax=Math.min(uc(SAM_MAXN),P.samMax+1);P.samN=Math.min(P.samMax,P.samN+1)}},
+  {n:'Onda expansiva',ic:'icono_zona_ampliada',c:'o',d:'+10% de radio de la onda de choque (máx. +100%)',ok:function(){return P.c.kind==='dash'&&P.samR<uc(2)-1e-9},f:function(){P.samR=Math.min(uc(2),P.samR+.1)}}
 );
 /* el Eco no se aplica al dash */
 SPECS.forEach(function(s){if(s.id==='echo'){var o=s.ok;s.ok=function(){return P.c.kind!=='dash'&&(!o||o())}}});
