@@ -906,10 +906,12 @@ function loadMeta(){
 function metaMax(){syncOwned();var n=0;meta.owned.forEach(function(o){if(o)n++});return 10+2*(Math.max(1,n)-1)}
 var meta=loadMeta();
 function saveMeta(){try{localStorage.setItem('cripta_meta',JSON.stringify(meta))}catch(e){}}
-function lvOf(cls,k){var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(20,v):v}
+function lvOf(cls,k){
+  if(WK.on){var wm=META.filter(function(q){return q.k===k&&(!q.cls||q.cls===cls)})[0];if(wm)return wm.max||(10+2*(Math.max(1,meta.owned.length)-1))}   /* modo semanal: todas las mejoras permanentes al máximo, igual para todos */
+  var v=(meta.lv[cls]&&meta.lv[cls][k])||0;return k==='ls'?Math.min(20,v):v}
 function mMax(m){return m.max||META_MAX}
 /* Mejoras permanentes al máximo que el jugador ha desactivado para jugar con más dificultad (meta.off[clase][mejora]). Solo cuentan mientras la mejora siga al máximo. */
-function metaOff(cls,k){var o=meta.off&&meta.off[cls];if(!o||!o[k])return false;var v=lvOf(cls,k),m=META.filter(function(q){return q.k===k})[0];return !!m&&v>0&&v>=(m.max||metaMax())}
+function metaOff(cls,k){if(WK.on)return false;var o=meta.off&&meta.off[cls];if(!o||!o[k])return false;var v=lvOf(cls,k),m=META.filter(function(q){return q.k===k})[0];return !!m&&v>0&&v>=(m.max||metaMax())}
 function lvEff(cls,k){return metaOff(cls,k)?0:lvOf(cls,k)}
 /* ---------- Aspectos: catálogo, tienda y vestuario ---------- */
 var SKINCAT=[
