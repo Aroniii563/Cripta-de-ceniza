@@ -21457,7 +21457,7 @@ try{
   var INFO = {
     classic: {k: 'Modo principal', ch: ['5 mapas', 'Jefe cada 5 min', 'Hasta el minuto 20'], cta: 'Elegir personaje'},
     tower: {k: 'Desafío', ch: ['24 jefes seguidos', 'Mejora especial desde el inicio'], cta: 'Subir a la torre'},
-    weekly: {k: 'Cada semana', ch: ['Arena cerrada', 'Fase 2 sangrienta'], cta: 'Enfrentar al jefe'}
+    weekly: {k: 'Cada semana', ch: ['Arena cerrada', 'Dos fases'], cta: 'Enfrentar al jefe'}
   };
   function txt(el) { return el ? el.textContent : ''; }
   function faltan() {
@@ -25075,31 +25075,517 @@ window.arenaPrueba = arenaPrueba; window.arenaEntrar = arenaEntrar; window.arena
 
 
 /* ==========================================================================
+   JEFE SEMANAL · VHALEK, EL DUELISTA DE SANGRE
+   Bloque autónomo: pégalo DESPUÉS del bloque «Arena de Vhalek» (los dos van antes del comentario «Música y volumen»).
+   Duelista de abrigo largo y casco cerrado con una espada plateada; a mitad de vida se arrodilla,
+   se abre la mano y la sangre forma una segunda espada (la arena pasa a su fase 2).
+   FASE 1
+   - Guardia: entre ataques espera en guardia o se mueve hacia ti.
+   - Embestida (lejos): se agacha apuntando con la espada (línea de aviso) y se lanza en estocada. Mucho daño.
+   - Cortes (cerca): 5 cortes rápidos que quitan poca vida cada uno.
+   - Tajo en cono: se aleja, marca un cono muy largo y lanza un tajo hacia delante. Muchísimo daño.
+   - Esferas de sangre: va al centro, alza la espada y carga una esfera (3 s); estalla en toda la sala.
+     Crea otra y estalla, hasta 4. Solo te salvas detrás de las columnas (la sombra segura se marca en el suelo).
+     Dos esferas matan.
+   - Acoso (muy lejos): se lanza hacia ti a gran velocidad y te mete presión.
+   - Paso de sangre: se teletransporta a tu lado, a 1 s hace un giro con la espada (poco daño) y sigue pegado a ti.
+   - Salto: salta hacia ti, golpea el suelo y brotan muchas columnas de sangre gruesas (avisan antes).
+   FASE 2 (mitad de vida): todo lo anterior con las dos espadas, y además:
+   - Lanzamiento: lanza la espada de sangre, se aparta a un lado y ataca con la plateada; la de sangre estalla en un radio y vuelve a su mano.
+   - Tajos de sangre: 3 tajos horizontales que crecen al avanzar. Bastante daño.
+   - Lluvia de sangre: alza la espada de sangre, estalla y caen proyectiles en los sitios marcados. Poco daño.
+   Muerte: hace su animación y llama a window.vhalekCinematica() si existe (la cinemática va aparte).
+   Uso desde el modo de jefe semanal: vhalekSpawn(x, y) dentro de la arena (arenaEntrar(1) antes).
+   Prueba en consola: vhalekPrueba() · vhalekPrueba({vida: 8000, fase: 2}) · vhalekAtaque('esfera') fuerza un ataque.
+   Archivos: jefes/vhalek1.png (fase 1), jefes/vhalek2.png (fase 2) y efectos/vh_*.png.
+   ========================================================================== */
+var VH_SRC = {"fw":360,"fh":380,"ax":180,"fy":342,"fx":{"esfera":{"fw":96,"fh":96,"n":6},"columna":{"fw":80,"fh":192,"n":12,"fy":176},"espada":{"fw":130,"fh":130,"n":8},"luna":{"fw":96,"fh":64,"n":4},"gota":{"fw":24,"fh":48,"n":2},"salpicadura":{"fw":64,"fh":48,"n":6},"estallido":{"fw":128,"fh":96,"n":7,"cy":60},"niebla":{"fw":96,"fh":128,"n":7,"fy":112}}};
+var VH_CFG = {k: 1.35, vida: 30000, speed: 2.4,
+  /* daño = fracción de la vida máxima del jugador (la armadura no lo reduce: es un jefe para pocos) */
+  dmg: {emb: .3, corte: .07, cono: .6, esfera: .55, acoso: .12, giro: .15, salto: .25, columna: .2, lanzar: .3, plata: .2, luna: .22, gota: .08},
+  esferas: 4, cargaPrimera: 3, carga: 1.8, columnas: 16, gotas: 12};
+var VH = {img: {}, fxl: [], over: 0, overCol: '#8a0008', boss: null};
+(function () {
+  [1, 2].forEach(function (f) {
+    var im = new Image();
+    im.onload = function () {
+      var fc = document.createElement('canvas'); fc.width = im.width; fc.height = im.height;
+      var g = fc.getContext('2d'); g.drawImage(im, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#ffffff'; g.fillRect(0, 0, fc.width, fc.height);
+      VH['spr' + f] = {img: im, flash: fc, d: {fw: VH_SRC.fw, fh: VH_SRC.fh, fx: VH_SRC.ax, fy: VH_SRC.fy, top: VH_SRC.fy * .8, walk: 8, attack: 10, death: 8}};
+    };
+    im.src = 'jefes/vhalek' + f + '.png';
+  });
+  Object.keys(VH_SRC.fx).forEach(function (k) { var im = new Image(); im.onload = function () { VH.img[k] = im; }; im.src = 'efectos/vh_' + k + '.png'; });
+  [['plata', 'slash'], ['sangre', 'slash'], ['plata', 'impact'], ['sangre', 'impact']].forEach(function (q) {
+    var im = new Image(), key = 'vh_' + q[0] + '_' + q[1];
+    im.onload = function () { FXS[key] = q[1] === 'slash' ? {img: im, fw: 48, fh: 30, n: 4, rows: 16} : {img: im, fw: 56, fh: 48, n: 6, rows: 1}; };
+    im.src = 'efectos/' + key + '.png';
+    if (q[1] === 'impact') SFX_LIFT[key] = SFX_LIFT.impact;
+  });
+})();
+function vhEnsure() { if (VH.spr1 && !ESPR.vhalek) ESPR.vhalek = VH.spr1; if (VH.spr2 && !ESPR.vhalek2) ESPR.vhalek2 = VH.spr2; }
+var VH_ROW = {andar: 0, guardia: 1, muerte: 2, emb_prep: 3, emb: 4, emb_fin: 5, cortes: 6, cono: 7, esfera: 8, dash: 9, giro: 10, salto: 11, lanzar: 12, tajos2: 13, lluvia: 14, transicion: 15};
+
+/* ---------- utilidades ---------- */
+function vhHit(q, frac) { if (!q || q.dead) return; hurtPlayer(q.maxHp * frac / (1 - Math.min(.75, q.armor || 0)), q); }
+function vhFace(e, a) { e.faceLock = (Math.cos(a) - Math.sin(a)) < 0; }
+function vhAng(e, T) { return Math.atan2(T.y - e.y, T.x - e.x); }
+function vhFree(x, y) { return x > 1.5 && y > 1.5 && x < N - 1.5 && y < N - 1.5 && !blocked(x, y, .5); }
+function vhSet(e, st) {
+  if (e.orb) { e.orb.dead = true; e.orb = null; }
+  if (e.line) { e.line.t = e.line.dur + 1; e.line = null; }
+  if (e.cone) { e.cone.t = e.cone.dur + 1; e.cone = null; }
+  e.vs = st; e.vt = 0; e.step = 0; e.faceLock = undefined; if (st !== 'guardia') e.last = st;
+}
+function vhFx(o) { VH.fxl.push(o); return o; }
+function vhSwing(e, a, blood) {
+  if (sfx.length < 160) sfx.push({k: 'swing', x: e.x, y: e.y, ang: a, arc: 2.2, range: 2.3, t: 0, dur: .2, fxk: blood ? 'vh_sangre_slash' : 'vh_plata_slash'});
+  S('bSlash', e.x, e.y, 0, .7);
+}
+function vhCone(e, a, half, range, q) {
+  var dx = q.x - e.x, dy = q.y - e.y, dd = Math.hypot(dx, dy), da = Math.atan2(dy, dx) - a; da = Math.atan2(Math.sin(da), Math.cos(da));
+  return dd < range && Math.abs(da) < half && clearLine(e.x, e.y, q.x, q.y, .1);
+}
+
+/* ---------- aparición ---------- */
+function vhalekSpawn(x, y, opts) {
+  vhEnsure(); opts = opts || {};
+  var hp = (opts.vida || VH_CFG.vida) * coopHp();
+  var b = {type: 'boss', boss: true, vh: true, bossN: bossN, kind: 'vhalek', name: 'Vhalek, el Duelista de Sangre', x: x, y: y, r: .6, hf: 1, hp: hp, maxHp: hp,
+    speed: VH_CFG.speed, dmg: 0, xp: 0, h: 150, col: '#c01c2c', armor: .3, elite: false, kx: 0, ky: 0, flash: 0, cd: 1, slow: 0, shoot: 99, side: 1, dead: false,
+    wind: -1, born: t, fase: opts.fase === 2 ? 2 : 1, vs: 'guardia', vt: 0, nx: 1.4, last: '', esfCd: 6, step: 0, hpLock: 0, inv: 0};
+  enemies.push(b); bossAlive = b; VH.boss = b; VH.fxl = [];
+  S('bossRoar', x, y); toast('Vhalek, el Duelista de Sangre');
+  vhFx({k: 'niebla', x: x, y: y, t: 0});
+  return b;
+}
+
+/* ---------- elección de ataque ---------- */
+function vhChoose(e, d) {
+  var f2 = e.fase === 2, o;
+  if (d > 8.5) o = ['dash'];
+  else if (d > 4.2) o = ['emb', 'emb', 'salto', 'tp'].concat(f2 ? ['lanzar', 'tajos2', 'lluvia'] : []);
+  else o = ['cortes', 'cortes', 'cono', 'tp', 'salto'].concat(f2 ? ['lanzar', 'tajos2', 'lluvia'] : []);
+  if (e.esfCd <= 0 && Math.random() < .45) o = ['esfera'];
+  o = o.filter(function (s) { return s !== e.last; }); if (!o.length) o = ['cortes'];
+  var s = o[Math.floor(Math.random() * o.length)];
+  vhSet(e, s);
+  if (s === 'esfera') { e.esfCd = 30; e.nEsf = 0; }
+}
+window.vhalekAtaque = function (s) { var e = VH.boss; if (e && !e.dead) { vhSet(e, s); if (s === 'esfera') e.nEsf = 0; } };
+
+/* ---------- IA ---------- */
+function vhAI(e, dt, d) {
+  vhEnsure();
+  var T = e.tg || P, res = {s: 0, rev: false}, f2 = e.fase === 2;
+  e.cd = 1; e.vt += dt; e.esfCd -= dt; e.inv = Math.max(0, e.inv - dt);
+  var z = e.vt;
+  if (e.vs === 'guardia') {
+    res.s = d > 2.6 ? .75 : 0; e.nx -= dt * (f2 ? 1.5 : 1);
+    if (e.nx <= 0) vhChoose(e, d);
+    return res;
+  }
+  if (e.vs === 'transicion') {      /* se arrodilla y la sangre forma la segunda espada */
+    e.inv = 1;
+    if (e.step === 0 && z > 1.0) { e.step = 1; try { if (window.arenaFase && ARENA.on) arenaFase(2); } catch (er) {} VH.over = .9; VH.overCol = '#8a0008'; S('bossRoar', e.x, e.y); try { if (window.vhalekCinematicaFase2) window.vhalekCinematicaFase2(); } catch (er) {} }
+    if (e.step === 1 && z > 1.6) { e.step = 2; e.fase = 2; burst(e.x, e.y, '#c01c2c', 30); }
+    if (z > 2.8) { e.inv = 0; vhSet(e, 'guardia'); e.nx = .6; }
+    return res;
+  }
+  if (e.vs === 'emb') {             /* embestida: preparación con aviso, estocada larga y recuperación */
+    if (e.step === 0) { e.ea = vhAng(e, T); e.step = 1; S('bCharge', e.x, e.y, 0, .6); }
+    if (e.step === 1) {
+      if (z < .45) e.ea = vhAng(e, T);
+      vhFace(e, e.ea);
+      if (!e.line) e.line = vhFx({k: 'linea', x: e.x, y: e.y, a: e.ea, len: 7.5, w: 1.1, t: 0, dur: .75});
+      e.line.x = e.x; e.line.y = e.y; e.line.a = e.ea;
+      if (z >= .75) { e.step = 2; e.vt = 0; e.hitE = false; e.sx = e.x; e.sy = e.y; e.line = null; S('bSlash', e.x, e.y); }
+      return res;
+    }
+    if (e.step === 2) {
+      vhFace(e, e.ea); var k = Math.min(1, e.vt / .3), L = 7.5 * k, nx = e.sx + Math.cos(e.ea) * L, ny = e.sy + Math.sin(e.ea) * L;
+      if (vhFree(nx, ny)) { e.x = nx; e.y = ny; } else k = 1;
+      if (Math.random() < .7) vhFx({k: 'fantasma', x: e.x, y: e.y, flip: e.faceLock, key: f2 ? 'vhalek2' : 'vhalek', row: 4, col: 2, t: 0});
+      if (!e.hitE) PL.forEach(function (q) { if (!e.hitE && Math.hypot(q.x - e.x, q.y - e.y) < .9) { vhHit(q, VH_CFG.dmg.emb); e.hitE = true; } });
+      if (k >= 1) { e.step = 3; e.vt = 0; }
+      return res;
+    }
+    vhFace(e, e.ea);
+    if (e.vt > .5) { vhSet(e, 'guardia'); e.nx = f2 ? .5 : .8; }
+    return res;
+  }
+  if (e.vs === 'cortes') {          /* 5 cortes rápidos de poco daño */
+    res.s = d > 1.4 ? .55 : 0;
+    var hT = .2 + .32 * e.step;
+    if (e.step < 5 && z >= hT) {
+      var a = vhAng(e, T); vhFace(e, a); vhSwing(e, a, f2 && e.step % 2 === 1);
+      PL.forEach(function (q) { if (vhCone(e, a, 1.15, 2.4, q)) vhHit(q, VH_CFG.dmg.corte); });
+      e.step++;
+    }
+    if (z > 1.85) { vhSet(e, 'guardia'); e.nx = f2 ? .45 : .75; }
+    return res;
+  }
+  if (e.vs === 'cono') {            /* se aleja y lanza un tajo en cono muy largo */
+    if (e.step === 0) { e.ea = vhAng(e, T); e.step = 1; e.sx = e.x; e.sy = e.y; }
+    vhFace(e, e.ea);
+    if (e.step === 1) {
+      var kb = Math.min(1, z / .35), bx = e.sx - Math.cos(e.ea) * 1.8 * kb, by = e.sy - Math.sin(e.ea) * 1.8 * kb;
+      if (vhFree(bx, by)) { e.x = bx; e.y = by; }
+      if (z < .9) e.ea = vhAng(e, T);
+      if (!e.cone) e.cone = vhFx({k: 'cono', x: e.x, y: e.y, a: e.ea, half: .46, len: 8.5, t: 0, dur: 1.35});
+      e.cone.x = e.x; e.cone.y = e.y; e.cone.a = e.ea;
+      if (z >= 1.35) {
+        e.step = 2; e.cone = null; S('bSlam', e.x, e.y); S('bSlash', e.x, e.y);
+        vhFx({k: 'barrido', x: e.x, y: e.y, a: e.ea, half: .46, len: 8.5, t: 0, blood: f2});
+        PL.forEach(function (q) { if (vhCone(e, e.ea, .46, 8.5, q)) vhHit(q, VH_CFG.dmg.cono); });
+      }
+      return res;
+    }
+    if (z > 1.9) { vhSet(e, 'guardia'); e.nx = f2 ? .5 : .9; }
+    return res;
+  }
+  if (e.vs === 'esfera') {          /* esferas de sangre: solo las columnas te protegen */
+    if (e.step === 0) {             /* se va al centro entre niebla */
+      vhFx({k: 'niebla', x: e.x, y: e.y, t: 0});
+      var cx = N / 2, cy = N / 2;
+      e.x = cx; e.y = cy; vhFx({k: 'niebla', x: e.x, y: e.y, t: 0}); S('bWet', e.x, e.y);
+      e.step = 1; e.vt = 0; e.nEsf = 0;
+    }
+    if (e.step === 1) {
+      var dur = e.nEsf === 0 ? VH_CFG.cargaPrimera : VH_CFG.carga;
+      if (!e.orb) { e.orb = vhFx({k: 'orbe', x: e.x, y: e.y, t: 0, dur: dur}); S('bCharge', e.x, e.y); }
+      if (e.vt >= dur) {
+        S('bSlam', e.x, e.y, 0, 1.3); VH.over = .85; VH.overCol = '#b00010';
+        vhFx({k: 'onda', x: e.x, y: e.y, t: 0});
+        var ox = e.x, oy = e.y;
+        PL.forEach(function (q) { if (!q.dead && clearLine(ox, oy, q.x, q.y, .05)) vhHit(q, VH_CFG.dmg.esfera); });
+        burst(e.x, e.y, '#c01c2c', 40);
+        e.orb.dead = true; e.orb = null; e.nEsf++; e.vt = 0;
+        if (e.nEsf >= VH_CFG.esferas) { e.step = 2; e.vt = 0; }
+      }
+      return res;
+    }
+    if (e.vt > .7) { vhSet(e, 'guardia'); e.nx = .6; }
+    return res;
+  }
+  if (e.vs === 'dash') {            /* acoso: se lanza hacia ti */
+    if (e.step === 0) { e.ea = vhAng(e, T); e.sx = e.x; e.sy = e.y; e.dl = Math.max(0, Math.hypot(T.x - e.x, T.y - e.y) - 1.4); e.step = 1; e.hitE = false; S('bCharge', e.x, e.y, 0, .5); }
+    vhFace(e, e.ea);
+    if (e.step === 1 && z > .15) {
+      var kd = Math.min(1, (z - .15) / .4), dx2 = e.sx + Math.cos(e.ea) * e.dl * kd, dy2 = e.sy + Math.sin(e.ea) * e.dl * kd;
+      if (vhFree(dx2, dy2)) { e.x = dx2; e.y = dy2; } else kd = 1;
+      if (Math.random() < .8) vhFx({k: 'fantasma', x: e.x, y: e.y, flip: e.faceLock, key: f2 ? 'vhalek2' : 'vhalek', row: 9, col: Math.floor(z * 14) % 6, t: 0});
+      if (!e.hitE) PL.forEach(function (q) { if (!e.hitE && Math.hypot(q.x - e.x, q.y - e.y) < .85) { vhHit(q, VH_CFG.dmg.acoso); e.hitE = true; } });
+      if (kd >= 1) { e.step = 2; e.vt = 0; }
+      return res;
+    }
+    if (e.step === 2 && e.vt > .25) { vhSet(e, f2 && Math.random() < .5 ? 'cortes' : 'guardia'); e.nx = .3; }
+    return res;
+  }
+  if (e.vs === 'tp') {              /* paso de sangre: aparece a tu lado y gira a 1 s */
+    if (e.step === 0) {
+      vhFx({k: 'niebla', x: e.x, y: e.y, t: 0});
+      var ok = false;
+      for (var k2 = 0; k2 < 24 && !ok; k2++) { var a2 = Math.random() * 6.283, tx = T.x + Math.cos(a2) * 1.3, ty = T.y + Math.sin(a2) * 1.3; if (vhFree(tx, ty)) { e.x = tx; e.y = ty; ok = true; } }
+      vhFx({k: 'niebla', x: e.x, y: e.y, t: 0}); S('bWet', e.x, e.y);
+      e.ring = vhFx({k: 'circulo', x: e.x, y: e.y, r: 2.4, t: 0, dur: 1.0}); e.step = 1; e.vt = 0;
+    }
+    if (e.step === 1) { e.ring.x = e.x; e.ring.y = e.y; if (e.vt >= 1.0) { e.step = 2; e.vt = 0; S('bSlash', e.x, e.y); vhFx({k: 'giro', x: e.x, y: e.y, t: 0, blood: f2}); PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - e.x, q.y - e.y) < 2.4) vhHit(q, VH_CFG.dmg.giro); }); } return res; }
+    res.s = 1.15;               /* sigue pegado a ti */
+    if (e.vt > .9) { vhSet(e, 'guardia'); e.nx = .4; }
+    return res;
+  }
+  if (e.vs === 'salto') {           /* salto, golpe al suelo y columnas de sangre */
+    if (e.step === 0) { e.sx = e.x; e.sy = e.y; e.tx = T.x; e.ty = T.y; e.ea = vhAng(e, T); e.step = 1; e.land = vhFx({k: 'circulo', x: T.x, y: T.y, r: 1.9, t: 0, dur: .95}); }
+    vhFace(e, e.ea);
+    if (e.step === 1 && z > .25) {
+      var kj = Math.min(1, (z - .25) / .7), jx = e.sx + (e.tx - e.sx) * kj, jy = e.sy + (e.ty - e.sy) * kj;
+      if (vhFree(jx, jy) || kj >= 1) { if (vhFree(jx, jy)) { e.x = jx; e.y = jy; } }
+      if (kj >= 1) {
+        e.step = 2; e.vt = 0; S('bSlam', e.x, e.y, 0, 1.2); VH.over = .35; VH.overCol = '#600008';
+        vhFx({k: 'estallido', x: e.x, y: e.y, t: 0});
+        PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - e.x, q.y - e.y) < 1.9) vhHit(q, VH_CFG.dmg.salto); });
+        var n = VH_CFG.columnas + (f2 ? 4 : 0);
+        for (var c = 0; c < n; c++) {
+          var ra = c < 6 ? 1.8 + Math.random() * .8 : c < 12 ? 3.3 + Math.random() * 1 : 4.8 + Math.random() * 1.6, aa = Math.random() * 6.283;
+          var px = e.x + Math.cos(aa) * ra, py = e.y + Math.sin(aa) * ra;
+          if (c === n - 1 || c === n - 2) { px = T.x + (Math.random() - .5) * .6; py = T.y + (Math.random() - .5) * .6; }
+          if (!vhFree(px, py)) continue;
+          vhFx({k: 'columna', x: px, y: py, t: -(.15 + ra * .09), aviso: .7, hit: false});
+        }
+      }
+      return res;
+    }
+    if (e.step === 2 && e.vt > 1.0) { vhSet(e, 'guardia'); e.nx = f2 ? .5 : .8; }
+    return res;
+  }
+  if (e.vs === 'lanzar') {          /* lanza la espada de sangre, se aparta y ataca con la plateada */
+    if (e.step === 0) { e.ea = vhAng(e, T); e.tx = T.x; e.ty = T.y; e.step = 1; e.mark = vhFx({k: 'circulo', x: T.x, y: T.y, r: 2.0, t: 0, dur: 1.15}); }
+    vhFace(e, e.ea);
+    if (e.step === 1 && z >= .35) { e.step = 2; S('shoot', e.x, e.y); vhFx({k: 'espada', x: e.x, y: e.y, x0: e.x, y0: e.y, x1: e.tx, y1: e.ty, t: 0, own: e, st: 'va'}); e.side2 = Math.random() < .5 ? 1 : -1; e.sx = e.x; e.sy = e.y; }
+    if (e.step === 2) {
+      if (z > .45 && z < .8) { var ks = (z - .45) / .35, px2 = -Math.sin(e.ea) * e.side2 * 2 * ks, py2 = Math.cos(e.ea) * e.side2 * 2 * ks; if (vhFree(e.sx + px2, e.sy + py2)) { e.x = e.sx + px2; e.y = e.sy + py2; } }
+      if (z >= .95) { e.step = 3; var a3 = vhAng(e, T); vhFace(e, a3); e.ea = a3; vhSwing(e, a3, false); PL.forEach(function (q) { if (vhCone(e, a3, 1.0, 2.8, q)) vhHit(q, VH_CFG.dmg.plata); }); }
+      return res;
+    }
+    if (e.step === 3 && z > 1.6) { vhSet(e, 'guardia'); e.nx = .5; }
+    return res;
+  }
+  if (e.vs === 'tajos2') {          /* 3 tajos horizontales de sangre que crecen */
+    var tT = .3 + .4 * e.step;
+    if (e.step < 3 && z >= tT) {
+      var a4 = vhAng(e, T); vhFace(e, a4); S('bSlash', e.x, e.y); S('bWet', e.x, e.y, 0, .5);
+      vhFx({k: 'luna', x: e.x + Math.cos(a4) * .6, y: e.y + Math.sin(a4) * .6, vx: Math.cos(a4) * 7, vy: Math.sin(a4) * 7, t: 0, life: 1.5, hit: false});
+      e.step++;
+    }
+    if (z > 1.5) { vhSet(e, 'guardia'); e.nx = .6; }
+    return res;
+  }
+  if (e.vs === 'lluvia') {          /* lluvia de sangre en sitios marcados */
+    if (e.step === 0 && z >= .7) {
+      e.step = 1; S('bSlam', e.x, e.y, 0, .8); vhFx({k: 'estallido', x: e.x, y: e.y, t: 0, alto: 60});
+      for (var g = 0; g < VH_CFG.gotas; g++) {
+        var gx, gy, tr = 0;
+        do { var a5 = Math.random() * 6.283, r5 = g < 3 ? Math.random() * .8 : 1 + Math.random() * 4.2; gx = T.x + Math.cos(a5) * r5; gy = T.y + Math.sin(a5) * r5; tr++; } while (!vhFree(gx, gy) && tr < 10);
+        vhFx({k: 'gota', x: gx, y: gy, t: -g * .07, aviso: 1.0, hit: false});
+      }
+    }
+    if (z > 1.6) { vhSet(e, 'guardia'); e.nx = .5; }
+    return res;
+  }
+  vhSet(e, 'guardia'); return res;
+}
+
+/* ---------- efectos: actualización y daño ---------- */
+function vhFxUpdate(dt) {
+  VH.over = Math.max(0, VH.over - dt * 1.6);
+  for (var i = VH.fxl.length - 1; i >= 0; i--) {
+    var f = VH.fxl[i]; f.t += dt;
+    if (f.k === 'columna') {
+      if (!f.hit && f.t >= f.aviso) { f.hit = true; if (i % 4 === 0) S('bWet', f.x, f.y, 0, .5); PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - f.x, q.y - f.y) < .75) vhHit(q, VH_CFG.dmg.columna); }); }
+      if (f.t > f.aviso + 1.25) VH.fxl.splice(i, 1);
+    } else if (f.k === 'gota') {
+      if (!f.hit && f.t >= f.aviso) { f.hit = true; PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - f.x, q.y - f.y) < .7) vhHit(q, VH_CFG.dmg.gota); }); if (i % 3 === 0) S('bWet', f.x, f.y, 0, .4); }
+      if (f.t > f.aviso + .45) VH.fxl.splice(i, 1);
+    } else if (f.k === 'luna') {
+      f.x += f.vx * dt; f.y += f.vy * dt; var sc = .7 + f.t / f.life * 1.7, rr = .45 * sc;
+      var gone = f.t > f.life || solid(f.x, f.y);
+      if (!f.hit) PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - f.x, q.y - f.y) < rr + .2) { vhHit(q, VH_CFG.dmg.luna); f.hit = true; } });
+      if (gone) VH.fxl.splice(i, 1);
+    } else if (f.k === 'espada') {
+      if (f.st === 'va') {
+        var L = Math.hypot(f.x1 - f.x0, f.y1 - f.y0) || 1, k = Math.min(1, f.t * 13 / L);
+        f.x = f.x0 + (f.x1 - f.x0) * k; f.y = f.y0 + (f.y1 - f.y0) * k;
+        if (k >= 1) { f.st = 'clavada'; f.t = 0; }
+      } else if (f.st === 'clavada') {
+        if (f.t >= .3) {
+          f.st = 'vuelve'; f.t = 0; S('bSlam', f.x, f.y); vhFx({k: 'estallido', x: f.x, y: f.y, t: 0});
+          PL.forEach(function (q) { if (!q.dead && Math.hypot(q.x - f.x, q.y - f.y) < 2.0) vhHit(q, VH_CFG.dmg.lanzar); });
+          f.x0 = f.x; f.y0 = f.y;
+        }
+      } else {
+        var o = f.own && !f.own.dead ? f.own : null; if (!o) { VH.fxl.splice(i, 1); continue; }
+        var L2 = Math.hypot(o.x - f.x0, o.y - f.y0) || 1, k2 = Math.min(1, f.t * 11 / L2);
+        f.x = f.x0 + (o.x - f.x0) * k2; f.y = f.y0 + (o.y - f.y0) * k2;
+        if (k2 >= 1) VH.fxl.splice(i, 1);
+      }
+    } else if (f.k === 'orbe') { if (f.dead) VH.fxl.splice(i, 1); }
+    else if (f.k === 'linea' || f.k === 'cono' || f.k === 'circulo') { if (f.t > f.dur + .05) VH.fxl.splice(i, 1); }
+    else if (f.k === 'barrido') { if (f.t > .45) VH.fxl.splice(i, 1); }
+    else if (f.k === 'onda') { if (f.t > .9) VH.fxl.splice(i, 1); }
+    else if (f.k === 'giro') { if (f.t > .35) VH.fxl.splice(i, 1); }
+    else if (f.k === 'fantasma') { if (f.t > .32) VH.fxl.splice(i, 1); }
+    else if (f.k === 'niebla') { if (f.t > .6) VH.fxl.splice(i, 1); }
+    else if (f.k === 'estallido') { if (f.t > .55) VH.fxl.splice(i, 1); }
+  }
+}
+
+/* ---------- dibujo en el suelo: avisos ---------- */
+function vhEll(x, y, r) { var p = sp(x, y); ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 45.25, r * 22.6, 0, 0, 6.283); }
+function vhWarn(fill, a) { ctx.globalAlpha = a; ctx.fillStyle = fill; ctx.fill(); }
+function vhDash(a, col) { ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.lineDashOffset = -t * 24; ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
+function vhSombras(ox, oy) {   /* sombras seguras detrás de cada columna, vistas desde la esfera */
+  var cols = [];
+  for (var y = 1; y < N - 1; y++) for (var x = 1; x < N - 1; x++) if (map[y * N + x] === 1) cols.push([x + .5, y + .5]);
+  ctx.fillStyle = '#5ac8ff';
+  cols.forEach(function (c) {
+    var dx = c[0] - ox, dy = c[1] - oy, d = Math.hypot(dx, dy); if (d < .8) return;
+    var ux = dx / d, uy = dy / d, px = -uy, py = ux, w = .5, L = N * 1.5;
+    var a1 = sp(c[0] + px * w, c[1] + py * w), a2 = sp(c[0] - px * w, c[1] - py * w);
+    var s = (d + L) / d, b1 = sp(ox + (c[0] + px * w - ox) * s, oy + (c[1] + py * w - oy) * s), b2 = sp(ox + (c[0] - px * w - ox) * s, oy + (c[1] - py * w - oy) * s);
+    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(a2.x, a2.y); ctx.closePath(); ctx.fill();
+  });
+}
+function vhDrawGround() {
+  VH.fxl.forEach(function (f) {
+    var pr, c, s;
+    if (f.k === 'linea') {
+      c = Math.cos(f.a); s = Math.sin(f.a); var nx = -s * f.w / 2, ny = c * f.w / 2; pr = Math.min(1, f.t / f.dur);
+      var q = function (L) { return [sp(f.x + nx, f.y + ny), sp(f.x + c * L + nx, f.y + s * L + ny), sp(f.x + c * L - nx, f.y + s * L - ny), sp(f.x - nx, f.y - ny)]; };
+      ctx.globalAlpha = .16 + .08 * Math.sin(t * 18); poly(q(f.len), '#ff2a3a', null); ctx.globalAlpha = .38; poly(q(f.len * pr), '#ff2a3a', null);
+      ctx.globalAlpha = .9; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.lineDashOffset = -t * 24; poly(q(f.len), null, '#ff5a5a'); ctx.setLineDash([]); ctx.lineWidth = 1;
+    } else if (f.k === 'cono') {
+      pr = Math.min(1, f.t / f.dur); var pts = [sp(f.x, f.y)], pts2 = [sp(f.x, f.y)];
+      for (var k = 0; k <= 14; k++) { var a = f.a - f.half + 2 * f.half * k / 14; pts.push(sp(f.x + Math.cos(a) * f.len, f.y + Math.sin(a) * f.len)); pts2.push(sp(f.x + Math.cos(a) * f.len * pr, f.y + Math.sin(a) * f.len * pr)); }
+      ctx.globalAlpha = .14 + .08 * Math.sin(t * 16); poly(pts, '#ff2a3a', null); ctx.globalAlpha = .34; poly(pts2, '#ff2a3a', null);
+      ctx.globalAlpha = .9; ctx.lineWidth = 2; ctx.setLineDash([7, 5]); ctx.lineDashOffset = -t * 24; poly(pts, null, '#ff5a5a'); ctx.setLineDash([]); ctx.lineWidth = 1;
+    } else if (f.k === 'circulo') {
+      pr = Math.min(1, f.t / f.dur);
+      vhEll(f.x, f.y, f.r); vhWarn('#ff2a3a', .13); vhEll(f.x, f.y, f.r * pr); vhWarn('#ff2a3a', .3); vhEll(f.x, f.y, f.r); vhDash(.9, '#ff5a5a');
+    } else if ((f.k === 'columna' || f.k === 'gota') && f.t > -.01 && f.t < f.aviso) {
+      pr = Math.max(0, f.t / f.aviso); var r = f.k === 'columna' ? .75 : .65;
+      vhEll(f.x, f.y, r); vhWarn('#ff2a3a', .15 + .1 * Math.sin(t * 20)); vhEll(f.x, f.y, r * pr); vhWarn('#ff2a3a', .35); vhEll(f.x, f.y, r); vhDash(.85, '#ff5a5a');
+    } else if (f.k === 'orbe') {
+      pr = Math.min(1, f.t / f.dur);
+      ctx.globalAlpha = .12 + .25 * pr; ctx.fillStyle = '#ff1020'; var a0 = sp(1, 1), a1 = sp(N - 1, 1), a2 = sp(N - 1, N - 1), a3 = sp(1, N - 1);
+      ctx.beginPath(); ctx.moveTo(a0.x, a0.y); ctx.lineTo(a1.x, a1.y); ctx.lineTo(a2.x, a2.y); ctx.lineTo(a3.x, a3.y); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = .42 + .15 * Math.sin(t * 10); vhSombras(f.x, f.y);
+    } else if (f.k === 'barrido') {   /* tajo en cono: ondas de luz que avanzan */
+      pr = f.t / .45; var col = f.blood ? ['#ff6a58', '#d02a28', '#6a0a10'] : ['#ffffff', '#b8cce6', '#5a6e90'];
+      for (var w = 0; w < 3; w++) {
+        var Lw = f.len * Math.min(1, pr * 1.3 - w * .12); if (Lw <= 0) continue;
+        ctx.globalAlpha = Math.max(0, 1 - pr) * (1 - w * .25); ctx.fillStyle = col[w];
+        for (var k2 = 0; k2 <= 40; k2++) { var a2b = f.a - f.half + 2 * f.half * k2 / 40, pp = sp(f.x + Math.cos(a2b) * Lw, f.y + Math.sin(a2b) * Lw); ctx.fillRect(Math.round(pp.x) - 2, Math.round(pp.y) - 2, 5, 3); }
+      }
+    } else if (f.k === 'onda') {
+      pr = f.t / .9; var R = .5 + pr * N * .8;
+      for (var j = 0; j < 3; j++) { vhEll(f.x, f.y, R - j * .6); ctx.globalAlpha = Math.max(0, (1 - pr) * (.8 - j * .22)); ctx.strokeStyle = ['#ff6a58', '#d02a28', '#6a0a10'][j]; ctx.lineWidth = 4 - j; ctx.stroke(); }
+      ctx.lineWidth = 1;
+    } else if (f.k === 'giro') {
+      pr = f.t / .35; vhEll(f.x, f.y, 2.4 * (.6 + .4 * pr)); ctx.globalAlpha = (1 - pr) * .9; ctx.strokeStyle = f.blood ? '#ff4a3a' : '#dfe8ff'; ctx.lineWidth = 3; ctx.stroke(); ctx.lineWidth = 1;
+    }
+  });
+  ctx.globalAlpha = 1;
+}
+/* ---------- objetos que se ordenan con la escena ---------- */
+function vhItems(list) {
+  VH.fxl.forEach(function (f) {
+    if (f.k === 'columna' && f.t >= f.aviso) list.push({d: f.x + f.y + .03, fx: {vh: f, x: f.x, y: f.y}});
+    else if (f.k === 'gota' && f.t > f.aviso - .35) list.push({d: f.x + f.y + .03, fx: {vh: f, x: f.x, y: f.y}});
+    else if (f.k === 'orbe' || f.k === 'espada' || f.k === 'luna' || f.k === 'niebla' || f.k === 'estallido' || f.k === 'fantasma') list.push({d: f.x + f.y + (f.k === 'orbe' ? .2 : .05), fx: {vh: f, x: f.x, y: f.y}});
+  });
+}
+function vhSprite(k, col, x, y, scale, alpha) {
+  var im = VH.img[k], F = VH_SRC.fx[k]; if (!im) return;
+  var w = F.fw / 2 * scale, h = F.fh / 2 * scale, fy = (F.fy !== undefined ? F.fy : F.fh / 2) / 2 * scale;
+  if (alpha !== undefined) ctx.globalAlpha = alpha;
+  ctx.drawImage(im, col * F.fw, 0, F.fw, F.fh, Math.round(x - w / 2), Math.round(y - fy), Math.round(w), Math.round(h));
+  ctx.globalAlpha = 1;
+}
+function vhDrawItem(f) {
+  var p = sp(f.x, f.y), F;
+  if (f.k === 'columna') { var ct = f.t - f.aviso, col = ct < .3 ? Math.floor(ct / .3 * 4) : ct < .9 ? 4 + Math.floor(ct * 10) % 4 : 8 + Math.min(3, Math.floor((ct - .9) / .35 * 4)); vhSprite('columna', Math.min(11, col), p.x, p.y, 1.15); }
+  else if (f.k === 'gota') {
+    if (f.t < f.aviso) { var fall = (f.aviso - f.t) / .35; vhSprite('gota', Math.floor(t * 10) % 2, p.x, p.y - 8 - fall * 220, 1.2); }
+    else vhSprite('salpicadura', Math.min(5, Math.floor((f.t - f.aviso) / .45 * 6)), p.x, p.y + 4, 1.4);
+  } else if (f.k === 'orbe') {
+    var e = VH.boss, pr = Math.min(1, f.t / f.dur), sc = .35 + .9 * pr, py = p.y - 112;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .25 + .2 * Math.sin(t * 12); ctx.fillStyle = '#ff2030';
+    ctx.beginPath(); ctx.arc(p.x, py, 40 * sc, 0, 6.283); ctx.fill(); ctx.restore();
+    vhSprite('esfera', Math.floor(t * 12) % 6, p.x, py, sc * (pr > .85 ? 1 + .08 * Math.sin(t * 40) : 1));
+  } else if (f.k === 'espada') { vhSprite('espada', Math.floor(t * 22) % 8, p.x, p.y - 30, 1); }
+  else if (f.k === 'luna') {
+    var sc2 = .7 + f.t / f.life * 1.7, ang = Math.atan2((f.vx + f.vy) * 16, (f.vx - f.vy) * 32);
+    var im = VH.img.luna; F = VH_SRC.fx.luna; if (!im) return;
+    ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y - 22)); ctx.rotate(ang); ctx.scale(sc2, sc2);
+    ctx.drawImage(im, (Math.floor(t * 14) % 4) * F.fw, 0, F.fw, F.fh, -F.fw / 4, -F.fh / 4, F.fw / 2, F.fh / 2); ctx.restore();
+  } else if (f.k === 'niebla') vhSprite('niebla', Math.min(6, Math.floor(f.t / .6 * 7)), p.x, p.y, 1.3);
+  else if (f.k === 'estallido') vhSprite('estallido', Math.min(6, Math.floor(f.t / .55 * 7)), p.x, p.y - (f.alto || 0), 1.6);
+  else if (f.k === 'fantasma') {
+    ctx.save(); drawSprEnemy(f.key, f.row, f.col, p.x, p.y, f.flip, VH_CFG.k, false, (1 - f.t / .32) * .22); ctx.restore();
+  }
+}
+/* fogonazo de pantalla (esferas, salto, cambio de fase) */
+function vhOverlay() {
+  if (VH.over <= 0) return;
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = Math.min(1, VH.over) * .55; ctx.fillStyle = VH.overCol; ctx.fillRect(0, 0, W, H); ctx.restore();
+}
+/* fotograma del jefe según su estado */
+function vhFrame(e) {
+  var z = e.vt || 0, st = e.vs, R = VH_ROW, cl = function (n, x) { return Math.max(0, Math.min(n - 1, Math.floor(x))); };
+  if (st === 'transicion') return [R.transicion, cl(10, z < 1 ? z / 1 * 3 : z < 2.2 ? 3 + (z - 1) / 1.2 * 5 : 8 + (z - 2.2) / .6 * 2)];
+  if (st === 'emb') { if (e.step <= 1) return [R.emb_prep, cl(6, z / .75 * 6)]; if (e.step === 2) return [R.emb, cl(4, e.vt / .3 * 4)]; return [R.emb_fin, cl(5, e.vt / .5 * 5)]; }
+  if (st === 'cortes') return [R.cortes, cl(10, (z - .1) / 1.6 * 10)];
+  if (st === 'cono') { if (e.step <= 1) return [R.cono, cl(5, z < .35 ? z / .35 * 3 : 3 + (z - .35))]; return [R.cono, cl(8, 5 + (z - 1.35) / .45 * 3)]; }
+  if (st === 'esfera') { if (e.step === 1) return [R.esfera, e.nEsf === 0 && e.vt < .5 ? cl(4, e.vt / .5 * 4) : 4 + Math.floor(t * 8) % 4]; if (e.step === 2) return [R.guardia, 0]; return [R.esfera, 0]; }
+  if (st === 'dash') return [R.dash, Math.floor(z * 14) % 6];
+  if (st === 'tp') { if (e.step === 1) return [R.guardia, Math.floor(t * 9) % 8]; if (e.step === 2 && e.vt < .35) return [R.giro, cl(8, e.vt / .35 * 8)]; return [R.andar, Math.floor((e.wt || 0) * 9) % 8]; }
+  if (st === 'salto') { if (e.step === 1) return [R.salto, cl(6, z < .25 ? 1 : 2 + (z - .25) / .7 * 4)]; return [R.salto, cl(10, 6 + e.vt / 1 * 4)]; }
+  if (st === 'lanzar') return [R.lanzar, cl(8, z / 1.6 * 8)];
+  if (st === 'tajos2') return [R.tajos2, cl(9, (z - .1) / 1.3 * 9)];
+  if (st === 'lluvia') return [R.lluvia, cl(8, z / 1.6 * 8)];
+  if ((e.mv || 0) > .15) return [R.andar, Math.floor((e.wt || 0) * 9) % 8];
+  return [R.guardia, Math.floor(t * 7) % 8];
+}
+
+/* ---------- enganches ---------- */
+var vh_bossAI = bossAI; bossAI = function (e, dt, d) { if (e.vh) return vhAI(e, dt, d); return vh_bossAI(e, dt, d); };
+var vh_sprKey = sprKey; sprKey = function (e) { if (e.vh) { vhEnsure(); return e.fase === 2 || (e.vs === 'transicion' && e.step >= 0) ? 'vhalek2' : 'vhalek'; } return vh_sprKey(e); };
+var vh_sprScale = sprScale; sprScale = function (e) { if (e.vh) return VH_CFG.k; return vh_sprScale(e); };
+var vh_enemyFrame = enemyFrame; enemyFrame = function (e) { if (e.vh) return vhFrame(e); return vh_enemyFrame(e); };
+var vh_animEnemy = animEnemy; animEnemy = function (e, bx, by, dt, d) { var r = vh_animEnemy(e, bx, by, dt, d); if (e.vh && e.faceLock !== undefined) e.flip = e.faceLock; return r; };
+var vh_killEnemy = killEnemy; killEnemy = function (e) {
+  if (!e.vh) return vh_killEnemy(e);
+  if (e.fase === 1) {                 /* no muere en la fase 1: pasa a la fase 2 */
+    if (e.vs !== 'transicion') { e.hp = e.maxHp * .5; vhSet(e, 'transicion'); e.inv = 1; VH.fxl = VH.fxl.filter(function (f) { return f.k === 'niebla'; }); }
+    else e.hp = e.maxHp * .5;
+    return;
+  }
+  e.dead = true; kills++; S('bossDie', e.x, e.y, 0, 1.2); burst(e.x, e.y, '#c01c2c', 50);
+  try { meta.bestiary['semanal:vhalek'] = (meta.bestiary['semanal:vhalek'] || 0) + 1; } catch (er) {}
+  if (corpses.length < 60) corpses.push({type: 'vhalek2', boss: true, x: e.x, y: e.y, flip: !!e.flip, k: VH_CFG.k, t: 0});
+  bossKills++; bossAlive = null; VH.boss = null; VH.fxl = [];
+  setTimeout(function () { try { if (window.vhalekCinematica) window.vhalekCinematica(); else toast('Vhalek ha caído'); } catch (er) {} }, 1300);
+};
+var vh_update = update; update = function (dt) {
+  vh_update(dt);
+  try {
+    vhEnsure(); vhFxUpdate(dt);
+    var e = VH.boss;
+    if (e && !e.dead) {
+      if (e.inv > 0 || e.vs === 'transicion') e.hp = Math.max(e.hp, e.maxHp * .5);
+      if (e.fase === 1 && e.hp <= e.maxHp * .5 && e.vs !== 'transicion') { e.hp = e.maxHp * .5; vhSet(e, 'transicion'); VH.fxl = VH.fxl.filter(function (f) { return f.k === 'niebla'; }); }
+    }
+  } catch (er) { try { softErr('vhalek', er); } catch (e2) {} }
+};
+var vh_sfxItems = sfxItems; sfxItems = function (list) { vh_sfxItems(list); try { vhItems(list); } catch (er) {} };
+var vh_drawFxItem = drawFxItem; drawFxItem = function (it) { if (it.fx && it.fx.vh) return vhDrawItem(it.fx.vh); return vh_drawFxItem(it); };
+var vh_drawHazGround = drawHazGround; drawHazGround = function () { vh_drawHazGround(); try { vhDrawGround(); } catch (er) {} };
+var vh_render = render; render = function () { vh_render(); try { vhOverlay(); } catch (er) {} };
+var vh_startRun = startRun; startRun = function (key, mi) { VH.fxl = []; VH.boss = null; VH.over = 0; return vh_startRun(key, mi); };
+/* prueba: entra en la arena y aparece Vhalek */
+function vhalekPrueba(o) {
+  o = o || {};
+  if (state !== 'play') { try { startRun(typeof lastKey !== 'undefined' && lastKey ? lastKey : 'sorc', 0); } catch (er) {} }
+  setTimeout(function () {
+    try { if (window.arenaEntrar && !ARENA.on) arenaEntrar(1); } catch (er) {}
+    try { nextBoss = 1e9; } catch (er) {}
+    var b = vhalekSpawn(N / 2 + .5, N / 2 - 2.5, o);
+    if (o.fase === 2) { try { arenaFase(2); } catch (er) {} }
+  }, 120);
+}
+window.vhalekPrueba = vhalekPrueba; window.vhalekSpawn = vhalekSpawn;
+
+
+/* ==========================================================================
    MODO «JEFE SEMANAL»
    Tarjeta a la derecha de «Torre de ceniza». Elige personaje -> «Jugar» -> arena cerrada con el jefe de la semana.
-   WK_BOSSES: lista de jefes semanales; rota uno por semana (lunes 00:00 UTC). De momento solo Vhalek
-   (usa el cuerpo del Arrastrado hasta que tenga sus propios sprites).
-   Fase 2 al 50 % de vida: arenaFase(2), el jefe se acelera y pega más fuerte.
+   WK_BOSSES: lista de jefes semanales; rota uno por semana (lunes 00:00 UTC). Cada uno trae su spawn() y gestiona
+   sus propias fases (Vhalek llama a arenaFase(2) él solo).
    No cuenta para récords, ranking online ni desbloqueos de mapas.
    ========================================================================== */
-var WK_BOSSES=[{id:'vhalek',name:'Vhalek',kind:'arrastrado',hp:7,dmg:1.15,p2:{speed:1.35,dmg:1.3}}];
+var WK_BOSSES=[{id:'vhalek',name:'Vhalek',full:'Vhalek, el Duelista de Sangre',spawn:function(){return vhalekSpawn(N/2+.5,N/2-2.5,{})}}];
 function wkWeek(){return Math.floor((Date.now()-Date.UTC(2026,0,5))/604800000)}
 function wkBoss(){return WK_BOSSES[((wkWeek()%WK_BOSSES.length)+WK_BOSSES.length)%WK_BOSSES.length]}
 function wkDone(){try{return !!(meta.weekly&&meta.weekly[wkWeek()])}catch(e){return false}}
 function wkLeft(){var ms=Date.UTC(2026,0,5)+(wkWeek()+1)*604800000-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d+' d '+h+' h'}
 function wkBegin(){
-  WK.boss=null;WK.p2=false;WK.won=false;WK.spawnT=t+2.5;nextBoss=1e9;try{gobNext=1e9}catch(e){}
+  WK.boss=null;WK.p2=false;WK.won=false;WK.deadT=0;WK.spawnT=t+2.5;nextBoss=1e9;try{gobNext=1e9}catch(e){}
   arenaEntrar(1);
   try{$('hudClass').textContent=(coop?'J1 · ':'')+PL[0].c.name+' · Jefe semanal · '+wkBoss().name}catch(e){}
-  toast('Jefe semanal: '+wkBoss().name);
-}
+  }
 function wkSpawn(){
-  var def=wkBoss(),sc=curMap,sb=bossN;curMap=0;bossN=2;
-  var ok=spawnBoss();curMap=sc;
-  if(!ok){bossN=sb;return false}
-  var b=bossAlive;b.name=def.name;b.kind=def.kind;b.x=N/2+.5;b.y=N/2-1.5;
-  b.hp*=def.hp;b.maxHp=b.hp;b.dmg*=def.dmg;b.wk=1;WK.boss=b;
-  return true;
+  var b=wkBoss().spawn();if(!b)return false;WK.boss=b;WK.deadT=0;return true;
 }
 function wkVictory(){
   if(state!=='play'&&state!=='levelup')return;
@@ -25107,7 +25593,7 @@ function wkVictory(){
   var def=wkBoss(),r=endRun('victoria'),lv=0;
   try{meta.weekly=meta.weekly||{};if(!meta.weekly[wkWeek()]||t<meta.weekly[wkWeek()])meta.weekly[wkWeek()]=+t.toFixed(1)}catch(e){}
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
-  $('deadTitle').textContent='¡'+def.name+' derrotado!';
+  $('deadTitle').textContent='¡'+def.name+' ha caído!';
   $('deadSub').textContent='Has completado el jefe semanal. El siguiente llega en '+wkLeft()+'.';
   $('deadPage').hidden=true;
   $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+r.g+'</b></div>';
@@ -25120,8 +25606,7 @@ function wkVictory(){
     if(!WK.on||!ARENA.on||(state!=='play'&&!(state==='levelup'&&WK.boss&&!WK.won)))return;
     if(!WK.boss){if(t>=WK.spawnT&&!wkSpawn())WK.spawnT=t+.2;return}
     var b=WK.boss;
-    if(!WK.p2&&!b.dead&&b.hp<=b.maxHp*.5){var d=wkBoss().p2;WK.p2=true;arenaFase(2);b.speed*=d.speed;b.dmg*=d.dmg;toast(b.name+' se desangra: fase 2')}
-    if(!WK.won&&(b.dead||b.hp<=0||bossAlive===null)){WK.won=true;wkVictory()}
+    if(!WK.won&&b.dead){if(!WK.deadT)WK.deadT=t;if(t>=WK.deadT+2.8){WK.won=true;wkVictory()}}
   };
   var s0=startRun;
   startRun=function(key,mi){
@@ -25153,10 +25638,10 @@ function wkVictory(){
     if(twMode!=='weekly')return;
     var h1=document.querySelector('#mapOv h1'),ld=document.querySelector('#mapOv .maphead .lead'),def=wkBoss();
     h1.textContent='Jefe semanal';
-    ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a '+def.name+' en su arena.';
+    ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a '+def.full+' en su arena.';
     $('mapGrid').innerHTML='<div class="mapc mbg6"><img class="ic" alt="" style="image-rendering:pixelated" src="iconos/modo_semanal.png">'+
       '<div class="mi"><span class="nm">'+def.name+'</span><span class="ef">Arena cerrada, sin enemigos normales: solo tú y el jefe.</span>'+
-      '<span class="ef">Fase 2 al 50 % de vida · cambia cada semana.</span></div>'+
+      '<span class="ef">Dos fases · cambia cada semana.</span></div>'+
       '<button class="btn" type="button" data-weekly="1">Jugar</button></div>';
   };
   $('mapGrid').addEventListener('click',function(e){if(e.target.closest('[data-weekly]')){WK.pending=true;startRun(mapChar,0)}});
