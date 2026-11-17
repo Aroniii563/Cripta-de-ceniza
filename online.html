@@ -816,8 +816,7 @@ var ETYPES={
 function addDmg(p,x){if(p.dmgB==null){p.dmgB=p.dmg;p.dmgA=0}var o=1+p.dmgA;p.dmgA+=x;p.dmg*=(1+p.dmgA)/o}
 /* Alcance máximo: Bárbaro 8, Jinete 4,5 */
 function reachCap(p){var m={barb:8,jinete:4.5}[p.c.key];return m?m/p.c.range:1e9}
-/* modo semanal: las mejoras de partida con tope dejan de tenerlo (no se aplica a armadura, crítico ni robo de vida) */
-function uc(n){return WK.on?n*1000:n}
+function uc(n){return n}
 var UPS=[
   {n:'Poder',ic:'icono_poder',c:'o',d:'+8% de daño',f:function(){addDmg(P,.08)}},
   {n:'Frenesí',ic:'icono_frenesi',c:'o',d:'+12% velocidad de ataque',ok:function(){return P.c.kind!=='spheres'||P.rate<uc(7.45)-1e-9},f:function(){P.rate+=(P.rate0||P.rate)*.12}},
@@ -26721,7 +26720,18 @@ function wkWeek(){return Math.floor((Date.now()-Date.UTC(2026,0,5))/604800000)}
 function wkBoss(){return WK_BOSSES[((wkWeek()%WK_BOSSES.length)+WK_BOSSES.length)%WK_BOSSES.length]}
 function wkDone(){try{return !!(meta.weekly&&meta.weekly[wkWeek()])}catch(e){return false}}
 function wkLeft(){var ms=Date.UTC(2026,0,5)+(wkWeek()+1)*604800000-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d+' d '+h+' h'}
+/* modo semanal: no hay enemigos que den experiencia, así que cada jugador empieza con todas las mejoras de partida con tope ya al máximo */
+var WK_SKIP={'Perforación':1,'Almas veloces':1,'Estallido ampliado':1};
+function wkMaxUps(p){
+  var sv=P;P=p;
+  try{UPS.forEach(function(u){
+    if(!u.ok||u.id||u.c==='s'||WK_SKIP[u.n])return;
+    if(u.n==='Frenesí'&&p.c.kind!=='spheres')return;
+    for(var i=0;i<60&&u.ok();i++)u.f()})}catch(e){}
+  P=sv;
+}
 function wkBegin(){
+  try{PL.forEach(wkMaxUps)}catch(e){}
   WK.boss=null;WK.p2=false;WK.won=false;WK.deadT=0;WK.spawnT=t+2.5;nextBoss=1e9;try{gobNext=1e9}catch(e){}
   arenaEntrar(1);
   try{$('hudClass').textContent=(coop?'J1 · ':'')+PL[0].c.name+' · Jefe semanal · '+wkBoss().name}catch(e){}
