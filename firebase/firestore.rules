@@ -132,8 +132,9 @@ service cloud.firestore {
           && request.resource.data.pts - resource.data.pts <= 2000
           && isMember(id))
         // ajustes del clan (solo el líder)
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['open', 'icon'])
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['open', 'icon', 'banner'])
           && request.resource.data.open is bool
+          && (!('banner' in request.resource.data) || (request.resource.data.banner is string && request.resource.data.banner.size() <= 24))
           && request.resource.data.icon is int && request.resource.data.icon >= 0 && request.resource.data.icon <= 15
           && isLeaderOf(id))
       );
