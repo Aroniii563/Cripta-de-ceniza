@@ -8251,8 +8251,8 @@ if(window.CRIPTA_WEB){(function(){
   })();
 })()}
 
-/* ---------- Clanes (solo en la versión web alojada) ---------- */
-if(window.CRIPTA_WEB){(function(){
+/* ---------- Clanes (versión web alojada; en /online también, con el clan local de pruebas) ---------- */
+if(window.CRIPTA_WEB||window.TEST_BUILD){(function(){
   var C=null,sec,view='mine',rk='week',busy=false,msg='',bad=false,D={},sk=0;
   var ICONS=['espadas','luna','corona','calavera','rosa','cuervo','ojo','serpiente','sol','llama','forja','zarpazo','ancla','libro','reloj','pluma'];
   function ic(i,px){return '<img src="clanes/clan_'+ICONS[(i|0)%ICONS.length]+'.png" alt="" width="'+px+'" height="'+px+'" style="image-rendering:pixelated;vertical-align:middle">'}
@@ -8631,7 +8631,7 @@ var LOCAL_CLAN=true;
   function sync(){try{if(C){C.clanId=(me()||{}).clan||null;C.tag=(myClan()||{}).tag||''}}catch(e){}}
   function put(k,v){try{Object.defineProperty(C,k,{value:v,writable:true,configurable:true,enumerable:true})}catch(e){try{C[k]=v}catch(e2){}}}
   function install(){
-    var c=window.CriptaCloud;if(!c)return false;
+    var c=window.CriptaCloud;if(!c)c=window.CriptaCloud={local:true};   /* /online no carga la nube: se crea un objeto vacío solo para los clanes */
     if(c===C&&installed)return true;
     C=c;load();
     Object.keys(API).forEach(function(k){put(k,API[k])});
@@ -8658,6 +8658,7 @@ var LOCAL_CLAN=true;
   }
   var sT=showTab;
   showTab=function(tab){if(tab==='clan'){install();bar()}return sT.apply(this,arguments)};
+  install();
   var n=0,iv=setInterval(function(){if(install()||++n>80)clearInterval(iv)},500);
   window.__localClan={reset:function(){S=seed();save();sync();if(window.__clanRefresh)window.__clanRefresh()},state:function(){return S}};
 })();
