@@ -8494,12 +8494,173 @@ if(window.CRIPTA_WEB){(function(){
     }).catch(function(){rwBusy=false});
   }
   window.__clanReward=claimReward;
+  window.__clanRefresh=function(){CA={};if(sec&&!sec.hidden)open()};
   /* al iniciar sesión: carga el clan para que tus marcas lleven la etiqueta */
   window.__clanInit=function(){
     var c=window.CriptaCloud;if(!c||!c.user)return;C=c;
     c.myMember().then(function(){syncTags();claimReward()}).catch(function(){});
   };
 })()}
+
+/* ==========================================================================
+   CLAN LOCAL DE PRUEBAS (solo /online)
+   Sustituye las funciones de clan de CriptaCloud por una versión simulada que vive únicamente en el
+   navegador (localStorage «cripta_localclan»). No lee ni escribe nada en el servidor, así que se puede
+   romper, reiniciar y probar sin tocar clanes reales. Para volver a los clanes reales: LOCAL_CLAN=false.
+   Trae un clan propio (Laboratorio [LAB], tú de líder, 6 miembros ficticios) y 3 clanes más para el ranking,
+   la búsqueda y las uniones. En la pestaña Clan aparece una barra «Pruebas» con atajos:
+   reiniciar, sumar puntos, añadir miembros, simular el cambio de semana y cobrar la recompensa.
+   API simulada: myMember, getClan, clanMembers, clanCode, topClans, clanByName, createClan, joinClan,
+   joinByCode, leaveClan, kick, setRole, transfer, setClan, contribute, lastWeekReward, updateRankTags,
+   weekId, CLAN_MAX, clanId, tag. Para probar cosas nuevas, añade el campo o la función aquí.
+   ========================================================================== */
+var LOCAL_CLAN=true;
+(function(){
+  if(!LOCAL_CLAN)return;
+  var KEY='cripta_localclan',MAX=30,S=null,installed=false;
+  function rw(){return Math.floor((Date.now()-Date.UTC(2026,0,5))/604800000)}
+  function seed(){
+    return {off:0,
+      clans:[
+        {id:'lab',name:'Laboratorio',tag:'LAB',icon:10,open:false,code:'LABTST',pts:69620,created:1},
+        {id:'cal',name:'Los Calcinados',tag:'CAL',icon:9,open:true,count:18,pts:90400,wk:2300,lw:1800,created:2},
+        {id:'srj',name:'Sombras Rojas',tag:'SRJ',icon:4,open:false,count:30,pts:41000,wk:900,lw:1200,created:3},
+        {id:'apr',name:'Aprendices',tag:'APR',icon:15,open:true,count:3,pts:1200,wk:0,lw:150,created:4}],
+      mem:[
+        {id:'ME',clan:'lab',nick:null,role:'l',pts:30000,wk:-1,wpts:0,lw:0},
+        {id:'f1',clan:'lab',nick:'Ceniza_77',role:'o',pts:20000,wk:-1,wpts:0,lw:350},
+        {id:'f2',clan:'lab',nick:'Cuervo',role:'m',pts:8400,wk:-1,wpts:0,lw:120},
+        {id:'f3',clan:'lab',nick:'Brasa',role:'m',pts:5200,wk:-1,wpts:0,lw:0},
+        {id:'f4',clan:'lab',nick:'Vigía',role:'m',pts:3100,wk:-1,wpts:0,lw:80},
+        {id:'f5',clan:'lab',nick:'Novato',role:'m',pts:640,wk:-1,wpts:0,lw:0}],
+      nf:6};
+  }
+  function load(){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}if(!S||!S.clans)S=seed()}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+  var C=null;
+  function week(){return rw()+S.off}
+  function uid(){return (C&&C.user&&C.user.uid)||'local'}
+  function nick(){return (C&&C.user&&(C.user.nick||C.user.displayName))||'Tú'}
+  function me(){for(var i=0;i<S.mem.length;i++)if(S.mem[i].id==='ME')return S.mem[i];return null}
+  function clanOf(id){for(var i=0;i<S.clans.length;i++)if(S.clans[i].id===id)return S.clans[i];return null}
+  function members(id){return S.mem.filter(function(m){return m.clan===id})}
+  function count(c){return c.count!=null?c.count:members(c.id).length}
+  function wsum(c){if(c.wk!=null&&!members(c.id).length)return c.wk;var w=week(),t=0;members(c.id).forEach(function(m){if(m.wk===w)t+=m.wpts||0});return t}
+  function pub(c){return {id:c.id,name:c.name,tag:c.tag,icon:c.icon|0,open:!!c.open,count:count(c),pts:c.pts|0}}
+  function ok(v){return Promise.resolve(v)}
+  function no(code){return Promise.reject({message:code})}
+  function pubM(m){return {id:m.id==='ME'?uid():m.id,nick:m.id==='ME'?nick():m.nick,role:m.role,pts:m.pts|0,wk:m.wk,wpts:m.wpts|0}}
+  function mid(u){return u===uid()?'ME':u}
+  function find(u){var k=mid(u);for(var i=0;i<S.mem.length;i++)if(S.mem[i].id===k)return S.mem[i];return null}
+  var NAME_OK=/^[A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ _.-]{3,20}$/,TAG_OK=/^[A-Z0-9]{2,4}$/;
+  function myClan(){var m=me();return m?clanOf(m.clan):null}
+  var API={
+    CLAN_MAX:MAX,
+    weekId:function(){return week()},
+    myMember:function(){var m=me();return ok(m?{clan:m.clan,role:m.role}:null)},
+    getClan:function(id){var c=clanOf(id);return ok(c?pub(c):null)},
+    clanMembers:function(id){return ok(members(id).map(pubM))},
+    clanCode:function(id){var c=clanOf(id),m=me();return ok(c&&m&&m.clan===id&&(m.role==='l'||m.role==='o')?c.code:null)},
+    topClans:function(weekly,lim){
+      var r=S.clans.map(function(c){var o=pub(c);if(weekly)o.pts=wsum(c);return o});
+      if(weekly)r=r.filter(function(o){return o.pts>0});
+      r.sort(function(a,b){return b.pts-a.pts});return ok(r.slice(0,lim||30));
+    },
+    clanByName:function(n){n=String(n).toLowerCase();var c=S.clans.filter(function(x){return x.name.toLowerCase()===n})[0];return ok(c?pub(c):null)},
+    createClan:function(f){
+      if(me())return no('already-in');
+      if(!NAME_OK.test(f.name))return no('name-invalid');if(!TAG_OK.test(f.tag))return no('tag-invalid');
+      if(S.clans.some(function(c){return c.name.toLowerCase()===f.name.toLowerCase()}))return no('name-taken');
+      var id='c'+Date.now().toString(36);
+      S.clans.push({id:id,name:f.name,tag:f.tag,icon:f.icon|0,open:!!f.open,code:Math.random().toString(36).slice(2,8).toUpperCase(),pts:0,created:Date.now()});
+      S.mem.push({id:'ME',clan:id,nick:null,role:'l',pts:0,wk:-1,wpts:0,lw:0});save();sync();return ok(true);
+    },
+    joinClan:function(id){
+      if(me())return no('already-in');var c=clanOf(id);if(!c)return no('no-clan');
+      if(!c.open)return no('closed');if(count(c)>=MAX)return no('full');
+      return join(c);
+    },
+    joinByCode:function(code){
+      if(me())return no('already-in');code=String(code).trim().toUpperCase();
+      var c=S.clans.filter(function(x){return x.code===code})[0];if(!c)return no('code-invalid');
+      if(count(c)>=MAX)return no('full');return join(c);
+    },
+    leaveClan:function(){
+      var m=me();if(!m)return no('no-clan');
+      if(m.role==='l'&&members(m.clan).length>1)return no('leader-first');
+      S.mem=S.mem.filter(function(x){return x!==m});
+      if(!members(m.clan).length&&clanOf(m.clan)&&clanOf(m.clan).count==null)S.clans=S.clans.filter(function(c){return c.id!==m.clan});
+      save();sync();return ok(true);
+    },
+    kick:function(u){
+      var m=me(),t=find(u);if(!m||!t||t.clan!==m.clan||t===m)return no('forbidden');
+      if(m.role==='m'||(m.role==='o'&&t.role!=='m'))return no('forbidden');
+      S.mem=S.mem.filter(function(x){return x!==t});save();return ok(true);
+    },
+    setRole:function(u,r){
+      var m=me(),t=find(u);if(!m||m.role!=='l'||!t||t.clan!==m.clan||t===m)return no('forbidden');
+      t.role=r;save();return ok(true);
+    },
+    transfer:function(u){
+      var m=me(),t=find(u);if(!m||m.role!=='l'||!t||t.clan!==m.clan||t===m)return no('forbidden');
+      t.role='l';m.role='o';save();return ok(true);
+    },
+    setClan:function(id,o){
+      var m=me(),c=clanOf(id);if(!m||!c||m.role!=='l'||m.clan!==id)return no('forbidden');
+      c.open=!!o.open;c.icon=o.icon|0;save();return ok(true);
+    },
+    contribute:function(p){
+      var m=me(),c=myClan();if(!m||!c)return ok(false);
+      p=Math.max(0,p|0);var w=week();if(m.wk!==w){m.wk=w;m.wpts=0}
+      m.pts+=p;m.wpts+=p;c.pts+=p;save();return ok(true);
+    },
+    lastWeekReward:function(min){
+      var m=me(),c=myClan();if(!m||!c)return ok({pos:0,gold:0});
+      var mine=members(c.id).reduce(function(a,x){return a+(x.lw||0)},0);
+      if((m.lw||0)<min)return ok({pos:0,gold:0});
+      var arr=S.clans.map(function(x){return x.id===c.id?mine:(x.lw||0)}).sort(function(a,b){return b-a});
+      var pos=arr.indexOf(mine)+1,gold=pos===1?50000:pos<=10?25000:pos<=50?12500:5000;
+      return ok({pos:pos,gold:gold});
+    },
+    updateRankTags:function(){return ok(true)}
+  };
+  function join(c){
+    S.mem.push({id:'ME',clan:c.id,nick:null,role:'m',pts:0,wk:-1,wpts:0,lw:0});
+    if(c.count!=null){c.count++}save();sync();return ok(true);
+  }
+  function sync(){try{if(C){C.clanId=(me()||{}).clan||null;C.tag=(myClan()||{}).tag||''}}catch(e){}}
+  function put(k,v){try{Object.defineProperty(C,k,{value:v,writable:true,configurable:true,enumerable:true})}catch(e){try{C[k]=v}catch(e2){}}}
+  function install(){
+    var c=window.CriptaCloud;if(!c)return false;
+    if(c===C&&installed)return true;
+    C=c;load();
+    Object.keys(API).forEach(function(k){put(k,API[k])});
+    try{if(!C.user)put('user',{uid:'local',displayName:'Jugador local',local:true})}catch(e){}
+    sync();installed=true;return true;
+  }
+  /* barra de pruebas en la pestaña Clan */
+  function bar(){
+    var sec=document.getElementById('pClan');if(!sec||document.getElementById('clLab'))return;
+    var d=document.createElement('div');d.id='clLab';
+    d.style.cssText='border:1px dashed #d3a94a;padding:8px 10px;margin:0 0 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px';
+    d.innerHTML='<b style="color:#d3a94a">PRUEBAS · clan local</b><span style="color:var(--muted)">solo existe en este navegador, no toca el servidor</span>'+
+      [['pts','+1.000 puntos míos'],['mem','Añadir miembro falso'],['week','Nueva semana'],['pay','Cobrar recompensa'],['reset','Reiniciar clan local']].map(function(a){return '<button class="btn alt sm" type="button" data-lab="'+a[0]+'">'+a[1]+'</button>'}).join('');
+    var body=document.getElementById('clBody');body.parentNode.insertBefore(d,body);
+    d.addEventListener('click',function(e){
+      var t=e.target.closest('[data-lab]');if(!t||!install())return;var a=t.getAttribute('data-lab'),m=me(),c=myClan();
+      if(a==='reset'){if(!window.confirm('¿Reiniciar el clan local a su estado inicial?'))return;S=seed();save();sync();try{meta.clanRw=0;saveMeta()}catch(x){}}
+      else if(a==='pts'&&m)API.contribute(1000);
+      else if(a==='mem'&&c){if(members(c.id).length>=MAX)return;S.nf++;S.mem.push({id:'f'+S.nf+'x'+Date.now().toString(36),clan:c.id,nick:'Probador_'+S.nf,role:'m',pts:Math.floor(Math.random()*4000),wk:week(),wpts:Math.floor(Math.random()*300),lw:Math.floor(Math.random()*200)});c.pts+=0;save()}
+      else if(a==='week'){S.mem.forEach(function(x){x.lw=x.wk===week()?(x.wpts|0):0});S.clans.forEach(function(x){if(x.wk!=null&&!members(x.id).length)x.lw=x.wk});S.off++;save();try{meta.clanRw=week()-2;saveMeta()}catch(x){}}
+      else if(a==='pay'){try{meta.clanRw=week()-2;saveMeta()}catch(x){}if(window.__clanReward)window.__clanReward()}
+      if(window.__clanRefresh)window.__clanRefresh();
+    });
+  }
+  var sT=showTab;
+  showTab=function(tab){if(tab==='clan'){install();bar()}return sT.apply(this,arguments)};
+  var n=0,iv=setInterval(function(){if(install()||++n>80)clearInterval(iv)},500);
+  window.__localClan={reset:function(){S=seed();save();sync();if(window.__clanRefresh)window.__clanRefresh()},state:function(){return S}};
+})();
 
 /* ==========================================================================
    MAPA 7 · CENIZA BLANCA (mapa del modo nuevo)
