@@ -1450,9 +1450,9 @@ function endRun(why){
   meta.last={cls:P.key,map:curMap,kills:kills,time:tc(),gold:g,level:lvl,why:why};
   meta.run=null;
   var b=loadBest(),o=b[P.key],newBest=false;
-  if(!coop&&!TW.on){newBest=!o||tc()>o.time;if(newBest&&tc()>=5){b[P.key]={time:tc(),level:lvl,kills:kills};saveBest(b)}else newBest=false}
+  if(!coop&&!TW.on&&!WK.on){newBest=!o||tc()>o.time;if(newBest&&tc()>=5){b[P.key]={time:tc(),level:lvl,kills:kills};saveBest(b)}else newBest=false}
   saveMeta();
-  postRank(lvl);
+  if(!WK.on)postRank(lvl);
   return {g:g,newBest:newBest};
 }
 /* Copia de seguridad de la partida en curso: si se cierra la pestaña sin salir, se cuenta al volver. */
@@ -1478,7 +1478,7 @@ var t=0,kills=0,spawnT=1,cam={x:N/2,y:N/2},lastKey='sorc';
 /* Tiempo que cuenta para el reloj, el oro, las marcas y el ranking: sin modo infinito se detiene en el minuto 20 (cuando aparece el jefe final). */
 function tc(){return(RUNINF||(typeof TW!=='undefined'&&TW.on))?t:Math.min(t,1200)}
 var specialMode=false,bossN=0,nextBoss=300,bossAlive=null,boomDepth=0,toastT=null;
-var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
+var WK={on:false,pending:false,boss:null,p2:false,spawnT:0,won:false};var TW={on:false,bi:0,cur:-1,te:300,tn:30,nextT:5,map:0};function tE(){return TW.on?TW.tn:t}function tB(){return TW.on?TW.te:t}var TW_HPK=.5;function tK(){return TW.on?TW_HPK:1}
 var RUNHARD=false,RUNINF=false,RUNMUT=false,MUT={id:null,spawn:1,hp:1,xp:1,rep:false,slip:false,inv:false,dir:1,sx:0,sy:0},NEXTOPT=null,MAPOPT={},HM=1,HARDP=[.5,.38,.25,.18,.10,.075,.075];
 var won=false,curMap=0,mapChar='sorc',capScale=1,fpsAvg=.016,bossKills=0,fromSoul=false,snapT=10;
 var keys={},mouse={x:0,y:0,down:false},touchMode=false;
@@ -2537,7 +2537,7 @@ function hud(){
     setTxt('xp2Txt','Nivel '+q2.level);
   }
   if(statsOpen){var sh=statRows().replace(/<div class="r">(?:(?!<\/div>)[\s\S])*?(?:rayos|bolts|raios|éclairs|молни|雷)(?:(?!<\/div>)[\s\S])*?<\/div>/gi,'');if(sh!==stHtml){stHtml=sh;$('statBody').innerHTML=sh}}
-  setTxt('killTxt',kills+(kills===1?' baja':' bajas')+(TW.on?' · jefe '+Math.min(24,TW.cur+1+(bossAlive?0:1))+'/24':(bossAlive?'':' · jefe en '+fmt(Math.max(0,nextBoss-t)))));
+  setTxt('killTxt',kills+(kills===1?' baja':' bajas')+(WK.on?' · jefe semanal':TW.on?' · jefe '+Math.min(24,TW.cur+1+(bossAlive?0:1))+'/24':(bossAlive?'':' · jefe en '+fmt(Math.max(0,nextBoss-t)))));
   var bb=$('bossBar');
   if(bossAlive&&!bossAlive.dead){
     if(bb.hidden)bb.hidden=false;
@@ -2600,7 +2600,7 @@ $('pauseBtn').addEventListener('click',function(){this.blur();if(state==='play')
 $('quitBtn').addEventListener('click',function(){endRun('abandono');showMenu('play')});
 /* al cerrar o recargar la página con una partida en marcha, también cuenta */
 window.addEventListener('pagehide',function(){if(P&&!P.awarded&&state!=='menu')endRun('cierre')});
-$('againBtn').addEventListener('click',function(){startRun(lastKey,TW.on?CEN_MAP:curMap)});
+$('againBtn').addEventListener('click',function(){if(WK.on)WK.pending=true;startRun(lastKey,TW.on?CEN_MAP:curMap)});
 $('menuBtn').addEventListener('click',function(){showMenu('play')});
 
 /* ---------- Skins de los personajes (sprites incrustados; w y h en píxeles a escala 1) ---------- */
@@ -21385,7 +21385,9 @@ try{
   function bi(u, s, w) { return 'border:' + w + 'px solid transparent!important;border-image:url("' + u + '") ' + s + ' fill / ' + w + 'px / 0 stretch!important;image-rendering:pixelated'; }
   var css = [
     '#modeBar.mcg{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px!important;max-width:1060px;margin:10px auto 6px!important;align-items:stretch}',
-    '@media (max-width:760px){#modeBar.mcg{grid-template-columns:minmax(0,1fr);gap:14px!important}}',
+    '#modeBar.mcg:has(#wkOpen){grid-template-columns:repeat(6,minmax(0,1fr));max-width:1560px}#modeBar.mcg:has(#wkOpen)>.mdcard[data-md]{grid-column:span 2}#modeBar.mcg:has(#wkOpen)>#onCoop,#modeBar.mcg:has(#wkOpen)>#dailyOpen{grid-column:span 3}#modeBar.mcg:has(#wkOpen)>#calOpen{grid-column:1/-1}#wkOpen.mc{--ac:190,70,110}',
+    '@media (max-width:1100px){#modeBar.mcg:has(#wkOpen){grid-template-columns:repeat(2,minmax(0,1fr))}#modeBar.mcg:has(#wkOpen)>.mdcard[data-md]{grid-column:auto}#modeBar.mcg:has(#wkOpen)>#onCoop,#modeBar.mcg:has(#wkOpen)>#dailyOpen{grid-column:auto}}',
+    '@media (max-width:760px){#modeBar.mcg{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}}',
     '.mdcard.mc img.px{image-rendering:pixelated;width:20px!important;height:20px!important;aspect-ratio:1!important;border:0!important;object-fit:contain;max-width:none}',
     '.mdcard.mc .mc-lock img.px,.mdcard.mc .mc-ico img.px{width:36px!important;height:36px!important}',
     '.mdcard.mc{--ac:201,168,90;position:relative;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:0!important;width:auto!important;min-width:0!important;min-height:0!important;padding:4px!important;' +
@@ -21454,7 +21456,8 @@ try{
 
   var INFO = {
     classic: {k: 'Modo principal', ch: ['5 mapas', 'Jefe cada 5 min', 'Hasta el minuto 20'], cta: 'Elegir personaje'},
-    tower: {k: 'Desafío', ch: ['24 jefes seguidos', 'Mejora especial desde el inicio'], cta: 'Subir a la torre'}
+    tower: {k: 'Desafío', ch: ['24 jefes seguidos', 'Mejora especial desde el inicio'], cta: 'Subir a la torre'},
+    weekly: {k: 'Cada semana', ch: ['Arena cerrada', 'Fase 2 sangrienta'], cta: 'Enfrentar al jefe'}
   };
   function txt(el) { return el ? el.textContent : ''; }
   function faltan() {
@@ -24877,6 +24880,286 @@ var ATKSTY = {
     meta.atkSkins = meta.atkSkins || []; if (meta.atkSkins.indexOf(id) < 0) meta.atkSkins.push(id);
     meta.atkSel = meta.atkSel || {}; meta.atkSel[f.cls] = id; saveMeta(); return 'Equipado «' + f.o.name + '» en ' + f.cls;
   };
+})();
+
+/* ==========================================================================
+   ARENA DE VHALEK (jefe semanal)
+   Bloque autónomo: pégalo justo ANTES de el comentario «Música y volumen»
+   (tiene que ir después del bloque «El Archivo», porque se engancha encima de él).
+   - Zona cerrada de 24x24 casillas: baldosas blancas, negras y grises en damero, con musgo,
+     hierba y losas rotas cerca de los muros y de las columnas; ocho columnas oscuras envueltas
+     en enredaderas alrededor del centro; muros de piedra con grietas, musgo y plantas, y huecos
+     en los muros del fondo por los que entran haces de luz.
+   - Fase 2: el mismo sitio con el suelo lleno de sangre traslúcida (se siguen viendo las
+     baldosas, teñidas de rojo oscuro), la luz que entra se vuelve roja y el ambiente se tiñe.
+   Archivos: carpeta arena/ (suelo, sangre, muros, columnas y decoraciones).
+   Uso desde el modo de jefe semanal:
+     arenaEntrar(fase)  → guarda la partida actual y te mete en la arena (fase 1 o 2)
+     arenaFase(2)       → cambia a la fase 2 (fogonazo rojo y suelo con sangre)
+     arenaSalir()       → vuelve al mapa normal, al mismo sitio
+     ARENA.sinEnemigos  → true: dentro no salen enemigos normales (por defecto)
+   Prueba en consola: arenaPrueba(1) o arenaPrueba(2) (empieza partida si hace falta).
+   ========================================================================== */
+var ARENA_SRC = {tw: 128, th: 64, limpias: 6, invadidas: 6, sangre: 6, n: 24,
+  props: {"muro0":{"w":132,"h":186,"fx":66.0,"fy":152},"muro1":{"w":132,"h":186,"fx":66.0,"fy":152},"muro2":{"w":132,"h":186,"fx":66.0,"fy":152},"muroLuzX":{"w":132,"h":186,"fx":66.0,"fy":152,"luz":[100.8,112.9]},"muroLuzY":{"w":132,"h":186,"fx":66.0,"fy":152,"luz":[37.2,118.5]},"columna0":{"w":150,"h":300,"fx":75.0,"fy":268},"columna1":{"w":150,"h":300,"fx":75.0,"fy":268},"columna2":{"w":150,"h":300,"fx":75.0,"fy":268},"deco0":{"w":72,"h":64,"fx":36,"fy":44},"deco1":{"w":72,"h":64,"fx":36,"fy":44},"deco2":{"w":72,"h":64,"fx":36,"fy":44},"deco3":{"w":72,"h":64,"fx":36,"fy":44},"deco4":{"w":72,"h":64,"fx":36,"fy":44},"deco5":{"w":72,"h":64,"fx":36,"fy":44}}};
+var ARENA = {img: {}, n: 0, ready: false, on: false, fase: 1, saved: null, cache: {}, order: [], type: null, over: null, luces: [], flash: 0, flashCol: '#ffffff', sinEnemigos: true};
+(function () {
+  var files = {suelo: 'arena/suelo.png', sangre: 'arena/sangre.png'};
+  Object.keys(ARENA_SRC.props).forEach(function (k) { files[k] = 'arena/' + k + '.png'; });
+  var ks = Object.keys(files);
+  ks.forEach(function (k) { var im = new Image(); im.onload = function () { ARENA.img[k] = im; ARENA.n++; if (ARENA.n === ks.length) ARENA.ready = true; }; im.src = files[k]; });
+})();
+
+/* ---------- generación ---------- */
+function arenaGen() {
+  var n = N, x, y, i, c = n / 2, k;
+  map = new Uint8Array(n * n); vari = new Uint8Array(n * n);
+  ARENA.type = new Int8Array(n * n).fill(-1); ARENA.over = new Uint8Array(n * n); ARENA.luces = []; ARENA.cache = {}; ARENA.order = [];
+  for (y = 0; y < n; y++) for (x = 0; x < n; x++) { i = y * n + x; vari[i] = Math.floor(Math.random() * 4); if (x === 0 || y === 0 || x === n - 1 || y === n - 1) map[i] = 1; }
+  /* ocho columnas en anillo alrededor del centro (dos rotas), dejan sitio para pelear */
+  for (k = 0; k < 8; k++) {
+    var a = k * Math.PI / 4 + Math.PI / 8, cx = Math.floor(c + Math.cos(a) * 7), cy = Math.floor(c + Math.sin(a) * 7);
+    i = cy * n + cx; map[i] = 1; ARENA.type[i] = (k === 2 || k === 6) ? 2 : (k % 3 === 0 ? 1 : 0);
+  }
+  /* huecos de luz en los muros del fondo (los que se ven desde dentro) */
+  for (k = 3; k < n - 3; k += 5) {
+    ARENA.type[k * n + 0] = 10; ARENA.luces.push({x: 1, y: k + .5, dx: 1, dy: 0});
+    ARENA.type[0 * n + k + 2] = 11; ARENA.luces.push({x: k + 2.5, y: 1, dx: 0, dy: 1});
+  }
+  /* musgo y hierba: más cerca de los muros y de las columnas */
+  for (y = 1; y < n - 1; y++) for (x = 1; x < n - 1; x++) {
+    i = y * n + x; var dW = Math.min(x, y, n - 1 - x, n - 1 - y), dC = 99;
+    for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) { var j = (y + yy) * n + x + xx; if (ARENA.type[j] >= 0 && ARENA.type[j] < 3) dC = 1; }
+    var p = dW <= 1 ? .7 : dW <= 3 ? .38 : dC === 1 ? .55 : .1;
+    if (cHash(i, 701) < p) ARENA.over[i] = 1;
+  }
+}
+function arenaProp(x, y) {
+  var i = y * N + x, h = cHash(i, 711), t = ARENA.type ? ARENA.type[i] : -1;
+  if (t === 10) return 'muroLuzX';
+  if (t === 11) return 'muroLuzY';
+  if (x === 0 || y === 0 || x === N - 1 || y === N - 1) return 'muro' + (h < .5 ? 0 : h < .8 ? 1 : 2);
+  return 'columna' + Math.max(0, t);
+}
+function arenaDrawProp(x, y) {
+  var k = arenaProp(x, y), d = ARENA_SRC.props[k], im = ARENA.img[k]; if (!d || !im) return false;
+  var c = sp(x + .5, y + .5); ctx.drawImage(im, Math.round(c.x - d.fx / 2), Math.round(c.y - d.fy / 2), d.w / 2, d.h / 2); return true;
+}
+/* ---------- suelo (por trozos, como el resto de mapas) ---------- */
+function arenaChunk(cx, cy) {
+  var key = cx + ',' + cy + ',' + ARENA.fase, c = ARENA.cache[key]; if (c) return c;
+  var x0 = cx * CHUNK, y0 = cy * CHUNK, x1 = Math.min(N, x0 + CHUNK), y1 = Math.min(N, y0 + CHUNK), pad = 16, S = 2, A = ARENA_SRC;
+  var minX = sp(x0, y1).x - pad, maxX = sp(x1, y0).x + pad, minY = sp(x0, y0).y - pad, maxY = sp(x1, y1).y + pad;
+  var cv2 = document.createElement('canvas'); cv2.width = Math.ceil((maxX - minX) * S); cv2.height = Math.ceil((maxY - minY) * S);
+  var g = cv2.getContext('2d'); g.imageSmoothingEnabled = false; g.setTransform(S, 0, 0, S, -minX * S, -minY * S);
+  var x, y, i;
+  for (y = y0; y < y1; y++) for (x = x0; x < x1; x++) {
+    i = y * N + x; var q = sp(x, y), f = ARENA.over[i] ? A.limpias + Math.floor(cHash(i, 713) * A.invadidas) : Math.floor(cHash(i, 712) * A.limpias);
+    g.drawImage(ARENA.img.suelo, f * A.tw, 0, A.tw, A.th, q.x - 32, q.y, 64, 32);
+    if (ARENA.fase === 2) { var b = Math.floor(cHash(i, 714) * A.sangre); g.drawImage(ARENA.img.sangre, b * A.tw, 0, A.tw, A.th, q.x - 32, q.y, 64, 32); }
+  }
+  for (y = y0; y < y1; y++) for (x = x0; x < x1; x++) {
+    i = y * N + x; if (map[i] === 1) continue;
+    var r = cHash(i, 715), pr = ARENA.over[i] ? .3 : .04;
+    if (r < pr && Math.hypot(x + .5 - N / 2, y + .5 - N / 2) > 2) {
+      var dk = 'deco' + Math.floor(cHash(i, 716) * 6), dd = A.props[dk], cc = sp(x + .3 + cHash(i, 717) * .4, y + .3 + cHash(i, 718) * .4);
+      g.drawImage(ARENA.img[dk], Math.round(cc.x - dd.fx / 2), Math.round(cc.y - dd.fy / 2), dd.w / 2, dd.h / 2);
+    }
+  }
+  c = {cv: cv2, x: minX, y: minY, w: maxX - minX, h: maxY - minY}; ARENA.cache[key] = c; ARENA.order.unshift(key);
+  while (ARENA.order.length > 24) delete ARENA.cache[ARENA.order.pop()];
+  return c;
+}
+function arenaFloor(x0, x1, y0, y1, vl, vr, vt, vb) {
+  for (var cy = Math.floor(y0 / CHUNK); cy <= Math.floor(y1 / CHUNK); cy++) for (var cx = Math.floor(x0 / CHUNK); cx <= Math.floor(x1 / CHUNK); cx++) {
+    var ax = cx * CHUNK, ay = cy * CHUNK, bx = Math.min(N, ax + CHUNK), by = Math.min(N, ay + CHUNK);
+    if (sp(bx, ay).x < vl || sp(ax, by).x > vr || sp(bx, by).y < vt || sp(ax, ay).y > vb) continue;
+    var c = arenaChunk(cx, cy); ctx.drawImage(c.cv, c.x, c.y, c.w, c.h);
+  }
+}
+/* ---------- ambiente: polen y polvo, penumbra, haces de luz por los huecos ---------- */
+var arenaCv = null, arenaG = null;
+function arenaAtmos() {
+  var cs = sp(cam.x, cam.y), pp = P ? sp(P.x, P.y) : cs, k, f2 = ARENA.fase === 2;
+  function scr(wx, wy, lift) { var p = sp(wx, wy); return {x: (p.x - cs.x) * Z + W / 2, y: (p.y - (lift || 0) - cs.y) * Z + H / 2}; }
+  ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (k = 0; k < 60; k++) {   /* motas que flotan (polen en la fase 1, ceniza roja en la fase 2) */
+    var cellW = W * 1.3, cellH = H * 1.3, bx = cHash(k, 721) * cellW, by = cHash(k, 722) * cellH;
+    var sx = ((bx - cs.x * Z * .9 + Math.sin(t * .3 + k) * 26) % cellW + cellW) % cellW - W * .15;
+    var sy = ((by - cs.y * Z * .9 + Math.cos(t * .22 + k * 1.7) * 18 + (f2 ? t * 6 : -t * 3)) % cellH + cellH) % cellH - H * .15;
+    var tw = .35 + .65 * Math.max(0, Math.sin(t * (.7 + cHash(k, 723)) + k));
+    ctx.globalAlpha = .45 * tw; ctx.fillStyle = f2 ? (k % 3 ? '#c03030' : '#ff8a70') : (k % 4 ? '#e8e4c8' : '#c8f0a0');
+    var s = k % 6 === 0 ? 2 : 1; ctx.fillRect(Math.round(sx), Math.round(sy), s, s);
+  }
+  ctx.globalAlpha = 1;
+  var q = 4, cw = Math.ceil(W / q), ch = Math.ceil(H / q);
+  if (!arenaCv) { arenaCv = document.createElement('canvas'); arenaG = arenaCv.getContext('2d'); }
+  if (arenaCv.width !== cw || arenaCv.height !== ch) { arenaCv.width = cw; arenaCv.height = ch; }
+  var g = arenaG; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cw, ch);
+  g.fillStyle = f2 ? 'rgba(40,0,4,.26)' : 'rgba(6,10,8,.2)'; g.fillRect(0, 0, cw, ch);
+  var dx = ((pp.x - cs.x) * Z + W / 2) / q, dy = ((pp.y - 16 - cs.y) * Z + H / 2) / q, R = Math.max(cw, ch);
+  var dg = g.createRadialGradient(dx, dy, R * .22, dx, dy, R * .75);
+  dg.addColorStop(0, 'rgba(2,2,4,0)'); dg.addColorStop(.6, f2 ? 'rgba(14,0,2,.45)' : 'rgba(3,4,6,.42)'); dg.addColorStop(1, f2 ? 'rgba(8,0,0,.85)' : 'rgba(2,2,4,.82)');
+  g.fillStyle = dg; g.fillRect(0, 0, cw, ch);
+  g.globalCompositeOperation = 'lighter';
+  ARENA.luces.forEach(function (L, b) {   /* haz que entra por el hueco y baja en diagonal hasta el suelo */
+    var A0 = scr(L.x, L.y, 26), A1 = scr(L.x + L.dx * 4.6, L.y + L.dy * 4.6, 0), wd = 24 * Z / q;
+    var br = .26 + .07 * Math.sin(t * .8 + b * 1.7), col = f2 ? '255,70,60' : '255,240,190';
+    var gr = g.createLinearGradient(A0.x / q, A0.y / q, A1.x / q, A1.y / q);
+    gr.addColorStop(0, 'rgba(' + col + ',' + br + ')'); gr.addColorStop(1, 'rgba(' + col + ',0)');
+    g.fillStyle = gr; g.beginPath();
+    g.moveTo(A0.x / q - wd * .25, A0.y / q - wd * .2); g.lineTo(A0.x / q + wd * .25, A0.y / q + wd * .2);
+    g.lineTo(A1.x / q + wd, A1.y / q); g.lineTo(A1.x / q - wd, A1.y / q); g.closePath(); g.fill();
+    var pc = scr(L.x + L.dx * 3.4, L.y + L.dy * 3.4, 0), pr = 30 * Z / q;   /* charco de luz en el suelo */
+    var pg = g.createRadialGradient(pc.x / q, pc.y / q, 0, pc.x / q, pc.y / q, pr);
+    pg.addColorStop(0, 'rgba(' + col + ',' + (br * .9) + ')'); pg.addColorStop(1, 'rgba(' + col + ',0)');
+    g.fillStyle = pg; g.save(); g.translate(pc.x / q, pc.y / q); g.scale(1, .5); g.translate(-pc.x / q, -pc.y / q); g.fillRect(pc.x / q - pr, pc.y / q - pr, pr * 2, pr * 2); g.restore();
+  });
+  g.globalCompositeOperation = 'source-over';
+  ctx.imageSmoothingEnabled = true; ctx.drawImage(arenaCv, 0, 0, W, H); ctx.imageSmoothingEnabled = false;
+  if (ARENA.flash > 0) { ctx.globalAlpha = Math.min(1, ARENA.flash) * .8; ctx.fillStyle = ARENA.flashCol; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+  ctx.restore();
+}
+
+/* ---------- entrar, cambiar de fase y salir ---------- */
+function arenaEntrar(fase) {
+  if (ARENA.on) { arenaFase(fase || 1); return; }
+  ARENA.saved = {map: map, vari: vari, N: N, enemies: enemies, orbs: orbs, haz: haz, corpses: corpses, zones: zones,
+    carpet: typeof carpet !== 'undefined' ? carpet : null, sw: typeof swampWater !== 'undefined' ? swampWater : null,
+    lava: typeof forgeLava !== 'undefined' ? forgeLava : null, sc: typeof sanctCarpet !== 'undefined' ? sanctCarpet : null,
+    px: P ? P.x : N / 2, py: P ? P.y : N / 2};
+  N = ARENA_SRC.n; arenaGen();
+  var z0 = new Uint8Array(N * N);
+  if (typeof carpet !== 'undefined' && carpet) carpet = z0; if (typeof swampWater !== 'undefined' && swampWater) swampWater = z0;
+  if (typeof forgeLava !== 'undefined' && forgeLava) forgeLava = z0; if (typeof sanctCarpet !== 'undefined' && sanctCarpet) sanctCarpet = z0;
+  enemies = []; shots = []; orbs = []; haz = []; corpses = []; zones = []; sfx = [];
+  PL.forEach(function (q, k) { q.x = N / 2 + .5 + (k ? 1 : 0); q.y = N / 2 + 4.5; q.inv = Math.max(q.inv || 0, 1.5); });
+  cam.x = P.x; cam.y = P.y; fcellA = [-1, -1, -1, -1];
+  ARENA.on = true; ARENA.fase = fase === 2 ? 2 : 1; ARENA.flash = 1; ARENA.flashCol = ARENA.fase === 2 ? '#8a0008' : '#ffffff';
+}
+function arenaFase(n) {
+  n = n === 2 ? 2 : 1; if (!ARENA.on || ARENA.fase === n) return;
+  ARENA.fase = n; ARENA.flash = 1.2; ARENA.flashCol = n === 2 ? '#8a0008' : '#ffffff';
+}
+function arenaSalir() {
+  var s = ARENA.saved; if (!s) { ARENA.on = false; return; }
+  N = s.N; map = s.map; vari = s.vari; enemies = s.enemies; orbs = s.orbs; haz = s.haz; corpses = s.corpses; zones = s.zones; shots = []; sfx = [];
+  if (s.carpet !== null && typeof carpet !== 'undefined') carpet = s.carpet; if (s.sw !== null && typeof swampWater !== 'undefined') swampWater = s.sw;
+  if (s.lava !== null && typeof forgeLava !== 'undefined') forgeLava = s.lava; if (s.sc !== null && typeof sanctCarpet !== 'undefined') sanctCarpet = s.sc;
+  PL.forEach(function (q, k) { q.x = s.px + (k ? .8 : 0); q.y = s.py; q.inv = Math.max(q.inv || 0, 1.5); });
+  cam.x = P.x; cam.y = P.y; fcellA = [-1, -1, -1, -1];
+  ARENA.on = false; ARENA.saved = null; ARENA.flash = 0;
+}
+function arenaReset() { if (ARENA.on && ARENA.saved) { N = ARENA.saved.N; map = ARENA.saved.map; vari = ARENA.saved.vari; } ARENA.on = false; ARENA.saved = null; ARENA.fase = 1; ARENA.flash = 0; }
+function arenaPrueba(fase) {
+  if (state !== 'play') { try { startRun(typeof lastKey !== 'undefined' && lastKey ? lastKey : 'sorc', 0); } catch (e) {} }
+  setTimeout(function () { arenaEntrar(fase || 1); }, 60);
+}
+
+/* ---------- enganches (encima de los de El Archivo) ---------- */
+(function () {
+  var a1 = cryptOn; cryptOn = function () { return !ARENA.on && a1(); };
+  var a2 = abyssOn; abyssOn = function () { return !ARENA.on && a2(); };
+  var a3 = swampOn; swampOn = function () { return !ARENA.on && a3(); };
+  var a4 = forgeOn; forgeOn = function () { return !ARENA.on && a4(); };
+  var a5 = sanctOn; sanctOn = function () { return ARENA.on ? ARENA.ready : a5(); };
+  var a6 = drawSanctFloor; drawSanctFloor = function (x0, x1, y0, y1, vl, vr, vt, vb) { if (ARENA.on) return arenaFloor(x0, x1, y0, y1, vl, vr, vt, vb); return a6(x0, x1, y0, y1, vl, vr, vt, vb); };
+  var a7 = drawSanctProp; drawSanctProp = function (x, y) { if (ARENA.on) return arenaDrawProp(x, y); return a7(x, y); };
+  var a8 = drawSanctAtmos; drawSanctAtmos = function () { if (ARENA.on) return arenaAtmos(); return a8(); };
+  var a9 = update; update = function (dt) { a9(dt); if (ARENA.flash > 0) ARENA.flash = Math.max(0, ARENA.flash - dt * 1.4); };
+  var a10 = spawnEnemy; spawnEnemy = function () { if (ARENA.on && ARENA.sinEnemigos) return; return a10.apply(this, arguments); };
+  var a11 = startRun; startRun = function (key, mi) { arenaReset(); return a11(key, mi); };
+  var a12 = showMenu; showMenu = function (tab) { arenaReset(); return a12(tab); };
+})();
+window.arenaPrueba = arenaPrueba; window.arenaEntrar = arenaEntrar; window.arenaFase = arenaFase; window.arenaSalir = arenaSalir;
+
+
+/* ==========================================================================
+   MODO «JEFE SEMANAL»
+   Tarjeta a la derecha de «Torre de ceniza». Elige personaje -> «Jugar» -> arena cerrada con el jefe de la semana.
+   WK_BOSSES: lista de jefes semanales; rota uno por semana (lunes 00:00 UTC). De momento solo Vhalek
+   (usa el cuerpo del Arrastrado hasta que tenga sus propios sprites).
+   Fase 2 al 50 % de vida: arenaFase(2), el jefe se acelera y pega más fuerte.
+   No cuenta para récords, ranking online ni desbloqueos de mapas.
+   ========================================================================== */
+var WK_BOSSES=[{id:'vhalek',name:'Vhalek',kind:'arrastrado',hp:7,dmg:1.15,p2:{speed:1.35,dmg:1.3}}];
+function wkWeek(){return Math.floor((Date.now()-Date.UTC(2026,0,5))/604800000)}
+function wkBoss(){return WK_BOSSES[((wkWeek()%WK_BOSSES.length)+WK_BOSSES.length)%WK_BOSSES.length]}
+function wkDone(){try{return !!(meta.weekly&&meta.weekly[wkWeek()])}catch(e){return false}}
+function wkLeft(){var ms=Date.UTC(2026,0,5)+(wkWeek()+1)*604800000-Date.now(),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5);return d+' d '+h+' h'}
+function wkBegin(){
+  WK.boss=null;WK.p2=false;WK.won=false;WK.spawnT=t+2.5;nextBoss=1e9;try{gobNext=1e9}catch(e){}
+  arenaEntrar(1);
+  try{$('hudClass').textContent=(coop?'J1 · ':'')+PL[0].c.name+' · Jefe semanal · '+wkBoss().name}catch(e){}
+  toast('Jefe semanal: '+wkBoss().name);
+}
+function wkSpawn(){
+  var def=wkBoss(),sc=curMap,sb=bossN;curMap=0;bossN=2;
+  var ok=spawnBoss();curMap=sc;
+  if(!ok){bossN=sb;return false}
+  var b=bossAlive;b.name=def.name;b.kind=def.kind;b.x=N/2+.5;b.y=N/2-1.5;
+  b.hp*=def.hp;b.maxHp=b.hp;b.dmg*=def.dmg;b.wk=1;WK.boss=b;
+  return true;
+}
+function wkVictory(){
+  if(state!=='play'&&state!=='levelup')return;
+  state='dead';P=PL[0];try{$('lvlOv').hidden=true}catch(e){}
+  var def=wkBoss(),r=endRun('victoria'),lv=0;
+  try{meta.weekly=meta.weekly||{};if(!meta.weekly[wkWeek()]||t<meta.weekly[wkWeek()])meta.weekly[wkWeek()]=+t.toFixed(1)}catch(e){}
+  PL.forEach(function(q){lv=Math.max(lv,q.level)});
+  $('deadTitle').textContent='¡'+def.name+' derrotado!';
+  $('deadSub').textContent='Has completado el jefe semanal. El siguiente llega en '+wkLeft()+'.';
+  $('deadPage').hidden=true;
+  $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+r.g+'</b></div>';
+  saveMeta();$('deadOv').hidden=false;
+}
+(function(){
+  var u0=update;
+  update=function(dt){
+    u0(dt);
+    if(!WK.on||!ARENA.on||(state!=='play'&&!(state==='levelup'&&WK.boss&&!WK.won)))return;
+    if(!WK.boss){if(t>=WK.spawnT&&!wkSpawn())WK.spawnT=t+.2;return}
+    var b=WK.boss;
+    if(!WK.p2&&!b.dead&&b.hp<=b.maxHp*.5){var d=wkBoss().p2;WK.p2=true;arenaFase(2);b.speed*=d.speed;b.dmg*=d.dmg;toast(b.name+' se desangra: fase 2')}
+    if(!WK.won&&(b.dead||b.hp<=0||bossAlive===null)){WK.won=true;wkVictory()}
+  };
+  var s0=startRun;
+  startRun=function(key,mi){
+    WK.on=!!WK.pending;WK.pending=false;WK.boss=null;
+    if(WK.on){NEXTOPT=null;mi=0}
+    var r=s0.call(this,key,mi);
+    if(WK.on&&state==='play')wkBegin();
+    return r;
+  };
+  var m0=showMenu;showMenu=function(){WK.on=false;WK.pending=false;return m0.apply(this,arguments)};
+  /* tarjeta del modo, a la derecha de la Torre */
+  var b0=twBar;
+  twBar=function(){
+    b0.apply(this,arguments);
+    try{
+      var b=$('modeBar');
+      if(twStage==='modes'&&b&&!$('wkOpen')){
+        var c=document.createElement('button');c.type='button';c.id='wkOpen';c.className='mdcard';c.setAttribute('data-md','weekly');
+        c.innerHTML='<img alt="" src="iconos/modo_semanal.png"><span class="nm">Jefe semanal</span><p>Un jefe nuevo cada semana, en una arena cerrada. Esta semana: '+wkBoss().name+(wkDone()?' (completado)':'')+'. Cambia en '+wkLeft()+'.</p>';
+        var tw=b.querySelector('[data-md="tower"]');if(tw&&tw.nextSibling)b.insertBefore(c,tw.nextSibling);else b.appendChild(c);
+      }
+      if(twStage==='classes'&&twMode==='weekly')$('modeNote').textContent='Modo: Jefe semanal. Elige tu personaje.';
+    }catch(e){}
+  };
+  /* tras elegir personaje: tarjeta única con «Jugar» (como la Torre) */
+  var o0=openMaps;
+  openMaps=function(k){
+    o0.apply(this,arguments);
+    if(twMode!=='weekly')return;
+    var h1=document.querySelector('#mapOv h1'),ld=document.querySelector('#mapOv .maphead .lead'),def=wkBoss();
+    h1.textContent='Jefe semanal';
+    ld.innerHTML='Personaje: <b style="color:'+CLASSES[k].col+'">'+CLASSES[k].name+'</b>. Derrota a '+def.name+' en su arena.';
+    $('mapGrid').innerHTML='<div class="mapc mbg6"><img class="ic" alt="" style="image-rendering:pixelated" src="iconos/modo_semanal.png">'+
+      '<div class="mi"><span class="nm">'+def.name+'</span><span class="ef">Arena cerrada, sin enemigos normales: solo tú y el jefe.</span>'+
+      '<span class="ef">Fase 2 al 50 % de vida · cambia cada semana.</span></div>'+
+      '<button class="btn" type="button" data-weekly="1">Jugar</button></div>';
+  };
+  $('mapGrid').addEventListener('click',function(e){if(e.target.closest('[data-weekly]')){WK.pending=true;startRun(mapChar,0)}});
 })();
 
 /* ---------- Música y volumen ---------- */
