@@ -27432,7 +27432,7 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
   var co_update = update; update = function (dt) {
     co_update(dt);
     try {   /* cámara alejada durante la pelea (más aún en el eclipse) */
-      var zb = Math.max(.85, Math.min(1.8, Math.min(W, H) / 720 * 1.4)), zt = (CO.boss && !CO.boss.dead && VACIO.on) ? (CO.ecl ? .36 : .42) : 1;
+      var zb = Math.max(.85, Math.min(1.8, Math.min(W, H) / 720 * 1.4)), zt = (CO.boss && !CO.boss.dead && VACIO.on) ? (CO.ecl ? .42 : .5) : 1;
       CO.zf = (CO.zf || 1) + (zt - (CO.zf || 1)) * Math.min(1, dt * 2.5); Z = zb * CO.zf;
     } catch (er) {}
     try {
