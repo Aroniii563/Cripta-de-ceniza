@@ -27285,8 +27285,8 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
     },
     escombros: function (e) {
       var L = [[.1, function () { pose(e, POSE.esc, 1.8); }]], i;
-      for (i = 0; i < 5; i++) (function (i) { L.push([.3 + i * .28, function () { var T = objetivo(e), a = Math.random() * 6.283, d = i ? 1 + Math.random() * 4 : 0; var x = T.x + Math.cos(a) * d, y = T.y + Math.sin(a) * d; if (!libre(x, y)) { x = T.x; y = T.y; } zona({x: x, y: y, r: 1.7, aviso: 1.1, dmg: .24}); }]); })(i);
-      for (i = 0; i < 6; i++) (function (i) { L.push([.5 + i * .25, function () { var T = objetivo(e), x = T.x + (Math.random() - .5) * 9, y = T.y + (Math.random() - .5) * 9; if (!libre(x, y)) return; zona({x: x, y: y, r: .7, aviso: .5, dmg: .1}); }]); })(i);
+      for (i = 0; i < 3; i++) (function (i) { L.push([.3 + i * .4, function () { var T = objetivo(e), a = Math.random() * 6.283, d = i ? 1 + Math.random() * 4 : 0; var x = T.x + Math.cos(a) * d, y = T.y + Math.sin(a) * d; if (!libre(x, y)) { x = T.x; y = T.y; } zona({x: x, y: y, r: 1.7, aviso: 1.1, dmg: .24}); }]); })(i);
+      for (i = 0; i < 4; i++) (function (i) { L.push([.6 + i * .3, function () { var T = objetivo(e), x = T.x + (Math.random() - .5) * 9, y = T.y + (Math.random() - .5) * 9; if (!libre(x, y)) return; zona({x: x, y: y, r: .7, aviso: .5, dmg: .1}); }]); })(i);
       pasos(e, L, 2.8);
     },
     rayo: function (e) {
