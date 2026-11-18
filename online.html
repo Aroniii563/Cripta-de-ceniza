@@ -27222,7 +27222,7 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
    Sprites: jefes/coloso_poses.png (12 poses de 300x340). Prueba: colosoPrueba() · colosoPrueba({fase:2}) · colosoAtaque('eclipse').
    ========================================================================== */
 (function () {
-  var CW = 300, CH = 340, K = .85, VIDA = 30000;
+  var CW = 300, CH = 340, K = 1.9, VIDA = 30000;
   var CO = {img: null, boss: null, zl: [], orbs: [], beam: null, ecl: null, inf: null, over: 0, overCol: '#000', rx: 0};
   var POSE = {reposo: 0, pun1: 1, pun2: 2, apl1: 3, apl2: 4, mor1: 5, mor2: 6, esc: 7, rayo: 8, esf: 9, ecl: 10, inf: 11};
   var COL = {r: ['#ff2a3a', '#ff5a5a'], p: ['#b060ff', '#d09aff'], g: ['#5cf07a', '#a8ffb8']};
@@ -27431,6 +27431,10 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
   };
   var co_update = update; update = function (dt) {
     co_update(dt);
+    try {   /* cámara alejada durante la pelea (más aún en el eclipse) */
+      var zb = Math.max(.85, Math.min(1.8, Math.min(W, H) / 720 * 1.4)), zt = (CO.boss && !CO.boss.dead && VACIO.on) ? (CO.ecl ? .36 : .42) : 1;
+      CO.zf = (CO.zf || 1) + (zt - (CO.zf || 1)) * Math.min(1, dt * 2.5); Z = zb * CO.zf;
+    } catch (er) {}
     try {
       var e = CO.boss;
       if (e && !e.dead) {
@@ -27507,16 +27511,16 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
   function dibujaJefe() {
     var e = CO.boss; if (!e || e.dead || !CO.img) return;
     var p = sp(e.x, e.y), pose0 = (t < e.poseUntil) ? e.pose : POSE.reposo;
-    var bob = Math.sin(t * 1.6) * 6, lunge = (pose0 === POSE.pun2 || pose0 === POSE.apl2 || pose0 === POSE.mor2) ? 26 : 0;
+    var bob = Math.sin(t * 1.6) * 6, lunge = (pose0 === POSE.pun2 || pose0 === POSE.apl2 || pose0 === POSE.mor2) ? 55 : 0;
     var k = K, sh = e.flash > 0;
     ctx.save();
     ctx.globalAlpha = .28; ctx.fillStyle = '#000'; ell(e.x, e.y, 2.2); ctx.fill(); ctx.globalAlpha = 1;
     if (e.cs === 'trans') ctx.translate((Math.random() - .5) * 4, 0);
-    ctx.drawImage(CO.img, pose0 * CW, 0, CW, CH, Math.round(p.x - CW * k / 2), Math.round(p.y - 140 + bob + lunge), Math.round(CW * k), Math.round(CH * k));
-    if (e.cs === 'trans') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .25; ctx.drawImage(CO.img, pose0 * CW, 0, CW, CH, Math.round(p.x - CW * k / 2), Math.round(p.y - 140), Math.round(CW * k), Math.round(CH * k)); }
+    ctx.drawImage(CO.img, pose0 * CW, 0, CW, CH, Math.round(p.x - CW * k / 2), Math.round(p.y - 480 + bob + lunge), Math.round(CW * k), Math.round(CH * k));
+    if (e.cs === 'trans') { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .25; ctx.drawImage(CO.img, pose0 * CW, 0, CW, CH, Math.round(p.x - CW * k / 2), Math.round(p.y - 480), Math.round(CW * k), Math.round(CH * k)); }
     ctx.restore();
     if (CO.ecl && CO.ecl.t < 4.5) {       /* esfera sobre el brazo alzado */
-      var pr = Math.min(1, CO.ecl.t / 3.8), rr = 8 + pr * pr * 230, px = p.x - 78 * k * .9, py = p.y - 330 * k * .9 - 100 - rr * .3;
+      var pr = Math.min(1, CO.ecl.t / 3.8), rr = 8 + pr * pr * 230, px = p.x - 78 * k * .9, py = p.y - 520 - rr * .3;
       ctx.save(); ctx.fillStyle = '#05000c'; ctx.strokeStyle = '#b060ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(px, py, rr, 0, 6.283); ctx.fill(); ctx.stroke(); ctx.restore();
     }
   }
@@ -27525,7 +27529,9 @@ window.vacioPrueba = vacioPrueba; window.vacioEntrar = vacioEntrar; window.vacio
     try { if (CO.boss || CO.zl.length) { ctx.save(); dibujaZonas(); dibujaJefe(); ctx.restore(); ctx.globalAlpha = 1; } } catch (er) {}
   };
   var co_render = render; render = function () {
-    co_render();
+    var sh = CO.zf < .8 && CO.boss && VACIO.on ? 10 * (1 - CO.zf) / .58 : 0;   /* la cámara mira hacia el jefe: el jugador queda abajo y el Coloso entero en pantalla */
+    cam.x -= sh; cam.y -= sh;
+    try { co_render(); } finally { cam.x += sh; cam.y += sh; }
     try { if (CO.over > 0) { ctx.save(); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.globalAlpha = Math.min(1, CO.over) * .75; ctx.fillStyle = CO.overCol; ctx.fillRect(0, 0, W, H); ctx.restore(); } } catch (er) {}
   };
 
