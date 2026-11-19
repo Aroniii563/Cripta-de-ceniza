@@ -28063,7 +28063,7 @@ var CE = {activa: true, sonido: true, on: false, img: [], cargando: false, listo
     if (document.getElementById('ceCss')) return;
     var s = document.createElement('style'); s.id = 'ceCss';
     s.textContent = '#ceOv{position:fixed;inset:0;z-index:9999;pointer-events:none}#ceOv .bar{position:absolute;left:0;right:0;height:0;background:#000;transition:height .7s ease-out}#ceOv .bar.t{top:0}#ceOv .bar.b{bottom:0}#ceOv.vis .bar{height:6.5vh}'
-      + '#ceSkip{position:absolute;right:1.6vw;top:0;height:6.5vh;display:flex;align-items:center;pointer-events:auto;cursor:pointer;background:none;border:0;border-left:1px solid rgba(200,60,60,.5);padding:0 18px;color:#f0c0b8;font:700 14px sans-serif;letter-spacing:.1em;opacity:0;transition:opacity .6s .7s}#ceOv.vis #ceSkip{opacity:1}#ceSkip:hover{background:rgba(70,10,14,.8);color:#fff}'
+      + '#ceSkip{position:absolute;right:2.2vw;top:.7vh;z-index:4;pointer-events:auto;background:rgba(10,4,6,.55);border:1px solid rgba(200,60,60,.6);color:#f0c0b8;font:700 15px sans-serif;letter-spacing:.08em;padding:9px 16px;cursor:pointer;opacity:0;transition:opacity .6s .7s}#ceOv.vis #ceSkip{opacity:1}#ceSkip:hover{background:rgba(70,10,14,.85);color:#fff}'
       + '#ceOv .neg{position:absolute;inset:0;background:#000;opacity:1;transition:opacity .6s}#ceOv.vis .neg{opacity:0}'
       + 'body.ceOn #app>*:not(#cv):not(#vig){visibility:hidden!important}body.ceOn>*:not(#app):not(#ceOv):not(script):not(style){visibility:hidden!important}';
     document.head.appendChild(s);
@@ -28089,7 +28089,7 @@ var CE = {activa: true, sonido: true, on: false, img: [], cargando: false, listo
     if (!CE.on) return;
     CE.on = false;
     audStop(!natural); unduck();
-    ov.classList.remove('vis'); document.body.classList.remove('ceOn');
+    ov.classList.remove('vis'); ov.style.display = 'none'; document.body.classList.remove('ceOn');   /* sin esto, .neg se queda en negro tapando la partida */
     try { MUT.sx = 0; MUT.sy = 0; } catch (e) {}
     var c = camCombate();
     if (natural) { CL.camX = c.x; CL.camY = c.y; CL.zf = c.z / clZBase(); } else CL.camX = null;   /* saltar: encuadre de combate al instante */
