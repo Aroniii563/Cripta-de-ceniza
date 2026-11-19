@@ -27825,7 +27825,7 @@ function clCamara(dt) {
 }
 
 /* ---------- enganches ---------- */
-var cl_bossAI = bossAI; bossAI = function (e, dt, d) { if (e.cl) { e.dtl = dt; return clAI(e, dt, d); } return cl_bossAI(e, dt, d); };
+var cl_bossAI = bossAI; bossAI = function (e, dt, d) { if (e.cl) { if (e.dead) return {s: 0}; e.dtl = dt; return clAI(e, dt, d); }   /* muerto: no seguir con la IA (el rayo/inferno ya se habían anulado y daba error y congelaba la partida) */ return cl_bossAI(e, dt, d); };
 var cl_sprKey = sprKey; sprKey = function (e) { if (e.cl) { clEnsure(); return 'coloso'; } return cl_sprKey(e); };
 var cl_sprScale = sprScale; sprScale = function (e) { if (e.cl) return 1; return cl_sprScale(e); };
 var cl_enemyFrame = enemyFrame; enemyFrame = function (e) { if (e.cl) return [0, 0]; return cl_enemyFrame(e); };
