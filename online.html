@@ -26995,7 +26995,7 @@ var VACIO = {img: {}, n: 0, ready: false, on: false, saved: null, cache: {}, ord
   for (k = 0; k < 4; k++) files['deco' + k] = 'vacio/deco' + k + '.png';
   for (k = 0; k < VACIO_SRC.props.restos.length; k++) { files['resto' + k] = 'vacio/resto' + k + '.png'; files['restoL' + k] = 'vacio/restoL' + k + '.png'; }
   var ks = Object.keys(files);
-  ks.forEach(function (k) { var im = new Image(); im.onload = function () { VACIO.img[k] = im; VACIO.n++; if (VACIO.n === ks.length) VACIO.ready = true; }; im.src = files[k]; });
+  ks.forEach(function (k) { var im = new Image(); im.onload = function () { VACIO.img[k] = im; VACIO.n++; try { var wc = document.createElement('canvas'); wc.width = wc.height = 1; wc.getContext('2d').drawImage(im, 0, 0, im.width, im.height, 0, 0, 1, 1); } catch (er) {} if (VACIO.n === ks.length) { VACIO.ready = true; setTimeout(function () { try { if (!vacioCielo) vacioPrepCielo(); } catch (er) {} }, 400); } }; im.src = files[k]; });
 })();
 
 /* ---------- generación: media luna ---------- */
@@ -27252,7 +27252,7 @@ var CL = {img: [], boss: null, fxl: [], shake: 0, flash: 0, flashCol: '#efe0ff',
   muerte: null, crown: false, sombras: null, sectores: null, fr: 'idle0'};
 var CL_NOMBRES = {'puños': 'a1', 'punos': 'a1', aplastar: 'a2', golpes: 'a3', mordisco: 'a4', escombros: 'a5', rayo: 'a6', esferas: 'a7', eclipse: 'a8', inferno: 'a9', corrupto: 'a10'};
 (function () {
-  for (var k = 0; k < CL_SRC.n; k++) (function (k) { var im = new Image(); im.onload = function () { CL.img[k] = im; }; im.src = 'jefes/coloso_' + k + '.png'; })(k);
+  for (var k = 0; k < CL_SRC.n; k++) (function (k) { var im = new Image(); im.onload = function () { CL.img[k] = im; try { var c = document.createElement('canvas'); c.width = c.height = 1; c.getContext('2d').drawImage(im, 0, 0, im.width, im.height, 0, 0, 1, 1); } catch (er) {} try { if (im.decode) im.decode().catch(function () {}); } catch (er) {} }; im.src = 'jefes/coloso_' + k + '.png'; })(k);
 })();
 function clEnsure() {
   if (ESPR.coloso) return;
@@ -27286,6 +27286,21 @@ function clSectores() {
   return S;
 }
 var CL_OLEADAS = [[4, 5, 6, 7], [1, 2, 4, 7], [0, 3, 5, 6], [1, 2, 5, 6]];
+/* cada Inferno sortea sus 4 oleadas: 4 de los 8 sectores arden en cada una; entre oleadas seguidas siempre queda algún sector seguro en común */
+function clOleadasAzar() {
+  var all = [0, 1, 2, 3, 4, 5, 6, 7], res = [], prevSafe = null;
+  for (var w = 0; w < 4; w++) {
+    var burn, safe, tries = 0;
+    do {
+      var pool = all.slice(); burn = [];
+      while (burn.length < 4) burn.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      burn.sort(function (a, b) { return a - b; });
+      safe = all.filter(function (k) { return burn.indexOf(k) < 0; });
+    } while (prevSafe && ++tries < 50 && !safe.some(function (k) { return prevSafe.indexOf(k) >= 0; }));
+    res.push(burn); prevSafe = safe;
+  }
+  return res;
+}
 /* sombra del Eclipse: el segmento esfera -> punto cruza una columna y el punto queda detrás */
 function clCubierto(px, py) {
   var O = CL_EO, dx = px - O.x, dy = py - O.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
@@ -27516,7 +27531,7 @@ function clEclipse(e, z, T) {
 /* 9 · inferno de las manos (8 s exactos) */
 function clInferno(e, z, T) {
   var st = e.st;
-  if (!st.on) { st.on = 1; st.tick = 0; S('bCharge', e.x, e.y); CL.inf = {w: -1, lt: 0}; }
+  if (!st.on) { st.on = 1; st.tick = 0; S('bCharge', e.x, e.y); CL.inf = {w: -1, lt: 0}; CL_OLEADAS = clOleadasAzar(); }
   CL.fr = z < .5 ? 'inf_med' : z < 9.0 ? 'inf' : z < 9.4 ? 'inf_med' : 'idle0';
   var tw = z - 1.0;
   if (tw >= 0 && tw < 8) {
