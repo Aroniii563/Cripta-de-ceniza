@@ -27252,7 +27252,7 @@ var CL = {img: [], boss: null, fxl: [], shake: 0, flash: 0, flashCol: '#efe0ff',
   muerte: null, crown: false, sombras: null, sectores: null, fr: 'idle0'};
 var CL_NOMBRES = {'puños': 'a1', 'punos': 'a1', aplastar: 'a2', golpes: 'a3', mordisco: 'a4', escombros: 'a5', rayo: 'a6', esferas: 'a7', eclipse: 'a8', inferno: 'a9', corrupto: 'a10'};
 (function () {
-  for (var k = 0; k < CL_SRC.n; k++) (function (k) { var im = new Image(); im.onload = function () { CL.img[k] = im; try { var c = document.createElement('canvas'); c.width = c.height = 1; c.getContext('2d').drawImage(im, 0, 0, im.width, im.height, 0, 0, 1, 1); } catch (er) {} try { if (im.decode) im.decode().catch(function () {}); } catch (er) {} }; im.src = 'jefes/coloso_' + k + '.png'; })(k);
+  for (var k = 0; k < CL_SRC.n; k++) (function (k) { var im = new Image(); im.onload = function () { CL.img[k] = im; try { var c = document.createElement('canvas'); c.width = c.height = 1; c.getContext('2d').drawImage(im, 0, 0, im.width, im.height, 0, 0, 1, 1); } catch (er) {} try { if (window.createImageBitmap) createImageBitmap(im).then(function (bm) { CL.img[k] = bm; }).catch(function () {}); } catch (er) {} };   /* ImageBitmap: textura lista para dibujar, sin re-decodificar el PNG gigante en cada fotograma */ im.src = 'jefes/coloso_' + k + '.png'; })(k);
 })();
 function clEnsure() {
   if (ESPR.coloso) return;
