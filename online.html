@@ -18646,7 +18646,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
       var an=Math.random()*6.283,d=rnd(2.3,5.5),x=a.x+Math.cos(an)*d,y=a.y+Math.sin(an)*d;
       if(blocked(x,y,.5))continue;
       var e=makeXs('mini_muerte',x,y);if(!e)return false;
-      e.r=ETYPES.zombie.r*.85;e.hf=HPF.zombie*2.4;e.hp=e.maxHp=enemyHp(e.hf);e.speed*=1.3;e.xp*=.7;e.cl=a.id;
+      e.r=ETYPES.zombie.r*.85;e.hf=HPF.zombie*2.4;e.hp=e.maxHp=enemyHp(e.hf);e.speed*=1.3;e.xp*=.7;e.alg=a.id;
       return true;
     }
     return false;
@@ -18712,7 +18712,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     if(g){
       g.left-=dt;
       if(g.q>0){g.acc+=dt;if(g.acc>=AL2.sg.spawnGap){g.acc=0;var sa=al2.list.filter(function(w){return w.id===g.id})[0];if(sa&&spawnMini(sa))g.q--;else if(!sa)g.q=0}}
-      var al=0;for(i=0;i<enemies.length;i++){var q2=enemies[i];if(q2.cl===g.id&&!q2.dead&&q2.hp>0)al++}
+      var al=0;for(i=0;i<enemies.length;i++){var q2=enemies[i];if(q2.alg===g.id&&!q2.dead&&q2.hp>0)al++}
       g.alive=al+g.q;
       if(g.q<=0&&al===0)sgDone(true);
       else if(g.left<=0||!lv.length)sgDone(false);
@@ -18723,7 +18723,7 @@ window.ALSPAWN=1;window.ALXP=1;window.ALHP=1;
     var a=al2.list.filter(function(w){return w.id===g.id})[0];
     if(a){a.st=2;a.fin=0;a.t0=t}
     if(!okk){
-      for(var i=enemies.length-1;i>=0;i--)if(enemies[i].cl===g.id){burst(enemies[i].x,enemies[i].y,'#6a5a80',8);enemies.splice(i,1)}
+      for(var i=enemies.length-1;i>=0;i--)if(enemies[i].alg===g.id){burst(enemies[i].x,enemies[i].y,'#6a5a80',8);enemies.splice(i,1)}
       try{toast(T2(TX.sko))}catch(e){}return;
     }
     var gg=goldFor(AL2.sg.gold),m=minute(),w=m<5?[.5,.38,.12]:m<12?[.4,.4,.2]:[.3,.45,.25];
