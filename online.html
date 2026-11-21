@@ -29016,6 +29016,17 @@ function nvMover(e, tx, ty, vel, dt, mirar) {
   moveEnt(e, dx / d * s, dy / d * s);
   var mv = Math.hypot(e.x - x0, e.y - y0);
   e.anim = mv > .002 ? 'paso' : 'reposo'; e.pasoT += mv;
+  /* anti-atasco: si quiere avanzar y no se mueve, probar costados y, si persiste, salir a un hueco libre */
+  if (d > .3 && mv < vel * dt * .15) {
+    e.atasT = (e.atasT || 0) + dt;
+    if (e.atasT > .25 && e.atasT < 1.1) { var pa = Math.atan2(dy, dx) + (e.atasLado || (e.atasLado = Math.random() < .5 ? 1.2 : -1.2)); moveEnt(e, Math.cos(pa) * vel * dt, Math.sin(pa) * vel * dt); }
+    if (e.atasT > 1.1) {
+      for (var rr = 1; rr < 6 && e.atasT; rr += .5) for (var k = 0; k < 12; k++) {
+        var qa = k * Math.PI / 6, qx = e.x + Math.cos(qa) * rr, qy = e.y + Math.sin(qa) * rr;
+        if (nvLibre(qx, qy, .5)) { e.x = qx; e.y = qy; e.atasT = 0; e.atasLado = 0; break; }
+      }
+    }
+  } else { e.atasT = 0; e.atasLado = 0; }
   e.face = nvGira(e.face, mirar != null ? mirar : Math.atan2(dy, dx), dt * 7);
   return d < .1;
 }
@@ -30093,7 +30104,7 @@ var NCV = {src: ['cine/novias_fase2.webm', 'cine/novias_fase2.mp4'], puerta: 'ci
   function end(natural) {
     if (!NCV.on) return;
     NCV.on = false; cancelAnimationFrame(raf); audStop(!natural); try { VID.pause(); } catch (e) {} unduck();
-    NCV.quedaPuerta = true;
+    NCV.quedaPuerta = false;
     try { if (finNV) finNV({pos: posFinal(), silencio: true, cd: 1.0}); } catch (e) { try { softErr('noviasCine', e); } catch (e2) {} }
     finNV = null;
     try { SALON.zoom = .82; NV.zoomObj = .82; cam.x = P.x; cam.y = P.y; PL.forEach(function (q) { q.inv = 1; }); } catch (e) {}
