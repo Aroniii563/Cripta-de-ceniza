@@ -26166,6 +26166,7 @@ var MAE_VETERANOS = true;   /* quien ya jugaba recibe maestría según su tiempo
   }
   function ficha(k) { ov(); if (k) fichaK = k; pintaFicha(); $('maeOv').hidden = false; }
   window.maeFicha = ficha;
+  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-maeopen]'); if (b) { e.stopPropagation(); ficha(b.getAttribute('data-maeopen')); } }, true);
 
   /* ---------- pestaña «Maestría» dentro de Mejoras: al elegir un héroe, Mejoras o Maestría ---------- */
   var modoMej = 'mej';
@@ -26197,18 +26198,6 @@ var MAE_VETERANOS = true;   /* quien ya jugaba recibe maestría según su tiempo
     document.head.appendChild(st);
   })();
 
-  /* acceso también desde Aspectos (pestaña del personaje) */
-  try {
-    var _bk = buildSkins;
-    buildSkins = function () {
-      var r = _bk.apply(this, arguments);
-      try { var k = skinCls, n = nivel(k), pg = prog(R(k).xp), l = $('skinList');
-        if (l) l.insertAdjacentHTML('afterbegin', '<div style="grid-column:1/-1;display:flex;justify-content:flex-end"><button type="button" class="maePl" data-maeopen="' + k + '" style="' + vars(k) + ';width:min(100%,320px);margin:0"><span class="mpN">' + n + '</span><span class="mpB"><span class="mpT"><span>' + trd('Maestría') + '</span><small>' + (pg.max ? trd('Nivel máximo') : pg.a + ' / ' + pg.b + ' XP') + '</small></span><span class="maeBar"><i style="width:' + Math.round(100 * pg.a / pg.b) + '%"></i></span></span></button></div>');
-      } catch (e) {}
-      return r;
-    };
-  } catch (e) {}
-  document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-maeopen]'); if (b) { e.stopPropagation(); ficha(b.getAttribute('data-maeopen')); } }, true);
 
   /* ---------- panel de fin de partida ---------- */
   function pintaFin() {
