@@ -25731,7 +25731,7 @@ var ATKSTY = {
   var _bk = buildSkins;
   buildSkins = function () {
     var r = _bk.apply(this, arguments);
-    try { if (ATKSTY[skinCls]) $('skinList').insertAdjacentHTML('beforeend', hd('Estilo de ataque') + ATKSTY[skinCls].map(function (o) { return cardSkins(o, skinCls); }).join('')); } catch (e) {}
+    try { if (ATKSTY[skinCls]) $('skinList').insertAdjacentHTML('beforeend', '<i id="skAtkMark" hidden></i>' + hd('Estilo de ataque') + ATKSTY[skinCls].map(function (o) { return cardSkins(o, skinCls); }).join('')); } catch (e) {}
     return r;
   };
   var _bs = buildShop;
@@ -26273,6 +26273,45 @@ var MAE_VETERANOS = true;   /* quien ya jugaba recibe maestría según su tiempo
   window.maeXP = function (k, x) { var sn = {t: 600, b: 0, win: false, hard: false, cls: [k || 'sorc']}; var r = R(sn.cls[0]); r.d = hoy(); var x0 = r.xp; r.xp = Math.min(MAE_CURVA[NMAX - 1], r.xp + (x || 500)); var nv = entrega(sn.cls[0]); saveMeta(); var o = {k: sn.cls[0], x0: x0, x1: r.xp, n0: nivelDe(x0), n1: nivelDe(r.xp), c: {total: x || 500, partes: [['Prueba', x || 500]]}, nv: nv}; ULT = {res: [o], ts: Date.now()}; if (o.n1 > o.n0) avisa(o); return o.n0 + ' → ' + o.n1; };
   window.maeReset = function (k) { if (k) delete M()[k]; else meta.mae = {_ini: 1}; saveMeta(); return 'ok'; };
   window.__mae = {nivel: nivel, R: R, prog: prog, ficha: ficha, marco: marco, gana: gana, EMB: EMB};
+})();
+
+/* ==========================================================================
+   ASPECTOS · pestañas superiores «Héroes» / «Fondos»; dentro de un héroe, «Aspectos» / «Ataques»
+   ========================================================================== */
+(function () {
+  var top = 'her', sub = 'asp';
+  function aplica() {
+    var sec = $('pSkins'); if (!sec) return;
+    var tabs = $('skinTabs'), list = $('skinList'), fp = $('fondoPanel'); if (!tabs || !list) return;
+    var lead = sec.querySelector('.lead'), bar = $('skTop'), sb = $('skSub');
+    if (!bar) { bar = document.createElement('div'); bar.id = 'skTop'; bar.className = 'tabs skMode'; (lead || sec.querySelector('h2')).insertAdjacentElement('afterend', bar); }
+    if (!sb) { sb = document.createElement('div'); sb.id = 'skSub'; sb.className = 'tabs skMode skSub'; tabs.insertAdjacentElement('afterend', sb); }
+    var mark = $('skAtkMark'), hayAtk = !!mark;
+    if (sub === 'atk' && !hayAtk) sub = 'asp';
+    bar.innerHTML = '<button class="tab" type="button" data-skt="her" aria-pressed="' + (top === 'her') + '">Héroes</button><button class="tab" type="button" data-skt="fon" aria-pressed="' + (top === 'fon') + '">Fondos</button>';
+    sb.innerHTML = '<button class="tab" type="button" data-sks="asp" aria-pressed="' + (sub === 'asp') + '">Aspectos</button>' + (hayAtk ? '<button class="tab" type="button" data-sks="atk" aria-pressed="' + (sub === 'atk') + '">Ataques</button>' : '');
+    var her = top === 'her';
+    [tabs, sb, list].forEach(function (x) { x.style.setProperty('display', her ? '' : 'none', her ? '' : 'important'); });
+    if (fp) { fp.style.display = her ? 'none' : ''; fp.style.borderTop = 'none'; fp.style.marginTop = '0'; fp.style.paddingTop = '0'; }
+    if (lead) lead.style.display = her ? '' : 'none';
+    var atk = false;
+    Array.prototype.forEach.call(list.children, function (c) {
+      if (c === mark) { atk = true; c.hidden = true; return; }
+      c.style.display = (sub === 'atk') === atk ? '' : 'none';
+    });
+    try { if (typeof i18nLoad === 'function' && typeof LANG !== 'undefined' && LANG !== 'es') i18nLoad(); } catch (e) {}
+  }
+  var TRS = {en: {'Héroes': 'Heroes', 'Fondos': 'Backgrounds', 'Aspectos': 'Skins', 'Ataques': 'Attacks', 'Mejoras': 'Upgrades'}, pt: {'Héroes': 'Heróis', 'Fondos': 'Fundos', 'Aspectos': 'Aparências', 'Ataques': 'Ataques', 'Mejoras': 'Melhorias'}, fr: {'Héroes': 'Héros', 'Fondos': 'Fonds', 'Aspectos': 'Apparences', 'Ataques': 'Attaques', 'Mejoras': 'Améliorations'}, ru: {'Héroes': 'Герои', 'Fondos': 'Фоны', 'Aspectos': 'Облики', 'Ataques': 'Атаки', 'Mejoras': 'Улучшения'}, ja: {'Héroes': 'ヒーロー', 'Fondos': '背景', 'Aspectos': 'スキン', 'Ataques': '攻撃', 'Mejoras': '強化'}};
+  try { if (typeof I18N_DATA !== 'undefined') Object.keys(TRS).forEach(function (l) { if (I18N_DATA[l]) Object.keys(TRS[l]).forEach(function (q) { if (I18N_DATA[l][q] === undefined) I18N_DATA[l][q] = TRS[l][q]; }); }); } catch (e) {}
+  try { var _b = buildSkins; buildSkins = function () { var r = _b.apply(this, arguments); try { aplica(); } catch (e) {} return r; }; } catch (e) {}
+  try { var _pf = window.pintaFondos; if (_pf) window.pintaFondos = function () { var r = _pf.apply(this, arguments); try { aplica(); } catch (e) {} return r; }; } catch (e) {}
+  (function () { var sec = $('pSkins'); if (!sec) return;
+    sec.addEventListener('click', function (e) {
+      var t = e.target.closest('[data-skt]'); if (t) { top = t.getAttribute('data-skt'); aplica(); return; }
+      var u = e.target.closest('[data-sks]'); if (u) { sub = u.getAttribute('data-sks'); aplica(); }
+    });
+    var st = document.createElement('style'); st.textContent = '.skMode{margin:6px 0 12px}.skMode .tab{font-size:14px}.skSub{margin-top:4px}'; document.head.appendChild(st);
+  })();
 })();
 
 /* ==========================================================================
