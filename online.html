@@ -25286,9 +25286,11 @@ var ATKSTY = {
     var tx = lista.map(function (x) { return trd('¡Estilo de ataque desbloqueado: ' + x.o.name + ' (' + (CLASSES[x.cls] ? CLASSES[x.cls].name : x.cls) + ')!'); }).join('  ·  ');
     setTimeout(function () { try { toast(tx); } catch (e) {} }, 900);
   }
+  /* quien ya venció al Escritor en Difícil con ese héroe (logro guardado en meta.ach.ew) recibe su estilo al abrir el menú */
+  function ewDe(c) { try { return !!(meta.ach && meta.ach.ew && meta.ach.ew[c]); } catch (e) { return false; } }
   function revisaPartidas() {
     var nuevos = [];
-    Object.keys(ATKSTY).forEach(function (c) { ATKSTY[c].forEach(function (o) { if (o.via === 'partidas' && runsDe(c) >= PARTIDAS_N && darAtk(o, c)) nuevos.push({o: o, cls: c}); }); });
+    Object.keys(ATKSTY).forEach(function (c) { ATKSTY[c].forEach(function (o) { if (((o.via === 'partidas' && runsDe(c) >= PARTIDAS_N) || (o.via === 'escritor' && ewDe(c))) && darAtk(o, c)) nuevos.push({o: o, cls: c}); }); });
     if (nuevos.length) { try { saveMeta(); } catch (e) {} avisoAtk(nuevos); }
     return nuevos.length;
   }
@@ -25296,6 +25298,8 @@ var ATKSTY = {
   try { var _adSt = addStats; addStats = function () { var r = _adSt.apply(this, arguments); try { revisaPartidas(); } catch (e) {} return r; }; } catch (e) {}
   /* quien ya tenía partidas jugadas lo recibe al abrir el menú */
   try { var _smA = showMenu; showMenu = function () { var r = _smA.apply(this, arguments); try { revisaPartidas(); } catch (e) {} return r; }; } catch (e) {}
+  /* tras iniciar sesión el menú se reconstruye con buildMenu (no con showMenu): también ahí se entregan los estilos ya ganados */
+  try { var _bmA = buildMenu; buildMenu = function () { var r = _bmA.apply(this, arguments); try { revisaPartidas(); } catch (e) {} return r; }; } catch (e) {}
   /* Escritor (mapa 5) en Difícil con ese héroe */
   try {
     var _vA = victory;
