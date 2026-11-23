@@ -854,7 +854,7 @@ var UPS=[
 var CATS={o:'Ofensiva',d:'Defensa',u:'Utilidad',s:'Mejora especial'};
 /* Mejoras especiales del ataque: las concede cada jefe derrotado. */
 var SPECS=[
-  {id:'bounce',n:'Proyectiles rebotantes',c:'s',ic:'icono_orbes_rebotantes',d:'Tus proyectiles rebotan 2 veces más en las paredes (máx. 10)',ok:function(){return P.c.kind==='proj'&&P.bounce<uc(10)},f:function(){P.bounce=Math.min(uc(10),P.bounce+2)}},
+  {id:'bounce',n:'Proyectiles rebotantes',c:'s',ic:'icono_orbes_rebotantes',d:'Tus proyectiles rebotan 2 veces en las paredes',ok:function(){return P.c.kind==='proj'&&!P.spB},f:function(){P.spB=2}},
   {id:'boom',n:'Detonación',c:'s',ic:'icono_detonacion',d:'Los enemigos que matas explotan y dañan a los cercanos',f:function(){}},
   {id:'split',n:'Fisión',c:'s',ic:'icono_fision',d:'Tus proyectiles se dividen en dos al impactar',ok:function(){return P.c.kind==='proj'||P.c.kind==='orbit'},f:function(){}},
   {id:'echo',n:'Eco',c:'s',ic:'icono_eco',d:'Cada ataque se repite una segunda vez al instante',f:function(){}},
@@ -1552,7 +1552,7 @@ function moveEnt(e,dx,dy){
 function mkPlayer(key,idx){
   var c=CLASSES[key];
   var p={key:key,c:c,idx:idx,x:N/2+.5,y:N/2+.5,r:.3,maxHp:c.hp,hp:c.hp,speed:c.speed,dmg:c.dmg,rate:c.rate,crit:c.crit,armor:c.armor,
-    regen:0,pick:3.2,steal:0,xpMul:1,projN:c.proj?c.proj.n:0,pierce:c.proj?c.proj.pierce:(c.orbit?5:0),bounce:c.proj&&c.proj.bounce?c.proj.bounce:0,reach:1,zoneR:1,zoneDmg:1,zoneN:1,spec:{},
+    regen:0,pick:3.2,steal:0,xpMul:1,projN:c.proj?c.proj.n:0,pierce:c.proj?c.proj.pierce:(c.orbit?5:0),bounce:c.proj&&c.proj.bounce?c.proj.bounce:0,spB:0,reach:1,zoneR:1,zoneDmg:1,zoneN:1,spec:{},
     auraR:1,auraDmg:1,orbMax:c.orbit?c.orbit.max:0,orbSpd:1,orbList:[],orbT:1,orbA:0,launchT:0,volley:false,orbGen:1,
     level:1,xp:0,need:xpNeed(1),atkCd:0,inv:0,pend:0,pendS:0,dead:false,reviveT:0,
     fx:1,fy:1,ax:1,ay:1,flash:0,anim:0,awarded:false};
@@ -1760,7 +1760,7 @@ function doAttack(second){
     var n=P.projN,pr=c.proj;
     for(i=0;i<n;i++){
       var a=pr.radial?ang+i*6.2832/n:ang+(i-(n-1)/2)*pr.spread;
-      shots.push({x:P.x,y:P.y,vx:Math.cos(a)*pr.speed,vy:Math.sin(a)*pr.speed,life:(P.bounce>0&&!pr.bounce)?Math.max(pr.life,2.6):pr.life,pierce:P.pierce,hit:[],friendly:true,col:c.shotCol||c.col,r:pr.bounce?.3:.2,bn:(pr.bounce||P.bounce>0)?P.bounce:undefined,spr:c.key==='pal'?'shield':c.key==='rogue'?'knife':undefined});
+      shots.push({x:P.x,y:P.y,vx:Math.cos(a)*pr.speed,vy:Math.sin(a)*pr.speed,life:((P.bounce+P.spB)>0&&!pr.bounce)?Math.max(pr.life,2.6):pr.life,pierce:P.pierce,hit:[],friendly:true,col:c.shotCol||c.col,r:pr.bounce?.3:.2,bn:(pr.bounce||(P.bounce+P.spB)>0)?(P.bounce+P.spB):undefined,spr:c.key==='pal'?'shield':c.key==='rogue'?'knife':undefined});
     }
   }else if(c.kind==='aura'){
     S('druid',null,null,0,.7);
@@ -2524,7 +2524,7 @@ function statRows(){
   if(k==='aura')a('Radio del aura',r1(c.aura.r*P.auraR*(P.spec.terr?1.35:1)),P.auraR>=1.75-1e-9);
   if(k==='zone'){a('Radio de zona',r1(c.zone.r*P.zoneR*(P.spec.terr?1.35:1)),P.zoneR>=1.5-1e-9);a('Zonas a la vez',P.zoneN,P.zoneN>=6)}
   if(k==='orbit'){a('Proyectiles máx.',P.orbMax,P.orbMax>=16);a('Vel. de vuelo',r1(P.c.orbit.speed*P.orbSpd));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99)}
-  if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce,P.bounce>=10)}
+  if(k==='proj'){a('Proyectiles',P.projN,P.projN>=(P.bounce>0?5:PROJ_MAX));a('Perforación',P.pierce>=99?'ilimitada':P.pierce,P.pierce>=99);a('Rebotes',P.bounce+P.spB,P.bounce>=10&&(P.spB>0||!P.c.proj||!P.c.proj.bounce))}
   if(k==='monks'){a('Monjes',P.monkMax,P.monkMax>=10);a('Daño del golpe',r1(P.dmg));a('Alcance del golpe','+'+pc(P.monkReach-1),P.monkReach>=1.5-1e-9);a('Vida de cada monje',Math.round(P.maxHp))}
   if(k==='spheres'){a('Esferas',P.sphMax,P.sphMax>=8);a('Vel. de vuelo',r1(5.5*P.sphSpd),5.5*P.sphSpd>=8-1e-6);a('Radio de explosión',r1(1.25*P.sphRad))}
   if(k==='melee')a('Alcance',r1(c.range*P.reach),P.reach>=reachCap(P)-1e-9);
@@ -7326,7 +7326,7 @@ var OK=['x','y','t','heal','v','mag'];
 var XK=['x','y','s','col','size','t'];
 var CK=['x','y','type','boss','t','flip','k'];
 var PVK=['an','inv','flash','reviveT','orbA','orbMax','orbList','spec','bar','bolts','crows','dgL','lzs','monks','sph','tomes','tors','rains','amSp','angRays','mtL','angA','angN','angRad','angSpin','angT','angW','angCd','angCh','mtFire','mtN','mtR','rn','tnT','barCd','sphMax','sphRad','sphSpd','dgMax','dgMul','skinId','monkHp','monkMax','monkReach','amCallInt','amMax','amRet','lt','auraR','walk'];
-var STK=['maxHp','dmg','rate','speed','crit','armor','regen','steal','pick','xpMul','projN','pierce','bounce','reach','zoneR','zoneDmg','zoneN','auraR','auraDmg','orbMax','orbSpd','level','pend','pendS'];
+var STK=['maxHp','dmg','rate','speed','crit','armor','regen','steal','pick','xpMul','projN','pierce','bounce','spB','reach','zoneR','zoneDmg','zoneN','auraR','auraDmg','orbMax','orbSpd','level','pend','pendS'];
 var NID=0;
 function inView(c,x,y){var dx=x-c.x,dy=y-c.y,v=c.vw||[46,54];return Math.abs(dx-dy)<v[0]&&Math.abs(dx+dy)<v[1]}
 function cap(arr,c,max,fx){var o=[];for(var i=0;i<arr.length;i++){var e=arr[i];if(!fx||inView(c,e.x,e.y))o.push(e)}if(o.length>max){o.sort(function(a,b){return Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b.x-c.x,b.y-c.y)});o.length=max}return o}
