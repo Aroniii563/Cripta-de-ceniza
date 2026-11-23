@@ -21765,6 +21765,7 @@ try{
   var UI = {
     pages: ['Páginas', 'Pages', 'Páginas', 'Pages', 'Страницы', 'ページ'],
     boss: ['Jefes', 'Bosses', 'Chefes', 'Boss', 'Боссы', 'ボス'],
+    writer: ['Escritor', 'Writer', 'Escritor', 'Écrivain', 'Писатель', '作家'],
     bossLead: ['Notas del Archivo que te dan los jefes semanales la primera vez que los derrotas. Toca una nota para leerla.', 'Archive notes that the weekly bosses give you the first time you defeat them. Tap a note to read it.', 'Notas do Arquivo que os chefes semanais dão na primeira vez que você os derrota. Toque numa nota para lê-la.', 'Notes des Archives que les boss hebdomadaires te donnent la première fois que tu les vaincs. Touche une note pour la lire.', 'Заметки Архива, которые еженедельные боссы дают при первой победе над ними. Нажмите на заметку, чтобы прочитать.', '週替わりボスを初めて倒すと手に入るアーカイブのメモ。タップして読もう。'],
     bossLock: ['Nota bloqueada', 'Locked note', 'Nota bloqueada', 'Note verrouillée', 'Заметка закрыта', 'ロックされたメモ'],
     bossHow: ['Derrota por primera vez a {n} en el modo semanal.', 'Defeat {n} for the first time in weekly mode.', 'Derrote {n} pela primeira vez no modo semanal.', 'Bats {n} pour la première fois en mode hebdomadaire.', 'Победите босса {n} в еженедельном режиме впервые.', '週間モードで初めて{n}を倒そう。'],
@@ -22164,7 +22165,9 @@ try{
     '#achWrap .ai.ok .nm{color:#f0d890;text-shadow:1px 1px 0 #000}',
     '#achWrap .ai.ok .ds{color:rgba(232,225,208,.8)}',
     '#achWrap .ai.ok .rw{color:#6fcf7f}',
-    '#pDiary.dach>.lead,#pDiary.dach>#diaryList{display:none!important}'
+    '#pDiary.dach>.lead,#pDiary.dach>#diaryList,#pDiary.dboss>.lead,#pDiary.dboss>#diaryList{display:none!important}',
+    '#diarySub{display:flex;flex-wrap:wrap;gap:6px 8px;margin:-6px 0 16px}',
+    '#diarySub[hidden]{display:none}'
   ].join('\n');
   var st = document.createElement('style'); st.id = 'logrosPx'; st.textContent = css; document.head.appendChild(st);
 
@@ -22172,6 +22175,7 @@ try{
   var tabs = document.createElement('div'); tabs.id = 'diaryTabs'; tabs.setAttribute('data-nt', '1');
   var wrap = document.createElement('div'); wrap.id = 'achWrap'; wrap.setAttribute('data-nt', '1'); wrap.hidden = true;
   var h2 = sec.querySelector('h2'); h2.insertAdjacentElement('afterend', tabs);
+  var sub = document.createElement('div'); sub.id = 'diarySub'; sub.setAttribute('data-nt', '1'); tabs.insertAdjacentElement('afterend', sub); var psub = 'writer';
   sec.appendChild(wrap);
   var NOTAS = [{id: 'vhalek', n: 'Vhalek'}, {id: 'novias', n: ['Las novias', 'The Brides', 'As noivas', 'Les fiancées', 'Невесты', '花嫁たち']}];
   function notaOk(id) { try { return !!(meta.wkWon && meta.wkWon[id]); } catch (e) { return false; } }
@@ -22193,12 +22197,15 @@ try{
   function render() {
     var a = A(), n = counts(), N = L.length, left = N - n, i;
     tabs.innerHTML = '<button class="tab" type="button" data-dt="pages" aria-pressed="' + (mode === 'pages') + '">' + T(UI.pages) + '</button>' +
-      '<button class="tab" type="button" data-dt="ach" aria-pressed="' + (mode === 'ach') + '"><img alt="" src="' + TROPHY + '">' + T(UI.ach) + ' <small>' + n + '/' + N + '</small></button>' +
-      '<button class="tab" type="button" data-dt="boss" aria-pressed="' + (mode === 'boss') + '">' + T(UI.boss) + ' <small>' + NOTAS.filter(function (x) { return notaOk(x.id); }).length + '/' + NOTAS.length + '</small></button>';
-    sec.classList.toggle('dach', mode === 'ach' || mode === 'boss');
+      '<button class="tab" type="button" data-dt="ach" aria-pressed="' + (mode === 'ach') + '"><img alt="" src="' + TROPHY + '">' + T(UI.ach) + ' <small>' + n + '/' + N + '</small></button>';
+    sub.hidden = mode !== 'pages';
+    sub.innerHTML = '<button class="tab" type="button" data-ds="writer" aria-pressed="' + (psub === 'writer') + '">' + T(UI.writer) + '</button>' +
+      '<button class="tab" type="button" data-ds="boss" aria-pressed="' + (psub === 'boss') + '">' + T(UI.boss) + ' <small>' + NOTAS.filter(function (x) { return notaOk(x.id); }).length + '/' + NOTAS.length + '</small></button>';
+    sec.classList.toggle('dach', mode === 'ach');
+    sec.classList.toggle('dboss', mode === 'pages' && psub === 'boss');
     wrap.hidden = mode !== 'ach';
-    bossWrap.hidden = mode !== 'boss';
-    if (mode === 'boss') { bossRender(); return; }
+    bossWrap.hidden = !(mode === 'pages' && psub === 'boss');
+    if (!bossWrap.hidden) bossRender();
     if (mode !== 'ach') return;
     var pc = Math.round(n / N * 100), cu = coin();
     var h = '<div class="ah"><img alt="" src="' + TROPHY + '"><div class="at"><b>' + T(UI.count) + ': ' + n + ' / ' + N + '</b><span>' + (left ? fill(T(UI.left), {n: left}) : T(UI.all100)) + '</span><div class="bar"><i style="width:' + pc + '%"></i></div></div>' +
@@ -22227,6 +22234,7 @@ try{
   }
   function fmtT(s) { s = Math.floor(s); var m = Math.floor(s / 60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
   tabs.addEventListener('click', function (e) { var b = e.target.closest('[data-dt]'); if (!b) return; mode = b.getAttribute('data-dt'); render(); });
+  sub.addEventListener('click', function (e) { var b = e.target.closest('[data-ds]'); if (!b) return; psub = b.getAttribute('data-ds'); render(); });
   wrap.addEventListener('click', function (e) { var b = e.target.closest('[data-af]'); if (!b) return; filt = b.getAttribute('data-af'); render(); });
   var _bd = buildDiary;
   buildDiary = function () { var r = _bd.apply(this, arguments); try { check(); render(); } catch (e) {} return r; };
