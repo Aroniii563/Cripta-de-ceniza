@@ -25247,6 +25247,8 @@ var ATKSTY = {
   });
   function sel(cls) { try { var s = (meta.atkSel || {})[cls]; return s && (SPR[s] || SPR[s + '0'] || SZ[s] || BZ[s] || DZ[s] || WZ[s] || MZ[s] || AZ[s] || GZ[s] || JZ[s] || PZ[s]) && tiene(s) ? s : null; } catch (e) { return null; } }
   function tiene(id) { try { return id === 'necro_almas' || id === 'sorc_runas' || id === 'barb_hachazo' || id === 'rogue_dagas' || id === 'pal_escudo' || id === 'druid_zarzas' || id === 'bruja_esferas' || id === 'monja_oro' || id === 'amz_lanzas' || id === 'ang_urnas' || id === 'jin_dragones' || id === 'pir_meteoros' || !!window.TEST_BUILD || (meta.atkSkins || []).indexOf(id) >= 0; } catch (e) { return false; } }
+  /* para los logros «todos los estilos de ataque»: la lista excluye los de Maestría (aún no disponibles) */
+  window.__ATK = {tiene: tiene, list: function (c) { return (ATKSTY[c] || []).filter(function (o) { return o.via !== 'maestria' && !o.mae; }); }};
   /* ---------- cómo se consigue cada estilo ---------- */
   var PARTIDAS_N = 20;
   var VIA = {
