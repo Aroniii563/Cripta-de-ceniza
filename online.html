@@ -21764,6 +21764,10 @@ try{
   /* ---------- textos de la interfaz ---------- */
   var UI = {
     pages: ['Páginas', 'Pages', 'Páginas', 'Pages', 'Страницы', 'ページ'],
+    boss: ['Jefes', 'Bosses', 'Chefes', 'Boss', 'Боссы', 'ボス'],
+    bossLead: ['Notas del Archivo que te dan los jefes semanales la primera vez que los derrotas. Toca una nota para leerla.', 'Archive notes that the weekly bosses give you the first time you defeat them. Tap a note to read it.', 'Notas do Arquivo que os chefes semanais dão na primeira vez que você os derrota. Toque numa nota para lê-la.', 'Notes des Archives que les boss hebdomadaires te donnent la première fois que tu les vaincs. Touche une note pour la lire.', 'Заметки Архива, которые еженедельные боссы дают при первой победе над ними. Нажмите на заметку, чтобы прочитать.', '週替わりボスを初めて倒すと手に入るアーカイブのメモ。タップして読もう。'],
+    bossLock: ['Nota bloqueada', 'Locked note', 'Nota bloqueada', 'Note verrouillée', 'Заметка закрыта', 'ロックされたメモ'],
+    bossHow: ['Derrota por primera vez a {n} en el modo semanal.', 'Defeat {n} for the first time in weekly mode.', 'Derrote {n} pela primeira vez no modo semanal.', 'Bats {n} pour la première fois en mode hebdomadaire.', 'Победите босса {n} в еженедельном режиме впервые.', '週間モードで初めて{n}を倒そう。'],
     ach: ['Logros', 'Achievements', 'Conquistas', 'Succès', 'Достижения', '実績'],
     all: ['Todos', 'All', 'Todos', 'Tous', 'Все', 'すべて'],
     done: ['Conseguidos', 'Unlocked', 'Conquistados', 'Obtenus', 'Получены', '達成済み'],
@@ -22169,14 +22173,32 @@ try{
   var wrap = document.createElement('div'); wrap.id = 'achWrap'; wrap.setAttribute('data-nt', '1'); wrap.hidden = true;
   var h2 = sec.querySelector('h2'); h2.insertAdjacentElement('afterend', tabs);
   sec.appendChild(wrap);
+  var NOTAS = [{id: 'vhalek', n: 'Vhalek'}, {id: 'novias', n: ['Las novias', 'The Brides', 'As noivas', 'Les fiancées', 'Невесты', '花嫁たち']}];
+  function notaOk(id) { try { return !!(meta.wkWon && meta.wkWon[id]); } catch (e) { return false; } }
+  function notaImg(id) { var l = (typeof LANG !== 'undefined' && LANG) || 'es'; return 'notas/nota_' + id + (l !== 'es' ? '_' + l : '') + '.png'; }
+  window.notaImg = notaImg;
+  var bossWrap = document.createElement('div'); bossWrap.id = 'bossWrap'; bossWrap.setAttribute('data-nt', '1'); bossWrap.hidden = true; sec.appendChild(bossWrap);
+  function bossRender() {
+    var h = '<p class="lead">' + T(UI.bossLead) + '</p><div class="dgrid" id="bossList">';
+    NOTAS.forEach(function (x, i) {
+      var nm = typeof x.n === 'string' ? x.n : T(x.n);
+      if (notaOk(x.id)) h += '<button class="dpg" type="button" data-bn="' + x.id + '"><img src="' + notaImg(x.id) + '" alt="' + nm + '"></button>';
+      else h += '<div class="dpg lk"><b>' + ['I', 'II'][i] + '</b><span>' + T(UI.bossLock) + '</span><small>' + fill(T(UI.bossHow), {n: nm}) + '</small></div>';
+    });
+    bossWrap.innerHTML = h + '</div>';
+  }
+  bossWrap.addEventListener('click', function (e) { var b = e.target.closest('[data-bn]'); if (!b) return; document.getElementById('diaryBig').src = notaImg(b.getAttribute('data-bn')); document.getElementById('diaryOv').hidden = false; });
   function coin() { var i = document.querySelector('.mgold .gl img'); return i ? i.src : ''; }
   function counts() { var a = A(), n = 0; L.forEach(function (x) { if (a.d[x.id]) n++; }); return n; }
   function render() {
     var a = A(), n = counts(), N = L.length, left = N - n, i;
     tabs.innerHTML = '<button class="tab" type="button" data-dt="pages" aria-pressed="' + (mode === 'pages') + '">' + T(UI.pages) + '</button>' +
-      '<button class="tab" type="button" data-dt="ach" aria-pressed="' + (mode === 'ach') + '"><img alt="" src="' + TROPHY + '">' + T(UI.ach) + ' <small>' + n + '/' + N + '</small></button>';
-    sec.classList.toggle('dach', mode === 'ach');
+      '<button class="tab" type="button" data-dt="ach" aria-pressed="' + (mode === 'ach') + '"><img alt="" src="' + TROPHY + '">' + T(UI.ach) + ' <small>' + n + '/' + N + '</small></button>' +
+      '<button class="tab" type="button" data-dt="boss" aria-pressed="' + (mode === 'boss') + '">' + T(UI.boss) + ' <small>' + NOTAS.filter(function (x) { return notaOk(x.id); }).length + '/' + NOTAS.length + '</small></button>';
+    sec.classList.toggle('dach', mode === 'ach' || mode === 'boss');
     wrap.hidden = mode !== 'ach';
+    bossWrap.hidden = mode !== 'boss';
+    if (mode === 'boss') { bossRender(); return; }
     if (mode !== 'ach') return;
     var pc = Math.round(n / N * 100), cu = coin();
     var h = '<div class="ah"><img alt="" src="' + TROPHY + '"><div class="at"><b>' + T(UI.count) + ': ' + n + ' / ' + N + '</b><span>' + (left ? fill(T(UI.left), {n: left}) : T(UI.all100)) + '</span><div class="bar"><i style="width:' + pc + '%"></i></div></div>' +
@@ -23332,16 +23354,16 @@ try {
     S('h3::after') + '{content:"";flex:1;height:4px;background:repeating-linear-gradient(90deg,#6b4e1c 0 4px,transparent 4px 8px)}',
     S('.lead') + '{max-width:none;font-style:italic;color:rgba(232,225,208,.6)!important;font-size:14px;line-height:1.6}',
     /* ---------- DIARIO ---------- */
-    '#diaryList{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))!important;gap:16px!important}',
-    '#diaryList .dpg{position:relative;padding:6px 6px 28px!important;border-radius:0!important;background:none!important;' + bi(PX.box, 6, 12) + ';transition:transform .15s steps(2),filter .15s}',
-    '#diaryList button.dpg:hover{transform:translateY(-3px) rotate(-.6deg);filter:brightness(1.12);border-image-source:url("' + PX.boxg + '")!important}',
-    '#diaryList .dpg img{border-radius:0!important;box-shadow:4px 4px 0 rgba(0,0,0,.6);image-rendering:auto}',
-    '#diaryList .dpg .dr-n{position:absolute;left:0;right:0;bottom:6px;font-family:var(--display);font-size:14px;letter-spacing:.2em;color:' + G + ';text-shadow:1px 1px 0 #000}',
-    '#diaryList .dpg.lk{min-height:260px;filter:none!important;color:rgba(232,225,208,.4)!important;padding:12px!important;background:repeating-linear-gradient(45deg,rgba(201,168,90,.04) 0 2px,transparent 2px 8px)!important}',
-    '#diaryList .dpg.lk b{font-family:var(--display);font-size:46px!important;color:rgba(201,168,90,.35);text-shadow:3px 3px 0 #000}',
-    '#diaryList .dpg.lk span{font-size:11px;letter-spacing:.2em;text-transform:uppercase}',
-    '#diaryList .dpg.lk small{font-style:italic;font-size:12px;color:rgba(232,225,208,.4)!important}',
-    '#diaryList .dpg.lk .dr-lk{width:30px;height:30px;margin:0 auto;image-rendering:pixelated;opacity:.7}',
+    '#diaryList,#bossList{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))!important;gap:16px!important}',
+    '#diaryList .dpg,#bossList .dpg{position:relative;padding:6px 6px 28px!important;border-radius:0!important;background:none!important;' + bi(PX.box, 6, 12) + ';transition:transform .15s steps(2),filter .15s}',
+    '#diaryList button.dpg:hover,#bossList button.dpg:hover{transform:translateY(-3px) rotate(-.6deg);filter:brightness(1.12);border-image-source:url("' + PX.boxg + '")!important}',
+    '#diaryList .dpg img,#bossList .dpg img{border-radius:0!important;box-shadow:4px 4px 0 rgba(0,0,0,.6);image-rendering:auto}',
+    '#diaryList .dpg .dr-n,#bossList .dpg .dr-n{position:absolute;left:0;right:0;bottom:6px;font-family:var(--display);font-size:14px;letter-spacing:.2em;color:' + G + ';text-shadow:1px 1px 0 #000}',
+    '#diaryList .dpg.lk,#bossList .dpg.lk{min-height:260px;filter:none!important;color:rgba(232,225,208,.4)!important;padding:12px!important;background:repeating-linear-gradient(45deg,rgba(201,168,90,.04) 0 2px,transparent 2px 8px)!important}',
+    '#diaryList .dpg.lk b,#bossList .dpg.lk b{font-family:var(--display);font-size:46px!important;color:rgba(201,168,90,.35);text-shadow:3px 3px 0 #000}',
+    '#diaryList .dpg.lk span,#bossList .dpg.lk span{font-size:11px;letter-spacing:.2em;text-transform:uppercase}',
+    '#diaryList .dpg.lk small,#bossList .dpg.lk small{font-style:italic;font-size:12px;color:rgba(232,225,208,.4)!important}',
+    '#diaryList .dpg.lk .dr-lk,#bossList .dpg.lk .dr-lk{width:30px;height:30px;margin:0 auto;image-rendering:pixelated;opacity:.7}',
     '#diaryOv img{border:0;' + bi(PX.card, 8, 16) + ';background:#0c0d0e;box-shadow:8px 8px 0 rgba(0,0,0,.6)}',
     /* ---------- TABLAS (ranking y estadísticas) ---------- */
     S('.tscroll') + '{padding:2px 6px!important;' + bi(PX.card, 8, 16) + ';background:rgba(12,13,14,.75)!important}',
@@ -27419,12 +27441,12 @@ function wkVictory(){
   if(state!=='play'&&state!=='levelup')return;
   state='dead';P=PL[0];try{$('lvlOv').hidden=true}catch(e){}
   var def=wkBoss(),r=endRun('victoria'),lv=0;
-  try{meta.wkWon=meta.wkWon||{};if(!meta.wkWon[def.id]){meta.wkWon[def.id]=1;try{toast('Nuevo fondo de perfil desbloqueado: '+def.name)}catch(e){}}}catch(e){}
+  var notaNueva=false;try{meta.wkWon=meta.wkWon||{};if(!meta.wkWon[def.id]){meta.wkWon[def.id]=1;notaNueva=(def.id==='vhalek'||def.id==='novias');try{toast('Nuevo fondo de perfil desbloqueado: '+def.name)}catch(e){}if(notaNueva)setTimeout(function(){try{toast('Nota del Archivo desbloqueada (Diario › Jefes)')}catch(e){}},2600)}}catch(e){}
   try{meta.weekly=meta.weekly||{};if(!meta.weekly[wkWeek()]||t<meta.weekly[wkWeek()])meta.weekly[wkWeek()]=+t.toFixed(1)}catch(e){}
   PL.forEach(function(q){lv=Math.max(lv,q.level)});
   $('deadTitle').textContent='¡'+def.name+(def.pl?' han caído!':' ha caído!');
   $('deadSub').textContent='Has completado el jefe semanal. El siguiente llega en '+wkLeft()+'.';
-  $('deadPage').hidden=true;
+  var dpn=$('deadPage');if(notaNueva&&window.notaImg){dpn.innerHTML='<img src="'+window.notaImg(def.id)+'" alt="Nota del Archivo">';dpn.hidden=false;dpn.firstChild.onclick=function(){$('diaryBig').src=this.src;$('diaryOv').hidden=false}}else dpn.hidden=true;
   $('deadSum').innerHTML='<div><small>Tiempo</small><b>'+fmt(t)+'</b></div><div><small>Nivel</small><b>'+lv+'</b></div><div><small>Bajas</small><b>'+kills+'</b></div><div><small>Oro ganado</small><b>+'+r.g+'</b></div>';
   saveMeta();$('deadOv').hidden=false;
 }
